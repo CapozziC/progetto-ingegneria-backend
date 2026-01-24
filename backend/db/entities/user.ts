@@ -3,20 +3,17 @@ import {
   PrimaryGeneratedColumn,
   Column,
   CreateDateColumn,
-  ManyToOne,
   UpdateDateColumn,
 } from "typeorm";
 
-import { User } from "./localUser";
-
 export enum Provider {
-  GOOGLE = "GOOGLE",
-  GITHUB = "GITHUB",
-  FACEBOOK = "FACEBOOK",
+  GOOGLE = "google",
+  GITHUB = "github",
+  FACEBOOK = "facebook",
 }
 
-@Entity("provider_account")
-export class ProviderAccount {
+@Entity("user")
+export class User {
   @PrimaryGeneratedColumn()
   id!: number;
 
@@ -29,14 +26,18 @@ export class ProviderAccount {
   @Column()
   email!: string;
 
+  @Column({ nullable: true })
+  password?: string;
+
   @Column({
     type: "enum",
     enum: Provider,
+    nullable: true,
   })
-  provider!: Provider;
+  provider?: Provider;
 
-  @Column()
-  providerUserId!: string;
+  @Column({ nullable: true })
+  providerUserId?: string;
 
   @CreateDateColumn({ type: "timestamp with time zone" })
   createdAt!: Date;
@@ -47,4 +48,3 @@ export class ProviderAccount {
   })
   updatedAt!: Date;
 }
-          

@@ -1,4 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column } from "typeorm";
+import type { Point } from "geojson";
 
 export enum EnergyClass {
   A = "A",
@@ -11,15 +12,15 @@ export enum EnergyClass {
 }
 
 export enum HousingType {
-  APARTMENT = "APARTMENT",
-  VILLA = "VILLA",
+  APARTMENT = "apartment",
+  VILLA = "villa",
 }
 
 export enum OutdoorSpace {
-  NONE = "NONE",
-  BALCONY = "BALCONY",
-  TERRACE = "TERRACE",
-  GARDEN = "GARDEN",
+  NONE = "none",
+  BALCONY = "balcony",
+  TERRACE = "terrace",
+  GARDEN = "garden",
 }
 
 @Entity("real_estate")
@@ -34,31 +35,32 @@ export class RealEstate {
   rooms!: number;
 
   @Column()
-  floor!: String;
+  floor!: string;
+  
 
   @Column({ default: false })
-  elevator!: Boolean;
+  elevator!: boolean;
 
   @Column({ default: false })
-  airConditioning!: Boolean;
+  airConditioning!: boolean;
 
   @Column({ default: false })
-  heating!: Boolean;
+  heating!: boolean;
 
   @Column({ default: false })
-  concierge!: Boolean;
+  concierge!: boolean;
 
   @Column({ default: false })
-  parking!: Boolean;
+  parking!: boolean;
 
   @Column({ default: false })
-  garage!: Boolean;
+  garage!: boolean;
 
   @Column({ default: false })
-  furnished!: Boolean;
+  furnished!: boolean;
 
   @Column({ default: false })
-  solarPanels!: Boolean;
+  solarPanels!: boolean;
 
   @Column({ type: "enum", enum: EnergyClass })
   energyClass!: EnergyClass;
@@ -68,4 +70,10 @@ export class RealEstate {
 
   @Column({ type: "enum", enum: HousingType })
   housingType!: HousingType;
+
+  @Column("geometry", {
+    spatialFeatureType: "Point",
+    srid: 4326,
+  })
+  location!: Point;
 }

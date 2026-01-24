@@ -3,26 +3,33 @@ import {
   PrimaryGeneratedColumn,
   Column,
   CreateDateColumn,
-  OneToMany,
   UpdateDateColumn,
-} from "typeorm";
+} from "typeorm";    
 
-@Entity("user")
-export class User {
+export enum userType {
+  AGENT = "agent",
+  USER = "user",
+}
+
+@Entity("token")
+export class Token {
   @PrimaryGeneratedColumn()
   id!: number;
 
   @Column()
-  name!: string;
+  subjectId!: number;
+
+  @Column({
+    type: "enum",
+    enum: userType,
+  })
+  type!: userType;
 
   @Column()
-  surname!: string;
+  refreshToken!: string;
 
   @Column()
-  email!: string;
-
-  @Column()
-  password!: string;
+  expiresAt!: Date;
 
   @CreateDateColumn({ type: "timestamp with time zone" })
   createdAt!: Date;

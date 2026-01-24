@@ -7,15 +7,15 @@ import {
   ManyToOne,
 } from "typeorm";
 
-import { User } from "./localUser";
+import { User } from "./user";
 import { Advertisement } from "./advertisement";
 import { Agent } from "./agent";
 
 export enum AppointmentStatus {
-  REQUESTED = "REQUESTED",
-  CONFIRMED = "CONFIRMED",
-  CANCELLED = "CANCELLED",
-  COMPLETED = "COMPLETED",
+  REQUESTED = "requested",
+  CONFIRMED = "confirmed",
+  CANCELLED = "cancelled",
+  COMPLETED = "completed",
 }
 
 @Entity("appointment")
@@ -46,7 +46,9 @@ export class Appointment {
    * User who requested this appointment
    * If the user is deleted, the appointment is deleted as well.
    */
-  @ManyToOne(() => User, (user) => user.id, { onDelete: "CASCADE" })
+  @ManyToOne(() => User, (user) => user.id, {
+    onDelete: "CASCADE",
+  })
   user!: User;
 
   /**

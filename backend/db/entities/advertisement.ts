@@ -17,13 +17,13 @@ import { Photo } from "./photo";
 import { Offer } from "./offer";
 
 export enum AdvertisementStatus {
-  ACTIVE = "ACTIVE",
-  INACTIVE = "INACTIVE",
+  ACTIVE = "active",
+  INACTIVE = "inactive",
 }
 
 export enum TypeAdvertisement {
-  SALE = "SALE",
-  RENT = "RENT",
+  SALE = "sale",
+  RENT = "rent",
 }
 
 @Entity("advertisement")
@@ -89,7 +89,7 @@ export class Advertisement {
   /**
    * Real estate property described by this advertisement
    */
-  @OneToOne(() => RealEstate, {onDelete: "CASCADE", cascade: true})
+  @OneToOne(() => RealEstate, { onDelete: "CASCADE", cascade: true })
   @JoinColumn()
   realEstate!: RealEstate;
 }

@@ -7,13 +7,13 @@ import {
 } from "typeorm";
 
 import { Advertisement } from "./advertisement";
-import { User } from "./localUser";
+import { User } from "./user";
 import { Agent } from "./agent";
 
 export enum OfferStatus {
-  PENDING = "PENDING",
-  ACCEPTED = "ACCEPTED",
-  REJECTED = "REJECTED",
+  PENDING = "pending",
+  ACCEPTED = "accepted",
+  REJECTED = "rejected",
 }
 
 @Entity("offer")
