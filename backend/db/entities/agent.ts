@@ -6,9 +6,9 @@ import {
   OneToMany,
   ManyToOne,
 } from "typeorm";
-import { Advertisement } from "./advertisement.js";
-import { Offer } from "./offer.js";
-import { Appointment } from "./appointment.js";
+import type { Advertisement } from "./advertisement.js";
+import type { Offer } from "./offer.js";
+import type { Appointment } from "./appointment.js";
 import { Agency } from "./agency.js";
 
 @Entity("agent")
@@ -40,19 +40,19 @@ export class Agent {
   /**
    * Advertisements managed by this Agent
    */
-  @OneToMany(() => Advertisement, (advertisement) => advertisement.agent)
+  @OneToMany("Advertisement", (advertisement: Advertisement) => advertisement.agent)
   advertisements!: Advertisement[];
 
   /**
    * Offers managed by this Agent
    */
-  @OneToMany(() => Offer, (offer) => offer.agent)
+  @OneToMany("Offer", (offer: Offer) => offer.agent)
   offers!: Offer[];
 
   /**
    * Appointments managed by this Agent
    */
-  @OneToMany(() => Appointment, (appointment) => appointment.agent)
+  @OneToMany("Appointment", (appointment: Appointment) => appointment.agent)
   appointments!: Appointment[];
 
   /**

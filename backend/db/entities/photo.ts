@@ -6,8 +6,8 @@ import {
   OneToOne,
   JoinColumn,
 } from "typeorm";
-import { Advertisement } from "./advertisement.js";
-import { Agency } from "./agency.js";
+import type { Advertisement } from "./advertisement.js";
+import type { Agency } from "./agency.js";
 
 export enum Format {
   JPEG = "JPEG",
@@ -39,16 +39,16 @@ export class Photo {
    * Agency this photo represents
    * If the agency is deleted, the photo is deleted as well.
    */
-  @OneToOne(() => Agency, { onDelete: "CASCADE" })
+  @OneToOne("Agency", { onDelete: "CASCADE" })
   @JoinColumn()
-  agency?: Agency;
+  agency?: Promise<Agency>;
 
   /**
    * Advertisement this photo refers to
    * If the advertisement is deleted, the photo is deleted as well.
    */
-  @ManyToOne(() => Advertisement, (advertisement) => advertisement.photos, {
+  @ManyToOne("Advertisement", (advertisement: Advertisement) => advertisement.photos, {
     onDelete: "CASCADE",
   })
-  advertisement!: Advertisement;
+  advertisement!: Promise<Advertisement>;
 }

@@ -11,10 +11,9 @@ import {
 } from "typeorm";
 import { Agent } from "./agent.js";
 import { RealEstate } from "./realEstate.js";
-import { Appointment } from "./appointment.js";
-
-import { Photo } from "./photo.js";
-import { Offer } from "./offer.js";
+import type { Appointment } from "./appointment.js";
+import type { Photo } from "./photo.js";
+import type { Offer } from "./offer.js";
 
 export enum AdvertisementStatus {
   ACTIVE = "active",
@@ -71,19 +70,19 @@ export class Advertisement {
   /**
    * Offers received for this advertisement
    */
-  @OneToMany(() => Offer, (offer) => offer.advertisement)
+  @OneToMany("Offer", (offer: Offer) => offer.advertisement)
   offers!: Offer[];
 
   /**
    * Appointments scheduled for this advertisement
    */
-  @OneToMany(() => Appointment, (appointment) => appointment.advertisement)
+  @OneToMany("Appointment", (appointment: Appointment) => appointment.advertisement)
   appointments!: Appointment[];
 
   /**
    * Photos associated with this advertisement
    */
-  @OneToMany(() => Photo, (photo) => photo.advertisement)
+  @OneToMany("Photo", (photo: Photo) => photo.advertisement)
   photos!: Photo[];
 
   /**
