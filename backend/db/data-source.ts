@@ -10,7 +10,7 @@ import { Photo } from "./entities/photo.js";
 import { RealEstate } from "./entities/realEstate.js";
 import { Token } from "./entities/token.js";
 
-const AppDataSource = new DataSource({
+export const AppDataSource = new DataSource({
   type: "postgres",
   host: process.env.DB_HOST,
   port: Number(process.env.DB_PORT),
