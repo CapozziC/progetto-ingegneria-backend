@@ -1,14 +1,5 @@
 import "reflect-metadata";
 import { DataSource } from "typeorm";
-import { User } from "./entities/user.js";
-import { Agent } from "./entities/agent.js";
-import { Advertisement } from "./entities/advertisement.js";
-import { Agency } from "./entities/agency.js";
-import { Appointment } from "./entities/appointment.js";
-import { Offer } from "./entities/offer.js";
-import { Photo } from "./entities/photo.js";
-import { RealEstate } from "./entities/realEstate.js";
-import { Token } from "./entities/token.js";
 
 export const AppDataSource = new DataSource({
   type: "postgres",
