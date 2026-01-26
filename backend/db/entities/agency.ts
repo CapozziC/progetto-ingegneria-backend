@@ -1,6 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany, OneToOne } from "typeorm";
-import { Agent } from "./agent";
-import { Photo } from "./photo";
+import { Agent } from "./agent.js";
+import { Photo } from "./photo.js";
 
 @Entity("agency")
 export class Agency {

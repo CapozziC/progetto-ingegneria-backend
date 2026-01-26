@@ -7,9 +7,9 @@ import {
   ManyToOne,
 } from "typeorm";
 
-import { User } from "./user";
-import { Advertisement } from "./advertisement";
-import { Agent } from "./agent";
+import { User } from "./user.js";
+import { Advertisement } from "./advertisement.js";
+import { Agent } from "./agent.js";
 
 export enum AppointmentStatus {
   REQUESTED = "requested",

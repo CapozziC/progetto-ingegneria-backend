@@ -6,8 +6,8 @@ import {
   OneToOne,
   JoinColumn,
 } from "typeorm";
-import { Advertisement } from "./advertisement";
-import { Agency } from "./agency";
+import { Advertisement } from "./advertisement.js";
+import { Agency } from "./agency.js";
 
 export enum Format {
   JPEG = "JPEG",

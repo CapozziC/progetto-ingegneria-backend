@@ -6,9 +6,9 @@ import {
   ManyToOne,
 } from "typeorm";
 
-import { Advertisement } from "./advertisement";
-import { User } from "./user";
-import { Agent } from "./agent";
+import { Advertisement } from "./advertisement.js";
+import { User } from "./user.js";
+import { Agent } from "./agent.js";
 
 export enum OfferStatus {
   PENDING = "pending",

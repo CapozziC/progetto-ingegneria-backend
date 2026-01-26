@@ -6,10 +6,10 @@ import {
   OneToMany,
   ManyToOne,
 } from "typeorm";
-import { Advertisement } from "./advertisement";
-import { Offer } from "./offer";
-import { Appointment } from "./appointment";
-import { Agency } from "./agency";
+import { Advertisement } from "./advertisement.js";
+import { Offer } from "./offer.js";
+import { Appointment } from "./appointment.js";
+import { Agency } from "./agency.js";
 
 @Entity("agent")
 export class Agent {

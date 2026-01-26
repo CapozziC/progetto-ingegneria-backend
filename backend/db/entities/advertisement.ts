@@ -9,12 +9,12 @@ import {
   OneToOne,
   JoinColumn,
 } from "typeorm";
-import { Agent } from "./agent";
-import { RealEstate } from "./realEstate";
-import { Appointment } from "./appointment";
+import { Agent } from "./agent.js";
+import { RealEstate } from "./realEstate.js";
+import { Appointment } from "./appointment.js";
 
-import { Photo } from "./photo";
-import { Offer } from "./offer";
+import { Photo } from "./photo.js";
+import { Offer } from "./offer.js";
 
 export enum AdvertisementStatus {
   ACTIVE = "active",
