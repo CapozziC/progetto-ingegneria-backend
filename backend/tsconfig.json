@@ -14,7 +14,6 @@
     // For nodejs:
     "lib": ["esnext"],
     "types": ["node"],
-    // and npm install -D @types/node
 
     // Other Outputs
     "sourceMap": true,
@@ -23,23 +22,14 @@
 
     // Stricter Typechecking Options
     "noUncheckedIndexedAccess": true,
-    //"exactOptionalPropertyTypes": true,
 
     //typeOrm
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
 
-    // Style Options
-    // "noImplicitReturns": true,
-    // "noImplicitOverride": true,
-    // "noUnusedLocals": true,
-    // "noUnusedParameters": true,
-    // "noFallthroughCasesInSwitch": true,
-    // "noPropertyAccessFromIndexSignature": true,
-
     // Recommended Options
     "jsx": "react-jsx",
-    "verbatimModuleSyntax": true,
+    "verbatimModuleSyntax": false,
     "isolatedModules": true,
     //"noUncheckedSideEffectImports": true,
     "moduleDetection": "force",
