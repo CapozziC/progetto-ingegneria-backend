@@ -5,6 +5,9 @@ import {
   Column,
   OneToMany,
   ManyToOne,
+  Check,
+  Index,
+  JoinColumn,
 } from "typeorm";
 import type { Advertisement } from "./advertisement.js";
 import type { Offer } from "./offer.js";
@@ -12,36 +15,56 @@ import type { Appointment } from "./appointment.js";
 import { Agency } from "./agency.js";
 
 @Entity("agent")
+@Check(`length(trim("first_name")) > 1`)
+@Check(`length(trim("last_name")) > 1`)
+@Check(`"username" ~ '^(agent|admin)[0-9]+$'`)
+@Check(`length(trim("password")) > 0`)
+@Check(`"phone_number" ~ '^\\+[1-9][0-9]{7,14}$'`)
 export class Agent {
   @PrimaryGeneratedColumn()
   id!: number;
 
-  @Column()
-  name!: string;
+  @Column({ name: "first_name", type: "varchar", length: 30 })
+  firstName!: string;
 
-  @Column()
-  surname!: string;
+  @Column({ name: "last_name", type: "varchar", length: 30 })
+  lastName!: string;
 
   @Column()
   username!: string;
 
-  @Column()
+  @Column({ type: "varchar", length: 255 })
   password!: string;
 
-  @CreateDateColumn({ type: "timestamp with time zone" })
+  @CreateDateColumn({
+    name: "created_at",
+    type: "timestamp with time zone",
+    default: () => "CURRENT_TIMESTAMP",
+  })
   createdAt!: Date;
 
-  @Column()
+  @Column({ name: "phone_number", type: "varchar", length: 15 })
   phoneNumber!: string;
 
-  @Column({ default: false })
+  @Column({ name: "is_admin" })
   isAdmin!: boolean;
 
   /**
    * Advertisements managed by this Agent
    */
-  @OneToMany("Advertisement", (advertisement: Advertisement) => advertisement.agent)
+  @OneToMany(
+    "Advertisement",
+    (advertisement: Advertisement) => advertisement.agent,
+  )
   advertisements!: Advertisement[];
+
+  @Index("IDX_agent_agency_id", ["agencyId"])
+  @Column({ name: "agency_id" })
+  agencyId!: number;
+
+  @Index("IDX_agent_administrator_id", ["administratorId"])
+  @Column({ name: "administrator_id", nullable: true })
+  administratorId!: number | null;
 
   /**
    * Offers managed by this Agent
@@ -62,12 +85,14 @@ export class Agent {
   @ManyToOne(() => Agency, (realEstateAgency) => realEstateAgency.agent, {
     onDelete: "CASCADE",
   })
+  @JoinColumn({ name: "agency_id" })
   agency!: Agency;
 
   /**
    * Administrator responsible for this Agent
    */
-  @ManyToOne(() => Agent, (agent) => agent.agents, {onDelete: "SET NULL"})
+  @ManyToOne(() => Agent, (agent) => agent.agents, { onDelete: "SET NULL" })
+  @JoinColumn({ name: "administrator_id" })
   administrator!: Agent;
 
   /**

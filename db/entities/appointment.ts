@@ -5,6 +5,9 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   ManyToOne,
+  Check,
+  Index,
+  JoinColumn,
 } from "typeorm";
 
 import { User } from "./user.js";
@@ -19,14 +22,24 @@ export enum AppointmentStatus {
 }
 
 @Entity("appointment")
+@Check(`(status IN ('completed', 'cancelled') 
+  OR appointment_at > CURRENT_TIMESTAMP)`)
+@Index("IDX_appointmentAt_status_agent", ["status", "appointmentAt", "agentId"])
 export class Appointment {
   @PrimaryGeneratedColumn()
   id!: number;
 
-  @CreateDateColumn({ type: "timestamp with time zone" })
+  @Column({
+    name: "appointment_at",
+    type: "timestamp with time zone",
+  })
   appointmentAt!: Date;
 
-  @CreateDateColumn({ type: "timestamp with time zone" })
+  @CreateDateColumn({
+    name: "created_at",
+    type: "timestamp with time zone",
+    default: () => "CURRENT_TIMESTAMP",
+  })
   createdAt!: Date;
 
   @UpdateDateColumn({
@@ -42,12 +55,15 @@ export class Appointment {
   })
   status!: AppointmentStatus;
 
+  @Column({ name: "agent_id" })
+  agentId!: number;
+
   /**
    * User who requested this appointment
    * If the user is deleted, the appointment is deleted as well.
    */
   @ManyToOne(() => User, (user) => user.id, {
-    onDelete: "CASCADE",
+    onDelete: "RESTRICT",
   })
   user!: User;
 
@@ -58,7 +74,7 @@ export class Appointment {
   @ManyToOne(
     () => Advertisement,
     (advertisement) => advertisement.appointments,
-    { onDelete: "CASCADE" }
+    { onDelete: "CASCADE" },
   )
   advertisement!: Advertisement;
 
@@ -69,5 +85,6 @@ export class Appointment {
   @ManyToOne(() => Agent, (agent) => agent.appointments, {
     onDelete: "CASCADE",
   })
+  @JoinColumn({ name: "agent_id" })
   agent!: Agent;
 }

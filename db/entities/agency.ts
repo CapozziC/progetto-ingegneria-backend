@@ -1,20 +1,25 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany, OneToOne } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany, OneToOne, Check,Index } from "typeorm";
 import { Agent } from "./agent.js";
 import { Photo } from "./photo.js";
 
 @Entity("agency")
+@Check(`length(trim("name")) > 1`)
+@Check(`length(trim("phoneNumber")) > 0`)
+@Check(`"phone_number" ~ '^\\+[1-9][0-9]{7,14}$'`)
+@Check(`"email" ~ '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$'`)
 export class Agency {
   @PrimaryGeneratedColumn()
   id!: number;
-
-  @Column()
+  
+  @Index("IDX_agency_name", ["name"])
+  @Column({ type: "varchar", length: 30 })
   name!: string;
 
-  @Column()
+  @Column({ name: "phone_number", type: "varchar", length: 15 })
   phoneNumber!: string;
 
-  @Column()
-  email?: string;
+  @Column({ type: "varchar", length: 100 })
+  email!: string;
 
   /**
    * Agents that belong to this agency
@@ -25,6 +30,6 @@ export class Agency {
   /**
    * Photo representing this agency
    */
-  @OneToOne(() => Photo, (photo) => photo.agency, { cascade: true })
-  photo?: Photo;
+  @OneToOne(() => Photo, (photo) => photo.agency, { onDelete: "SET NULL" })
+  photo!: Photo;
 }
