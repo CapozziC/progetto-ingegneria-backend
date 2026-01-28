@@ -38,8 +38,7 @@ export class Agent {
 
   @CreateDateColumn({
     name: "created_at",
-    type: "timestamp with time zone",
-    default: () => "CURRENT_TIMESTAMP",
+    type: "timestamp with time zone"
   })
   createdAt!: Date;
 

@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, Check } from "typeorm";
 import type { Point } from "geojson";
 
 export enum EnergyClass {
@@ -11,7 +11,7 @@ export enum EnergyClass {
   G = "G",
 }
 
-export enum HousingType {
+export enum Type {
   APARTMENT = "apartment",
   VILLA = "villa",
 }
@@ -24,10 +24,15 @@ export enum OutdoorSpace {
 }
 
 @Entity("real_estate")
+@Check(`"energyClass" IN ('A', 'B', 'C', 'D', 'E', 'F', 'G')`)
+@Check(`"outdoorSpace" IN ('none', 'balcony', 'terrace', 'garden')`)
+@Check(`"housingType" IN ('apartment', 'villa')`)
+@Check(`"size" > 0`)
+@Check(`"rooms" > 0`)
 export class RealEstate {
   @PrimaryGeneratedColumn()
   id!: number;
-
+  
   @Column({ type: "int" })
   size!: number;
 
@@ -68,12 +73,14 @@ export class RealEstate {
   @Column({ type: "enum", enum: OutdoorSpace })
   outdoorSpace!: OutdoorSpace;
 
-  @Column({ type: "enum", enum: HousingType })
-  housingType!: HousingType;
+  @Column({ type: "enum", enum: Type })
+  housingType!: Type;
 
   @Column("geometry", {
     spatialFeatureType: "Point",
     srid: 4326,
   })
   location!: Point;
+
+  
 }

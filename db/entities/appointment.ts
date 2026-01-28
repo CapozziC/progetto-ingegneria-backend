@@ -14,7 +14,7 @@ import { User } from "./user.js";
 import { Advertisement } from "./advertisement.js";
 import { Agent } from "./agent.js";
 
-export enum AppointmentStatus {
+export enum Status {
   REQUESTED = "requested",
   CONFIRMED = "confirmed",
   CANCELLED = "cancelled",
@@ -24,6 +24,7 @@ export enum AppointmentStatus {
 @Entity("appointment")
 @Check(`(status IN ('completed', 'cancelled') 
   OR appointment_at > CURRENT_TIMESTAMP)`)
+@Check(`"status" IN ('requested', 'confirmed', 'cancelled', 'completed')`)
 @Index("IDX_appointmentAt_status_agent", ["status", "appointmentAt", "agentId"])
 export class Appointment {
   @PrimaryGeneratedColumn()
@@ -38,22 +39,21 @@ export class Appointment {
   @CreateDateColumn({
     name: "created_at",
     type: "timestamp with time zone",
-    default: () => "CURRENT_TIMESTAMP",
   })
   createdAt!: Date;
 
   @UpdateDateColumn({
+    name: "updated_at",
     type: "timestamp with time zone",
-    default: () => "CURRENT_TIMESTAMP",
   })
   updatedAt!: Date;
 
   @Column({
     type: "enum",
-    enum: AppointmentStatus,
-    default: AppointmentStatus.REQUESTED,
+    enum: Status,
+    default: Status.REQUESTED,
   })
-  status!: AppointmentStatus;
+  status!: Status;
 
   @Column({ name: "agent_id" })
   agentId!: number;

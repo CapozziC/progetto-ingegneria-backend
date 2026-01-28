@@ -2,41 +2,41 @@ import {
   Entity,
   PrimaryGeneratedColumn,
   Column,
-  CreateDateColumn,
   UpdateDateColumn,
-} from "typeorm";    
+  Check,
+  Index,
+} from "typeorm";
 
-export enum userType {
+export enum Type {
   AGENT = "agent",
   USER = "user",
 }
 
 @Entity("token")
+@Check(`"type" IN ('agent', 'user')`)
 export class Token {
   @PrimaryGeneratedColumn()
   id!: number;
 
-  @Column()
+  @Column({ name: "subject_id", type: "int" })
   subjectId!: number;
 
   @Column({
     type: "enum",
-    enum: userType,
+    enum: Type,
   })
-  type!: userType;
+  type!: Type;
 
-  @Column()
+  @Index("IDX_refresh_token", ["refreshToken"])
+  @Column({ name: "refresh_token" })
   refreshToken!: string;
 
-  @Column()
+  @Column({ name: "expires_at", type: "timestamp with time zone" })
   expiresAt!: Date;
 
-  @CreateDateColumn({ type: "timestamp with time zone" })
-  createdAt!: Date;
-
   @UpdateDateColumn({
+    name: "updated_at",
     type: "timestamp with time zone",
-    default: () => "CURRENT_TIMESTAMP",
   })
   updatedAt!: Date;
 }

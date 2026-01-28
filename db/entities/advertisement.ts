@@ -10,19 +10,22 @@ import {
   JoinColumn,
   Check,
   Index,
+  ManyToMany,
+  JoinTable,
 } from "typeorm";
 import { Agent } from "./agent.js";
 import { RealEstate } from "./realEstate.js";
 import type { Appointment } from "./appointment.js";
 import type { Photo } from "./photo.js";
 import type { Offer } from "./offer.js";
+import { Poi } from "./poi.js";
 
-export enum AdvertisementStatus {
+export enum Status {
   ACTIVE = "active",
-  INACTIVE = "inactive",
+  SOLD = "sold",
 }
 
-export enum TypeAdvertisement {
+export enum Type {
   SALE = "sale",
   RENT = "rent",
 }
@@ -30,6 +33,8 @@ export enum TypeAdvertisement {
 @Entity("advertisement")
 @Check(`length(trim("description")) > 0`)
 @Check(`"price" > 0`)
+@Check(`"status" IN ('active','sold')`)
+@Check(`"type" IN ('sale', 'rent')`)
 @Index("IDX_adv_status_price", ["status", "price"])
 export class Advertisement {
   @PrimaryGeneratedColumn()
@@ -44,30 +49,28 @@ export class Advertisement {
   @CreateDateColumn({
     name: "created_at",
     type: "timestamp with time zone",
-    default: () => "CURRENT_TIMESTAMP",
   })
   createdAt!: Date;
 
   @UpdateDateColumn({
     name: "updated_at",
     type: "timestamp with time zone",
-    default: () => "CURRENT_TIMESTAMP",
   })
   updatedAt!: Date;
 
   @Column({
     type: "enum",
-    enum: AdvertisementStatus,
-    default: AdvertisementStatus.ACTIVE,
+    enum: Status,
+    default: Status.ACTIVE,
   })
-  status!: AdvertisementStatus;
+  status!: Status;
 
   @Index("IDX_adv_type", ["type"])
   @Column({
     type: "enum",
-    enum: TypeAdvertisement,
+    enum: Type,
   })
-  type!: TypeAdvertisement;
+  type!: Type;
 
   @Index("IDX_adv_agent_id", ["agentId"])
   @Column({ name: "agent_id" })
@@ -109,8 +112,17 @@ export class Advertisement {
   photos!: Photo[];
 
   /**
+   * Points of interest associated with this advertisement
+   */
+
+  @ManyToMany(() => Poi)
+  @JoinTable()
+  pois!: Poi[];
+
+  /**
    * Real estate property described by this advertisement
    */
+
   @OneToOne(() => RealEstate, { onDelete: "CASCADE", cascade: true })
   @JoinColumn({ name: "real_estate_id" })
   realEstate!: RealEstate;

@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany, OneToOne, Check,Index } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany, OneToOne, Check,Index, JoinColumn } from "typeorm";
 import { Agent } from "./agent.js";
 import { Photo } from "./photo.js";
 
@@ -18,7 +18,7 @@ export class Agency {
   @Column({ name: "phone_number", type: "varchar", length: 15 })
   phoneNumber!: string;
 
-  @Column({ type: "varchar", length: 100 })
+  @Column({ type: "varchar", length: 100, unique: true })
   email!: string;
 
   /**
@@ -31,5 +31,6 @@ export class Agency {
    * Photo representing this agency
    */
   @OneToOne(() => Photo, (photo) => photo.agency, { onDelete: "SET NULL" })
+  @JoinColumn({ name: "photo_id" })
   photo!: Photo;
 }

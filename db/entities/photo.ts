@@ -4,7 +4,7 @@ import {
   Column,
   ManyToOne,
   OneToOne,
-  JoinColumn,
+  Check,
 } from "typeorm";
 import type { Advertisement } from "./advertisement.js";
 import type { Agency } from "./agency.js";
@@ -16,6 +16,9 @@ export enum Format {
 }
 
 @Entity("photo")
+@Check(`"format" IN ('JPEG', 'PNG', 'HEIC')`)
+@Check(`length(trim("url")) > 0`)
+@Check(`"position" >= 0`)
 export class Photo {
   @PrimaryGeneratedColumn()
   id!: number;
@@ -40,15 +43,18 @@ export class Photo {
    * If the agency is deleted, the photo is deleted as well.
    */
   @OneToOne("Agency", { onDelete: "CASCADE" })
-  @JoinColumn()
-  agency?: Promise<Agency>;
+  agency!: Agency;
 
   /**
    * Advertisement this photo refers to
    * If the advertisement is deleted, the photo is deleted as well.
    */
-  @ManyToOne("Advertisement", (advertisement: Advertisement) => advertisement.photos, {
-    onDelete: "CASCADE",
-  })
-  advertisement!: Promise<Advertisement>;
+  @ManyToOne(
+    "Advertisement",
+    (advertisement: Advertisement) => advertisement.photos,
+    {
+      onDelete: "CASCADE",
+    },
+  )
+  advertisement!: Advertisement;
 }
