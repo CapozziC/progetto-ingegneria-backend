@@ -43,7 +43,7 @@ export class User {
   })
   provider?: Provider;
 
-  @Column({ nullable: true })
+  @Column({name: "provider_user_id", nullable: true })
   providerUserId?: string;
 
   @CreateDateColumn({ name: "created_at", type: "timestamp with time zone" })

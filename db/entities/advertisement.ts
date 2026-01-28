@@ -114,7 +114,17 @@ export class Advertisement {
    */
 
   @ManyToMany(() => Poi)
-  @JoinTable()
+  @JoinTable({
+    name: "advertisement_poi",
+    joinColumn: {
+      name: "advertisement_id",
+      referencedColumnName: "id",
+    },
+    inverseJoinColumn: {
+      name: "poi_id",
+      referencedColumnName: "id",
+    },
+  })
   pois!: Poi[];
 
   /**

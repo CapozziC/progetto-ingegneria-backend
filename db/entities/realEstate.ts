@@ -43,7 +43,7 @@ export class RealEstate {
   @Column({ default: false })
   elevator!: boolean;
 
-  @Column({ default: false })
+  @Column({name: "air_conditioning", default: false })
   airConditioning!: boolean;
 
   @Column({ default: false })
@@ -61,16 +61,16 @@ export class RealEstate {
   @Column({ default: false })
   furnished!: boolean;
 
-  @Column({ default: false })
+  @Column({ name: "solar_panels", default: false })
   solarPanels!: boolean;
 
-  @Column({ type: "enum", enum: EnergyClass })
+  @Column({ name: "energy_class", type: "enum", enum: EnergyClass })
   energyClass!: EnergyClass;
 
-  @Column({ type: "enum", enum: OutdoorSpace })
+  @Column({ name: "outdoor_space", type: "enum", enum: OutdoorSpace })
   outdoorSpace!: OutdoorSpace;
 
-  @Column({ type: "enum", enum: Type })
+  @Column({ name: "housing_type", type: "enum", enum: Type })
   housingType!: Type;
 
   @Column("geometry", {

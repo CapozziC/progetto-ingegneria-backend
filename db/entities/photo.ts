@@ -5,6 +5,7 @@ import {
   ManyToOne,
   OneToOne,
   Check,
+  JoinColumn,
 } from "typeorm";
 import type { Advertisement } from "./advertisement.js";
 import { Agency } from "./agency.js";
@@ -43,6 +44,9 @@ export class Photo {
   @OneToOne(() => Agency, (agency) => agency.photo)
   agency!: Agency;
 
+  @Column({ name: "advertisement_id" })
+  advertisementId!: number;
+
   /**
    * Advertisement this photo refers to
    * If the advertisement is deleted, the photo is deleted as well.
@@ -54,5 +58,6 @@ export class Photo {
       onDelete: "CASCADE",
     },
   )
+  @JoinColumn({ name: "advertisement_id" })
   advertisement!: Advertisement;
 }

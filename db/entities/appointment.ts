@@ -57,6 +57,12 @@ export class Appointment {
   @Column({ name: "agent_id" })
   agentId!: number;
 
+  @Column({ name: "user_id" })
+  userId!: number;
+
+  @Column({ name: "advertisement_id" })
+  advertisementId!: number;
+
   /**
    * User who requested this appointment
    * The user cannot be deleted if appointments exist.
@@ -64,6 +70,7 @@ export class Appointment {
   @ManyToOne(() => User, (user) => user.appointments, {
     onDelete: "RESTRICT",
   })
+  @JoinColumn({ name: "user_id" })
   user!: User;
 
   /**
@@ -75,6 +82,7 @@ export class Appointment {
     (advertisement) => advertisement.appointments,
     { onDelete: "CASCADE" },
   )
+  @JoinColumn({ name: "advertisement_id" })
   advertisement!: Advertisement;
 
   /**

@@ -6,6 +6,7 @@ import {
   ManyToOne,
   Check,
   Index,
+  JoinColumn
 } from "typeorm";
 
 import { Advertisement } from "./advertisement.js";
@@ -45,6 +46,15 @@ export class Offer {
   })
   status!: Status;
 
+  @Column({ name: "advertisement_id" })
+  advertisementId!: number;
+
+  @Column({ name: "user_id" })
+  userId!: number;
+
+  @Column({ name: "agent_id" })
+  agentId!: number;
+
   /**
    * Advertisement this offer refers to
    * If the advertisement is deleted, the offer is deleted as well.
@@ -52,6 +62,7 @@ export class Offer {
   @ManyToOne(() => Advertisement, (advertisement) => advertisement.offers, {
     onDelete: "CASCADE",
   })
+  @JoinColumn({ name: "advertisement_id" })
   advertisement!: Advertisement;
 
   /**
@@ -59,6 +70,7 @@ export class Offer {
    * If the user is deleted, the offer is deleted as well.
    */
   @ManyToOne(() => User, (user) => user.offers, { onDelete: "CASCADE" })
+  @JoinColumn({ name: "user_id" })
   user!: User;
 
   /**
@@ -66,5 +78,6 @@ export class Offer {
    * If the agent is deleted, the offer is deleted as well.
    */
   @ManyToOne(() => Agent, (agent) => agent.offers, { onDelete: "NO ACTION" })
+  @JoinColumn({ name: "agent_id" })
   agent!: Agent;
 }
