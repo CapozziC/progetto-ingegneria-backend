@@ -4,7 +4,7 @@ import type { Photo } from "./photo.js";
 
 @Entity("agency")
 @Check(`length(trim("name")) > 1`)
-@Check(`length(trim("phoneNumber")) > 0`)
+@Check(`length(trim("phone_number")) > 0`)
 @Check(`"phone_number" ~ '^\\+[1-9][0-9]{7,14}$'`)
 @Check(`"email" ~ '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$'`)
 export class Agency {
