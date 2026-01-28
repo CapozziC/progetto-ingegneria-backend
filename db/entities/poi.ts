@@ -8,7 +8,6 @@ export enum Type {
 }
 
 @Entity("poi")
-@Check(`"type" IN ('park', 'school', 'public_transport')`)
 export class Poi {
   @PrimaryGeneratedColumn()
   id!: number;

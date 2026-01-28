@@ -7,7 +7,7 @@ import {
   Check,
 } from "typeorm";
 import type { Advertisement } from "./advertisement.js";
-import type { Agency } from "./agency.js";
+import { Agency } from "./agency.js";
 
 export enum Format {
   JPEG = "JPEG",
@@ -16,7 +16,6 @@ export enum Format {
 }
 
 @Entity("photo")
-@Check(`"format" IN ('JPEG', 'PNG', 'HEIC')`)
 @Check(`length(trim("url")) > 0`)
 @Check(`"position" >= 0`)
 export class Photo {
@@ -40,9 +39,8 @@ export class Photo {
 
   /**
    * Agency this photo represents
-   * If the agency is deleted, the photo is deleted as well.
    */
-  @OneToOne("Agency", { onDelete: "CASCADE" })
+  @OneToOne(() => Agency, (agency) => agency.photo)
   agency!: Agency;
 
   /**

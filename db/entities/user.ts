@@ -5,7 +5,10 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   Check,
+  OneToMany,
 } from "typeorm";
+import type { Appointment } from "./appointment.js";
+import type { Offer } from "./offer.js";
 
 export enum Provider {
   GOOGLE = "google",
@@ -14,7 +17,6 @@ export enum Provider {
 }
 
 @Entity("user")
-@Check(`"provider" IN ('google', 'github', 'facebook')`)
 @Check(`length(trim("first_name")) > 0`)
 @Check(`length(trim("last_name")) > 0`)
 @Check(`"email" ~ '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$'`)
@@ -52,4 +54,16 @@ export class User {
     type: "timestamp with time zone",
   })
   updatedAt!: Date;
+
+  /**
+   * Appointments requested by this user
+   */
+  @OneToMany("Appointment", (appointment: Appointment) => appointment.user)
+  appointments!: Appointment[];
+
+  /**
+   * Offers made by this user
+   */
+  @OneToMany("Offer", (offer: Offer) => offer.user)
+  offers!: Offer[];
 }

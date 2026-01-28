@@ -24,7 +24,6 @@ export enum Status {
 @Entity("appointment")
 @Check(`(status IN ('completed', 'cancelled') 
   OR appointment_at > CURRENT_TIMESTAMP)`)
-@Check(`"status" IN ('requested', 'confirmed', 'cancelled', 'completed')`)
 @Index("IDX_appointmentAt_status_agent", ["status", "appointmentAt", "agentId"])
 export class Appointment {
   @PrimaryGeneratedColumn()
@@ -60,9 +59,9 @@ export class Appointment {
 
   /**
    * User who requested this appointment
-   * If the user is deleted, the appointment is deleted as well.
+   * The user cannot be deleted if appointments exist.
    */
-  @ManyToOne(() => User, (user) => user.id, {
+  @ManyToOne(() => User, (user) => user.appointments, {
     onDelete: "RESTRICT",
   })
   user!: User;

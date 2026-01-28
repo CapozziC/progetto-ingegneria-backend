@@ -33,8 +33,6 @@ export enum Type {
 @Entity("advertisement")
 @Check(`length(trim("description")) > 0`)
 @Check(`"price" > 0`)
-@Check(`"status" IN ('active','sold')`)
-@Check(`"type" IN ('sale', 'rent')`)
 @Index("IDX_adv_status_price", ["status", "price"])
 export class Advertisement {
   @PrimaryGeneratedColumn()
@@ -82,7 +80,7 @@ export class Advertisement {
 
   /**
    * Agent who published and manages this advertisement.
-   * If the agent is deleted, the advertisement is deleted as well.
+   * If the agent is deleted, restrict deletion if advertisements exist.
    */
   @ManyToOne(() => Agent, (agent) => agent.advertisements, {
     onDelete: "RESTRICT",

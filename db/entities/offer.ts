@@ -20,7 +20,6 @@ export enum Status {
 
 @Entity("offer")
 @Check(`"price" > 0`)
-@Check(`"status" IN ('pending', 'accepted', 'rejected')`)
 @Index("IDX_offer_status_advertisement_agent", [
   "status",
   "advertisement",
@@ -59,7 +58,7 @@ export class Offer {
    * User who made this offer
    * If the user is deleted, the offer is deleted as well.
    */
-  @ManyToOne(() => User, (user) => user.id, { onDelete: "CASCADE" })
+  @ManyToOne(() => User, (user) => user.offers, { onDelete: "CASCADE" })
   user!: User;
 
   /**

@@ -24,9 +24,6 @@ export enum OutdoorSpace {
 }
 
 @Entity("real_estate")
-@Check(`"energyClass" IN ('A', 'B', 'C', 'D', 'E', 'F', 'G')`)
-@Check(`"outdoorSpace" IN ('none', 'balcony', 'terrace', 'garden')`)
-@Check(`"housingType" IN ('apartment', 'villa')`)
 @Check(`"size" > 0`)
 @Check(`"rooms" > 0`)
 export class RealEstate {

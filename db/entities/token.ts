@@ -13,7 +13,6 @@ export enum Type {
 }
 
 @Entity("token")
-@Check(`"type" IN ('agent', 'user')`)
 export class Token {
   @PrimaryGeneratedColumn()
   id!: number;
