@@ -12,7 +12,7 @@ import {
 import type { Advertisement } from "./advertisement.js";
 import type { Offer } from "./offer.js";
 import type { Appointment } from "./appointment.js";
-import { Agency } from "./agency.js";
+import type { Agency } from "./agency.js";
 
 @Entity("agent")
 @Check(`length(trim("first_name")) > 1`)
@@ -81,7 +81,7 @@ export class Agent {
    * Real estate agency this Agent belongs to
    * If the agency is deleted, the agent is also deleted
    */
-  @ManyToOne(() => Agency, (realEstateAgency) => realEstateAgency.agent, {
+  @ManyToOne("Agency", (realEstateAgency: Agency) => realEstateAgency.agent, {
     onDelete: "CASCADE",
   })
   @JoinColumn({ name: "agency_id" })
