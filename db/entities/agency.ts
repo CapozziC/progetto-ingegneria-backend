@@ -1,6 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany, OneToOne, Check,Index, JoinColumn } from "typeorm";
-import { Agent } from "./agent.js";
-import { Photo } from "./photo.js";
+import type { Agent } from "./agent.js";
+import type { Photo } from "./photo.js";
 
 @Entity("agency")
 @Check(`length(trim("name")) > 1`)
@@ -24,13 +24,13 @@ export class Agency {
   /**
    * Agents that belong to this agency
    */
-  @OneToMany(() => Agent, (agent) => agent.agency)
+  @OneToMany("Agent", (agent: Agent) => agent.agency)
   agent!: Agent[];
 
   /**
    * Photo representing this agency
    */
-  @OneToOne(() => Photo, (photo) => photo.agency, { onDelete: "SET NULL" })
+  @OneToOne("Photo", (photo: Photo) => photo.agency, { onDelete: "SET NULL" })
   @JoinColumn({ name: "photo_id" })
   photo!: Photo;
 }
