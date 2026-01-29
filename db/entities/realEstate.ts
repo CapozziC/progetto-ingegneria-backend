@@ -16,13 +16,6 @@ export enum Type {
   VILLA = "villa",
 }
 
-export enum OutdoorSpace {
-  NONE = "none",
-  BALCONY = "balcony",
-  TERRACE = "terrace",
-  GARDEN = "garden",
-}
-
 @Entity("real_estate")
 @Check(`"size" > 0`)
 @Check(`"rooms" > 0`)
@@ -36,8 +29,8 @@ export class RealEstate {
   @Column({ type: "int" })
   rooms!: number;
 
-  @Column()
-  floor!: string;
+  @Column({type: "int" })
+  floor!: number;
   
 
   @Column({ default: false })
@@ -64,11 +57,17 @@ export class RealEstate {
   @Column({ name: "solar_panels", default: false })
   solarPanels!: boolean;
 
+  @Column({ default: false })
+  balcony!: boolean;
+
+  @Column({ default: false })
+  terrace!: boolean;
+
+  @Column({ default: false })
+  garden!: boolean;
+
   @Column({ name: "energy_class", type: "enum", enum: EnergyClass })
   energyClass!: EnergyClass;
-
-  @Column({ name: "outdoor_space", type: "enum", enum: OutdoorSpace })
-  outdoorSpace!: OutdoorSpace;
 
   @Column({ name: "housing_type", type: "enum", enum: Type })
   housingType!: Type;

@@ -5,6 +5,8 @@ import {
   UpdateDateColumn,
   Check,
   Index,
+  PrimaryColumn,
+  CreateDateColumn,
 } from "typeorm";
 
 export enum Type {
@@ -12,10 +14,11 @@ export enum Type {
   USER = "user",
 }
 
-@Entity("token")
-export class Token {
-  @PrimaryGeneratedColumn()
-  id!: number;
+@Entity("refresh_token")
+@Check(`"expires_at" > created_at`)
+export class RefreshToken {
+  @PrimaryColumn({ type: "text" })
+  id!: string;
 
   @Column({ name: "subject_id", type: "int" })
   subjectId!: number;
@@ -26,16 +29,12 @@ export class Token {
   })
   type!: Type;
 
-  @Index("IDX_refresh_token", ["refreshToken"])
-  @Column({ name: "refresh_token" })
-  refreshToken!: string;
-
   @Column({ name: "expires_at", type: "timestamp with time zone" })
   expiresAt!: Date;
 
-  @UpdateDateColumn({
-    name: "updated_at",
+  @CreateDateColumn({
+    name: "created_at",
     type: "timestamp with time zone",
   })
-  updatedAt!: Date;
+  createdAt!: Date;
 }

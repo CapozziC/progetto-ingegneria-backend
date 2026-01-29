@@ -8,6 +8,7 @@ import {
   Check,
   Index,
   JoinColumn,
+  UpdateDateColumn,
 } from "typeorm";
 import type { Advertisement } from "./advertisement.js";
 import type { Offer } from "./offer.js";
@@ -30,7 +31,7 @@ export class Agent {
   @Column({ name: "last_name", type: "varchar", length: 30 })
   lastName!: string;
 
-  @Column()
+  @Column({type: "text", unique: true })
   username!: string;
 
   @Column({ type: "varchar", length: 255 })
@@ -41,6 +42,12 @@ export class Agent {
     type: "timestamp with time zone"
   })
   createdAt!: Date;
+
+  @UpdateDateColumn({
+    name: "updated_at",
+    type: "timestamp with time zone",
+  })
+  updatedAt!: Date;
 
   @Column({ name: "phone_number", type: "varchar", length: 15 })
   phoneNumber!: string;

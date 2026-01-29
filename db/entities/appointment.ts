@@ -18,11 +18,11 @@ export enum Status {
   REQUESTED = "requested",
   CONFIRMED = "confirmed",
   CANCELLED = "cancelled",
-  COMPLETED = "completed",
+  REJECTED = "rejected",
 }
 
 @Entity("appointment")
-@Check(`(status IN ('completed', 'cancelled') 
+@Check(`(status IN ('confirmed', 'cancelled', 'rejected') 
   OR appointment_at > CURRENT_TIMESTAMP)`)
 @Index("IDX_appointmentAt_status_agent", ["status", "appointmentAt", "agentId"])
 export class Appointment {

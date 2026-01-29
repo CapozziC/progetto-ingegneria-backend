@@ -19,7 +19,10 @@ export enum Provider {
 @Entity("user")
 @Check(`length(trim("first_name")) > 0`)
 @Check(`length(trim("last_name")) > 0`)
-@Check(`"email" ~ '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$'`)
+@Check(`length(trim("provider_user_id")) > 0 OR provider_user_id IS NULL`)
+@Check(`email IS NULL OR (
+    length(trim(both from email)) > 0
+    AND trim(both from email) ~ '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$'`)
 export class User {
   @PrimaryGeneratedColumn()
   id!: number;
@@ -30,10 +33,10 @@ export class User {
   @Column({ name: "last_name", type: "varchar", length: 50 })
   lastName!: string;
 
-  @Column({ type: "varchar", length: 100, unique: true })
+  @Column({ type: "varchar", length: 100, unique: true, nullable: true })
   email!: string;
 
-  @Column({ nullable: true })
+  @Column({ type: "varchar", length: 255, nullable: true })
   password?: string;
 
   @Column({
@@ -43,7 +46,7 @@ export class User {
   })
   provider?: Provider;
 
-  @Column({name: "provider_user_id", nullable: true })
+  @Column({ name: "provider_user_id", type: "text", nullable: true, unique: true })
   providerUserId?: string;
 
   @CreateDateColumn({ name: "created_at", type: "timestamp with time zone" })

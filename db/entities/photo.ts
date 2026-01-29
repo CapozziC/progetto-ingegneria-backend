@@ -6,12 +6,14 @@ import {
   OneToOne,
   Check,
   JoinColumn,
+  Index,
 } from "typeorm";
 import type { Advertisement } from "./advertisement.js";
 import { Agency } from "./agency.js";
 
 export enum Format {
   JPEG = "JPEG",
+  JPG = "JPG",
   PNG = "PNG",
   HEIC = "HEIC",
 }
@@ -29,7 +31,7 @@ export class Photo {
   })
   format!: Format;
 
-  @Column()
+  @Column({ type: "text" })
   url!: string;
 
   @Column({
@@ -44,7 +46,8 @@ export class Photo {
   @OneToOne(() => Agency, (agency) => agency.photo)
   agency!: Agency;
 
-  @Column({ name: "advertisement_id" })
+  @Index("IDX_advertisement_id")
+  @Column({ name: "advertisement_id", nullable: true })
   advertisementId!: number;
 
   /**
