@@ -20,10 +20,7 @@ export enum Provider {
 @Check(`length(trim("first_name")) > 0`)
 @Check(`length(trim("last_name")) > 0`)
 @Check(`length(trim("provider_user_id")) > 0 OR provider_user_id IS NULL`)
-@Check(`email IS NULL OR (
-  length(trim(both from email)) > 0
-  AND trim(both from email) ~ '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$'
-)`)
+@Check(`email IS NULL OR (length(trim(both from email)) > 0 AND trim(both from email) ~ '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$')`)
 export class User {
   @PrimaryGeneratedColumn()
   id!: number;
