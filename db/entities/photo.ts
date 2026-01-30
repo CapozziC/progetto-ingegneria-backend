@@ -3,13 +3,11 @@ import {
   PrimaryGeneratedColumn,
   Column,
   ManyToOne,
-  OneToOne,
   Check,
   JoinColumn,
   Index,
 } from "typeorm";
 import type { Advertisement } from "./advertisement.js";
-import { Agency } from "./agency.js";
 
 export enum Format {
   JPEG = "JPEG",
@@ -40,14 +38,8 @@ export class Photo {
   })
   position!: number;
 
-  /**
-   * Agency this photo represents
-   */
-  @OneToOne(() => Agency, (agency) => agency.photo)
-  agency!: Agency;
-
   @Index("IDX_advertisement_id")
-  @Column({ name: "advertisement_id", nullable: true })
+  @Column({ name: "advertisement_id" })
   advertisementId!: number;
 
   /**

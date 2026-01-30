@@ -77,7 +77,7 @@ export class Offer {
    * Agent responsible for this offer
    * If the agent is deleted, the offer is deleted as well.
    */
-  @ManyToOne(() => Agent, (agent) => agent.offers, { onDelete: "NO ACTION" })
+  @ManyToOne(() => Agent, (agent) => agent.offers, { onDelete: "NO ACTION", onUpdate: "CASCADE" })
   @JoinColumn({ name: "agent_id" })
   agent!: Agent;
 }

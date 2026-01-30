@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, Check } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column } from "typeorm";
 import type { Point } from "geojson";
 
 export enum Type {

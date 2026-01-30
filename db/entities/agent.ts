@@ -98,7 +98,7 @@ export class Agent {
    * Administrator responsible for this Agent
    */
   @ManyToOne(() => Agent, (agent) => agent.agents, {
-    onDelete: "SET NULL",
+    onDelete: "SET NULL",onUpdate: "CASCADE",
     nullable: true,
   })
   @JoinColumn({ name: "administrator_id" })

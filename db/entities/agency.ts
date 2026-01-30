@@ -1,6 +1,12 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany, OneToOne, Check,Index, JoinColumn } from "typeorm";
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  OneToMany,
+  Check,
+  Index,
+} from "typeorm";
 import type { Agent } from "./agent.js";
-import type { Photo } from "./photo.js";
 
 @Entity("agency")
 @Check(`length(trim("name")) > 1`)
@@ -10,7 +16,7 @@ import type { Photo } from "./photo.js";
 export class Agency {
   @PrimaryGeneratedColumn()
   id!: number;
-  
+
   @Index("IDX_agency_name", ["name"])
   @Column({ type: "varchar", length: 30 })
   name!: string;
@@ -26,11 +32,4 @@ export class Agency {
    */
   @OneToMany("Agent", (agent: Agent) => agent.agency)
   agent!: Agent[];
-
-  /**
-   * Photo representing this agency
-   */
-  @OneToOne("Photo", (photo: Photo) => photo.agency, { onDelete: "SET NULL" })
-  @JoinColumn({ name: "photo_id" })
-  photo!: Photo;
 }

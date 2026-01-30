@@ -90,7 +90,7 @@ export class Appointment {
    * If the agent is deleted, the appointment is deleted as well.
    */
   @ManyToOne(() => Agent, (agent) => agent.appointments, {
-    onDelete: "CASCADE",
+    onDelete: "CASCADE",onUpdate: "CASCADE",
   })
   @JoinColumn({ name: "agent_id" })
   agent!: Agent;

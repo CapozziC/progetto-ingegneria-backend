@@ -84,6 +84,7 @@ export class Advertisement {
    */
   @ManyToOne(() => Agent, (agent) => agent.advertisements, {
     onDelete: "RESTRICT",
+    onUpdate: "CASCADE",
   })
   @JoinColumn({ name: "agent_id" })
   agent!: Agent;
@@ -131,7 +132,10 @@ export class Advertisement {
    * Real estate property described by this advertisement
    */
 
-  @OneToOne(() => RealEstate, { onDelete: "CASCADE", cascade: true })
+  @OneToOne(() => RealEstate, {
+    onDelete: "CASCADE",
+    cascade: true,
+  })
   @JoinColumn({ name: "real_estate_id" })
   realEstate!: RealEstate;
 }

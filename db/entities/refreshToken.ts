@@ -1,10 +1,7 @@
 import {
   Entity,
-  PrimaryGeneratedColumn,
   Column,
-  UpdateDateColumn,
   Check,
-  Index,
   PrimaryColumn,
   CreateDateColumn,
 } from "typeorm";
