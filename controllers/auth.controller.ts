@@ -4,7 +4,7 @@ import bcrypt from "bcryptjs";
 import {
   generateAccessToken,
   generateRefreshToken,
-} from "../db/utils/auth.utils.js";
+} from "../utils/auth.utils.js";
 import { AppDataSource } from "../db/data-source.js";
 
 export const registerUser = async (req: Request, res: Response) => {
@@ -77,8 +77,6 @@ export const registerUser = async (req: Request, res: Response) => {
     return res.status(201).json({ message: "User registered successfully" });
   } catch (error) {
     console.error("Registration error:", error);
-    return res
-      .status(500)
-      .json({ error: "Internal server error", details: error });
+    return res.status(500).json({ error: "Internal server error" });
   }
 };

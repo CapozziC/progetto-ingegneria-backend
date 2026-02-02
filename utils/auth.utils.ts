@@ -1,5 +1,5 @@
 import jwt, { Secret, SignOptions, JwtPayload } from "jsonwebtoken";
-import { Payload } from "../../types/auth.type.js";
+import { Payload } from "../types/auth.type.js";
 
 export const generateAccessToken = (
   payload: Payload,
