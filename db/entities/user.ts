@@ -7,6 +7,7 @@ import {
   Check,
   OneToMany,
 } from "typeorm";
+
 import type { Appointment } from "./appointment.js";
 import type { Offer } from "./offer.js";
 
