@@ -20,4 +20,4 @@ jobs:
           git pull
           npm install
           npx tsc
-          sudo systemctl restart backend
+          systemctl restart backend
