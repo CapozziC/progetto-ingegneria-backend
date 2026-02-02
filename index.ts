@@ -2,6 +2,7 @@ import express from 'express';
 import { AppDataSource } from './db/data-source.js';
 
 try {
+  // Initialize database connection
   await AppDataSource.initialize();
   const app = express();
   const port = 3000;
