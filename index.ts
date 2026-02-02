@@ -10,6 +10,7 @@ try {
     res.send('Hello World!');
   });
 
+  // Check backend connection
   app.listen(port, 'localhost', () => {
     console.log(`Example app listening on port ${port}`);
   });
