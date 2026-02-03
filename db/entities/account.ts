@@ -6,6 +6,7 @@ import {
   UpdateDateColumn,
   Check,
   OneToMany,
+  Unique,
 } from "typeorm";
 
 import type { Appointment } from "./appointment.js";
@@ -24,7 +25,9 @@ export enum Provider {
 @Check(
   `email IS NULL OR (length(trim(both from email)) > 0 AND trim(both from email) ~ '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$')`,
 )
-export class User {
+@Unique("UQ_user_email", ["email"])
+@Unique("UQ_user_id_provider", ["providerUserId"])
+export class Account {
   @PrimaryGeneratedColumn()
   id!: number;
 
@@ -34,7 +37,7 @@ export class User {
   @Column({ name: "last_name", type: "varchar", length: 50 })
   lastName!: string;
 
-  @Column({ type: "varchar", length: 100, unique: true, nullable: true })
+  @Column({ type: "varchar", length: 100, nullable: true })
   email?: string;
 
   @Column({ type: "varchar", length: 255, nullable: true })
@@ -48,12 +51,11 @@ export class User {
   provider?: Provider;
 
   @Column({
-    name: "provider_user_id",
+    name: "provider_account_id",
     type: "text",
     nullable: true,
-    unique: true,
   })
-  providerUserId?: string;
+  providerAccountId?: string;
 
   @CreateDateColumn({ name: "created_at", type: "timestamp with time zone" })
   createdAt!: Date;
@@ -67,12 +69,12 @@ export class User {
   /**
    * Appointments requested by this user
    */
-  @OneToMany("Appointment", (appointment: Appointment) => appointment.user)
+  @OneToMany("Appointment", (appointment: Appointment) => appointment.account)
   appointments!: Appointment[];
 
   /**
    * Offers made by this user
    */
-  @OneToMany("Offer", (offer: Offer) => offer.user)
+  @OneToMany("Offer", (offer: Offer) => offer.account)
   offers!: Offer[];
 }

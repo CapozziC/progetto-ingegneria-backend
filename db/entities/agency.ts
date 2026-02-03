@@ -5,6 +5,7 @@ import {
   OneToMany,
   Check,
   Index,
+  Unique,
 } from "typeorm";
 import type { Agent } from "./agent.js";
 
@@ -13,6 +14,8 @@ import type { Agent } from "./agent.js";
 @Check(`length(trim("phone_number")) > 0`)
 @Check(`"phone_number" ~ '^\\+[1-9][0-9]{7,14}$'`)
 @Check(`"email" ~ '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$'`)
+@Unique("UQ_agency_name", ["name"])
+@Unique("UQ_agency_email", ["email"])
 export class Agency {
   @PrimaryGeneratedColumn()
   id!: number;
@@ -24,7 +27,7 @@ export class Agency {
   @Column({ name: "phone_number", type: "varchar", length: 15 })
   phoneNumber!: string;
 
-  @Column({ type: "varchar", length: 100, unique: true })
+  @Column({ type: "varchar", length: 100 })
   email!: string;
 
   /**

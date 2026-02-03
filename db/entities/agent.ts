@@ -9,6 +9,7 @@ import {
   Index,
   JoinColumn,
   UpdateDateColumn,
+  Unique,
 } from "typeorm";
 import type { Advertisement } from "./advertisement.js";
 import type { Offer } from "./offer.js";
@@ -21,6 +22,7 @@ import type { Agency } from "./agency.js";
 @Check(`"username" ~ '^(agent|admin)[0-9]+$'`)
 @Check(`length(trim("password")) > 0`)
 @Check(`"phone_number" ~ '^\\+[1-9][0-9]{7,14}$'`)
+@Unique("UQ_agent_username_agencyId", ["username", "agencyId"])
 export class Agent {
   @PrimaryGeneratedColumn()
   id!: number;
@@ -31,7 +33,7 @@ export class Agent {
   @Column({ name: "last_name", type: "varchar", length: 30 })
   lastName!: string;
 
-  @Column({type: "text", unique: true })
+  @Column({type: "text" })
   username!: string;
 
   @Column({ type: "varchar", length: 255 })
@@ -91,7 +93,7 @@ export class Agent {
   @ManyToOne("Agency", (realEstateAgency: Agency) => realEstateAgency.agent, {
     onDelete: "CASCADE",
   })
-  @JoinColumn({ name: "agency_id" })
+  @JoinColumn({ name: "agency_id" , foreignKeyConstraintName: "FK_agent_agency"})
   agency!: Agency;
 
   /**
@@ -101,7 +103,7 @@ export class Agent {
     onDelete: "SET NULL",onUpdate: "CASCADE",
     nullable: true,
   })
-  @JoinColumn({ name: "administrator_id" })
+  @JoinColumn({ name: "administrator_id" , foreignKeyConstraintName: "FK_agent_administrator"})
   administrator!: Agent;
 
   /**

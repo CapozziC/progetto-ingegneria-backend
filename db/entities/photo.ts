@@ -53,6 +53,6 @@ export class Photo {
       onDelete: "CASCADE",
     },
   )
-  @JoinColumn({ name: "advertisement_id" })
+  @JoinColumn({ name: "advertisement_id" , foreignKeyConstraintName: "FK_photo_advertisement" })
   advertisement!: Advertisement;
 }

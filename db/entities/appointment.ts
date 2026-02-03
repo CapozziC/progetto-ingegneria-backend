@@ -10,7 +10,7 @@ import {
   JoinColumn,
 } from "typeorm";
 
-import { User } from "./user.js";
+import { Account } from "./account.js";
 import { Advertisement } from "./advertisement.js";
 import { Agent } from "./agent.js";
 
@@ -67,12 +67,11 @@ export class Appointment {
    * User who requested this appointment
    * The user cannot be deleted if appointments exist.
    */
-  @ManyToOne(() => User, (user) => user.appointments, {
+  @ManyToOne(() => Account, (account) => account.appointments, {
     onDelete: "RESTRICT",
   })
-  @JoinColumn({ name: "user_id" })
-  user!: User;
-
+  @JoinColumn({ name: "user_id" , foreignKeyConstraintName: "FK_appointment_account"})
+  account!: Account;
   /**
    * Advertisement this appointment refers to
    * If the advertisement is deleted, the appointment is deleted as well.
@@ -82,7 +81,7 @@ export class Appointment {
     (advertisement) => advertisement.appointments,
     { onDelete: "CASCADE" },
   )
-  @JoinColumn({ name: "advertisement_id" })
+  @JoinColumn({ name: "advertisement_id" , foreignKeyConstraintName: "FK_appointment_advertisement"})
   advertisement!: Advertisement;
 
   /**
@@ -90,8 +89,9 @@ export class Appointment {
    * If the agent is deleted, the appointment is deleted as well.
    */
   @ManyToOne(() => Agent, (agent) => agent.appointments, {
-    onDelete: "CASCADE",onUpdate: "CASCADE",
+    onDelete: "CASCADE",
+    onUpdate: "CASCADE",
   })
-  @JoinColumn({ name: "agent_id" })
+  @JoinColumn({ name: "agent_id" , foreignKeyConstraintName: "FK_appointment_agent"})
   agent!: Agent;
 }

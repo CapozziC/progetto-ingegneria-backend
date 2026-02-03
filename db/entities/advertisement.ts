@@ -86,7 +86,7 @@ export class Advertisement {
     onDelete: "RESTRICT",
     onUpdate: "CASCADE",
   })
-  @JoinColumn({ name: "agent_id" })
+  @JoinColumn({ name: "agent_id", foreignKeyConstraintName: "FK_advertisement_agent" })
   agent!: Agent;
 
   /**
@@ -120,10 +120,12 @@ export class Advertisement {
     joinColumn: {
       name: "advertisement_id",
       referencedColumnName: "id",
+      foreignKeyConstraintName: "FK_advertisement_poi_advertisement",
     },
     inverseJoinColumn: {
       name: "poi_id",
       referencedColumnName: "id",
+      foreignKeyConstraintName: "FK_advertisement_poi",
     },
   })
   pois!: Poi[];
@@ -135,7 +137,8 @@ export class Advertisement {
   @OneToOne(() => RealEstate, {
     onDelete: "CASCADE",
     cascade: true,
+
   })
-  @JoinColumn({ name: "real_estate_id" })
+  @JoinColumn({ name: "real_estate_id" , foreignKeyConstraintName: "FK_advertisement_real_estate" })
   realEstate!: RealEstate;
 }

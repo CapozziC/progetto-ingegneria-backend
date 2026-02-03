@@ -1,3 +1,6 @@
+import { Type } from "../db/entities/refreshToken.js";
+
 export type Payload = {
-  userId: number;
+  subjectId: number;
+  type: Type;
 };

@@ -34,6 +34,6 @@ export class Logo {
    * Agency this logo represents
    */
   @OneToOne(() => Agency,{ onDelete: "CASCADE" })
-  @JoinColumn({ name: "agency_id" })
+  @JoinColumn({ name: "agency_id" , foreignKeyConstraintName: "FK_logo_agency" })
   agency!: Agency;
 }

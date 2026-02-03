@@ -6,11 +6,11 @@ import {
   ManyToOne,
   Check,
   Index,
-  JoinColumn
+  JoinColumn,
 } from "typeorm";
 
 import { Advertisement } from "./advertisement.js";
-import { User } from "./user.js";
+import { Account } from "./account.js";
 import { Agent } from "./agent.js";
 
 export enum Status {
@@ -62,22 +62,25 @@ export class Offer {
   @ManyToOne(() => Advertisement, (advertisement) => advertisement.offers, {
     onDelete: "CASCADE",
   })
-  @JoinColumn({ name: "advertisement_id" })
+  @JoinColumn({ name: "advertisement_id", foreignKeyConstraintName: "FK_offer_advertisement" })
   advertisement!: Advertisement;
 
   /**
    * User who made this offer
-   * If the user is deleted, the offer is deleted as well.
+   * If the account is deleted, the offer is deleted as well.
    */
-  @ManyToOne(() => User, (user) => user.offers, { onDelete: "CASCADE" })
-  @JoinColumn({ name: "user_id" })
-  user!: User;
+  @ManyToOne(() => Account, (account) => account.offers, { onDelete: "CASCADE" })
+  @JoinColumn({ name: "user_id", foreignKeyConstraintName: "FK_offer_account" })
+  account!: Account;
 
   /**
    * Agent responsible for this offer
    * If the agent is deleted, the offer is deleted as well.
    */
-  @ManyToOne(() => Agent, (agent) => agent.offers, { onDelete: "NO ACTION", onUpdate: "CASCADE" })
-  @JoinColumn({ name: "agent_id" })
+  @ManyToOne(() => Agent, (agent) => agent.offers, {
+    onDelete: "NO ACTION",
+    onUpdate: "CASCADE",
+  })
+  @JoinColumn({ name: "agent_id", foreignKeyConstraintName: "FK_offer_agent" })
   agent!: Agent;
 }
