@@ -12,7 +12,7 @@ import {
 } from "../db/repositories/refreshToken.repository.js";
 import { Type } from "../db/entities/refreshToken.js";
 
-export const loginUser = async (req: Request, res: Response) => {
+export const loginAgent = async (req: Request, res: Response) => {
   try {
     const { username, password } = req.body;
     if (!username) {
