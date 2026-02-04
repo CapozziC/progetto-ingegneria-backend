@@ -57,8 +57,8 @@ export class Appointment {
   @Column({ name: "agent_id" })
   agentId!: number;
 
-  @Column({ name: "user_id" })
-  userId!: number;
+  @Column({ name: "account_id" })
+  accountId!: number;
 
   @Column({ name: "advertisement_id" })
   advertisementId!: number;
