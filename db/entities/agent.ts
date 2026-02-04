@@ -19,7 +19,6 @@ import type { Agency } from "./agency.js";
 @Entity("agent")
 @Check(`length(trim("first_name")) > 1`)
 @Check(`length(trim("last_name")) > 1`)
-@Check(`"username" ~ '^(agent|admin)[0-9]+$'`)
 @Check(`length(trim("password")) > 0`)
 @Check(`"phone_number" ~ '^\\+[1-9][0-9]{7,14}$'`)
 @Unique("UQ_agent_username_agencyId", ["username", "agencyId"])
@@ -56,6 +55,9 @@ export class Agent {
 
   @Column({ name: "is_admin" })
   isAdmin!: boolean;
+
+  @Column({name: "is_password_change", default:false})
+  isPasswordChange!:boolean;
 
   /**
    * Advertisements managed by this Agent

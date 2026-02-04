@@ -8,7 +8,7 @@ import {
   saveRefreshToken,
 } from "../db/repositories/refreshToken.repository.js";
 
-import { Request, Response } from "express";
+import {Response } from "express";
 import {
   generateAccessToken,
   generateRefreshToken,
@@ -17,8 +17,9 @@ import {
 } from "../utils/auth.utils.js";
 import bcrypt from "bcryptjs";
 import { Type } from "../db/entities/refreshToken.js";
+import { RequestAccount } from "../types/express.js";
 
-export const registerUser = async (req: Request, res: Response) => {
+export const registerAccount = async (req: RequestAccount, res: Response) => {
   try {
     const { firstName, lastName, email, password } = req.body;
 
@@ -109,7 +110,7 @@ export const registerUser = async (req: Request, res: Response) => {
   }
 };
 
-export const loginUser = async (req: Request, res: Response) => {
+export const loginAccount = async (req: RequestAccount, res: Response) => {
   try {
     const { email, password } = req.body;
 

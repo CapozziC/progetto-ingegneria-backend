@@ -1,13 +1,10 @@
 import jwt, { Secret, SignOptions } from "jsonwebtoken";
-import cripto from "crypto";
-import dotenv from "dotenv";
-dotenv.config();
+import crypto from "crypto";
+import "dotenv/config";
 import { Payload } from "../types/auth.type.js";
 import { deleteRefreshTokenBySubject} from "../db/repositories/refreshToken.repository.js";
-import { InvalidTokenError, ExpiredTokenError } from "./error.utils.js";
+import { InvalidTokenError, ExpiredTokenError} from "./error.utils.js";
 import { Type } from "../db/entities/refreshToken.js";
-import { access } from "fs";
-import { error } from "console";
 
 // Generate Access and Refresh Tokens for Users
 export const generateAccessToken = (
@@ -18,6 +15,7 @@ export const generateAccessToken = (
   return jwt.sign(payload, secret, { expiresIn });
 };
 
+
 export const generateRefreshToken = (
   payload: Payload,
   secret: Secret,
@@ -26,39 +24,44 @@ export const generateRefreshToken = (
   return jwt.sign(payload, secret, { expiresIn });
 };
 
+
 export const verifyAccessToken = (accessToken: string): Payload => {
   if (!accessToken) {
-    throw  new InvalidTokenError("access",error);
+    throw new InvalidTokenError("access");
   }
 
   try {
-    const decoded = jwt.verify(
+    return jwt.verify(
       accessToken,
       process.env.ACCESS_TOKEN_SECRET as Secret,
     ) as Payload;
-
-    return decoded;
   } catch (err) {
-    throw  new ExpiredTokenError("access",err)
+    if (String(err) === "TokenExpiredError") {
+      throw new ExpiredTokenError("access", err);
+    }
+    throw new InvalidTokenError("access", err);
   }
 };
 
 export const verifyRefreshToken = (refreshToken: string): Payload => {
   if (!refreshToken) {
-    throw new InvalidTokenError("refresh",error);;
+    throw new InvalidTokenError("refresh");
   }
 
   try {
-    const decoded = jwt.verify(
+    return jwt.verify(
       refreshToken,
       process.env.REFRESH_TOKEN_SECRET as Secret,
     ) as Payload;
-
-    return decoded;
   } catch (err) {
-    throw new ExpiredTokenError("refresh", err);
+    if (String(err) === "TokenExpiredError") {
+      throw new ExpiredTokenError("refresh", err);
+    }
+    throw new InvalidTokenError("refresh", err);
   }
-};
+}
+
+
 
 export const revokeRefreshToken = async (subjectId: number,type:Type): Promise<void> => {
   try {
@@ -73,5 +76,5 @@ export const revokeRefreshToken = async (subjectId: number,type:Type): Promise<v
 };
 
 export const hashRefreshToken = (token: string): string => {
-  return cripto.createHash("sha256").update(token).digest("hex");
+  return crypto.createHash("sha256").update(token).digest("hex");
 };

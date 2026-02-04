@@ -1,3 +1,4 @@
+
 export class AuthError extends Error {
   constructor(
     message: string,
@@ -20,3 +21,4 @@ export class ExpiredTokenError extends AuthError {
     this.name = "ExpiredTokenError";
   }
 }
+

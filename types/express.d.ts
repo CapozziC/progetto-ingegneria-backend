@@ -1,13 +1,11 @@
+import { Request } from "express";
 import type { Account } from "../db/entities/account.js";
 import type { Agent } from "../db/entities/agent.js";
 
-declare global {
-  namespace Express {
-    interface Request {
-      account?: Account;
-      agent?: Agent;
-    }
-  }
+export interface RequestAccount extends Request {
+  account?: Account;
 }
 
-export {};
+export interface RequestAgent extends Request {
+  agent?: Agent;
+}
