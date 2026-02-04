@@ -3,7 +3,11 @@ import cripto from "crypto";
 import dotenv from "dotenv";
 dotenv.config();
 import { Payload } from "../types/auth.type.js";
-import { deleteRefreshTokenBySubjectId } from "../db/repositories/refreshToken.repository.js";
+import { deleteRefreshTokenBySubject} from "../db/repositories/refreshToken.repository.js";
+import { InvalidTokenError, ExpiredTokenError } from "./error.utils.js";
+import { Type } from "../db/entities/refreshToken.js";
+import { access } from "fs";
+import { error } from "console";
 
 // Generate Access and Refresh Tokens for Users
 export const generateAccessToken = (
@@ -24,7 +28,7 @@ export const generateRefreshToken = (
 
 export const verifyAccessToken = (accessToken: string): Payload => {
   if (!accessToken) {
-    throw new Error("Access token is required");
+    throw  new InvalidTokenError("access",error);
   }
 
   try {
@@ -35,13 +39,13 @@ export const verifyAccessToken = (accessToken: string): Payload => {
 
     return decoded;
   } catch (err) {
-    throw new Error("Invalid access token", { cause: err });
+    throw  new ExpiredTokenError("access",err)
   }
 };
 
 export const verifyRefreshToken = (refreshToken: string): Payload => {
   if (!refreshToken) {
-    throw new Error("Refresh token is required");
+    throw new InvalidTokenError("refresh",error);;
   }
 
   try {
@@ -52,16 +56,16 @@ export const verifyRefreshToken = (refreshToken: string): Payload => {
 
     return decoded;
   } catch (err) {
-    throw new Error("Invalid refresh token", { cause: err });
+    throw new ExpiredTokenError("refresh", err);
   }
 };
 
-export const revokeRefreshToken = async (subjectId: number): Promise<void> => {
+export const revokeRefreshToken = async (subjectId: number,type:Type): Promise<void> => {
   try {
-    await deleteRefreshTokenBySubjectId(subjectId);
+    await deleteRefreshTokenBySubject(subjectId,type);
   } catch (error) {
     console.error(
-      `Failed to revoke refresh token for subject ${subjectId}:`,
+      `Failed to revoke refresh token for subject ${subjectId}  ${type}:`,
       error,
     );
     throw new Error("Failed to revoke refresh token");

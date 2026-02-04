@@ -13,6 +13,7 @@ import {
   generateAccessToken,
   generateRefreshToken,
   hashRefreshToken,
+  revokeRefreshToken,
 } from "../utils/auth.utils.js";
 import bcrypt from "bcryptjs";
 import { Type } from "../db/entities/refreshToken.js";
@@ -73,6 +74,8 @@ export const registerUser = async (req: Request, res: Response) => {
       return res.status(500).json({ error: "Refresh token hashing failed" });
     }
 
+    await revokeRefreshToken(savedAccount.id, Type.ACCOUNT); 
+
     const refreshTokenEntry = createRefreshToken({
       id: hashedRefreshToken,
       subjectId: savedAccount.id,
@@ -88,12 +91,14 @@ export const registerUser = async (req: Request, res: Response) => {
     res.cookie("accessToken", accessToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
+      sameSite:"strict",
       maxAge: 15 * 60 * 1000, // 15 minutes
     });
 
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
+      sameSite:"strict",
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
 
@@ -154,6 +159,8 @@ export const loginUser = async (req: Request, res: Response) => {
       return res.status(500).json({ error: "Refresh token hashing failed" });
     }
 
+    await revokeRefreshToken(account.id, Type.ACCOUNT);
+
     const refreshTokenEntry = createRefreshToken({
       id: hashedRefreshToken,
       subjectId: account.id,
@@ -169,12 +176,14 @@ export const loginUser = async (req: Request, res: Response) => {
     res.cookie("accessToken", accessToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
+      sameSite:"strict",
       maxAge: 15 * 60 * 1000, // 15 minutes
     });
 
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
+      sameSite:"strict",
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
 

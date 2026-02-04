@@ -14,10 +14,11 @@ export const saveRefreshToken = async (
   return await RefreshTokenRepository.save(token);
 };
 
-export const deleteRefreshTokenBySubjectId = async (
-  userId: number,
+export const deleteRefreshTokenBySubject = async (
+  subjectId: number,
+  type: Type,
 ): Promise<void> => {
-  await RefreshTokenRepository.delete({ subjectId: userId });
+  await RefreshTokenRepository.delete({ subjectId, type });
 };
 
 export const findRefreshTokenBySubject = async (

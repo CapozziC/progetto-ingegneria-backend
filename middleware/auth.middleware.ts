@@ -42,8 +42,11 @@ export const authenticationMiddlewareUser = async (
       }
 
       const account = await findAccountById(payload.subjectId);
-      if (!account) return res.status(401).json({ error: "User not found" });
-
+      if (!account){
+        res.clearCookie("accessToken")
+        res.clearCookie("refreshToken")
+      return res.status(401).json({ error: "User not found" });
+      }
       req.account = account;
       return next();
     } catch (err) {
@@ -52,7 +55,7 @@ export const authenticationMiddlewareUser = async (
         res.clearCookie("refreshToken");
         return res.status(401).json({ error: "Invalid access token" });
       }
-      if (err instanceof ExpiredTokenError) {
+      if (!(err instanceof ExpiredTokenError)) {
         res.clearCookie("accessToken");
         res.clearCookie("refreshToken");
         return res.status(401).json({ error: "Access token expired" });
@@ -84,7 +87,7 @@ export const authenticationMiddlewareUser = async (
       // hash match
       const incomingHash = hashRefreshToken(refreshToken);
       if (storedToken.id !== incomingHash) {
-        await revokeRefreshToken(payload.subjectId);
+        await revokeRefreshToken(payload.subjectId,payload.type);
         res.clearCookie("accessToken");
         res.clearCookie("refreshToken");
         return res.status(401).json({ error: "Refresh token mismatch" });
@@ -92,7 +95,7 @@ export const authenticationMiddlewareUser = async (
 
       // scadenza server-side
       if (storedToken.expiresAt.getTime() <= Date.now()) {
-        await revokeRefreshToken(payload.subjectId);
+        await revokeRefreshToken(payload.subjectId,payload.type);
         res.clearCookie("accessToken");
         res.clearCookie("refreshToken");
         return res.status(401).json({ error: "Refresh token expired" });
@@ -100,14 +103,15 @@ export const authenticationMiddlewareUser = async (
 
       const account = await findAccountById(payload.subjectId);
       if (!account) {
-        await revokeRefreshToken(payload.subjectId);
+        await revokeRefreshToken(payload.subjectId,payload.type);
         res.clearCookie("accessToken");
         res.clearCookie("refreshToken");
         return res.status(401).json({ error: "User not found" });
       }
 
       // ROTATION: revoco quello vecchio e genero nuovi token
-      await revokeRefreshToken(payload.subjectId);
+      await revokeRefreshToken(payload.subjectId,payload.type
+        );
 
       // ✅ qui NON usare account.type: metti Type.ACCOUNT fisso
       const newAccessToken = generateAccessToken(
@@ -124,7 +128,7 @@ export const authenticationMiddlewareUser = async (
 
       const hashedNewRefreshToken = hashRefreshToken(newRefreshToken);
 
-      // ✅ anche qui: type = Type.ACCOUNT
+      
       const refreshTokenEntry = createRefreshToken({
         subjectId: account.id,
         id: hashedNewRefreshToken,
@@ -165,7 +169,7 @@ export const authenticationMiddlewareAgent = async (
   res: Response,
   next: NextFunction,
 ) => {
-  const accessToken = req.cookies?.AccessToken as string;
+  const accessToken = req.cookies?.accessToken as string;
   const refreshToken = req.cookies?.refreshToken as string;
   if (!refreshToken) {
     return res.status(401).json({ error: "Missing refresh token" });
@@ -192,7 +196,7 @@ export const authenticationMiddlewareAgent = async (
         res.clearCookie("refreshToken");
         return res.status(401).json({ error: "Invalid access token" });
       }
-      if (err instanceof ExpiredTokenError) {
+      if (!(err instanceof ExpiredTokenError)) {
         res.clearCookie("accessToken");
         res.clearCookie("refreshToken");
         return res.status(401).json({ error: "Access token expired" });
@@ -224,7 +228,7 @@ export const authenticationMiddlewareAgent = async (
       // hash match
       const incomingHash = hashRefreshToken(refreshToken);
       if (storedToken.id !== incomingHash) {
-        await revokeRefreshToken(payload.subjectId);
+        await revokeRefreshToken(payload.subjectId,payload.type);
         res.clearCookie("accessToken");
         res.clearCookie("refreshToken");
         return res.status(401).json({ error: "Refresh token mismatch" });
@@ -232,7 +236,7 @@ export const authenticationMiddlewareAgent = async (
 
       // scadenza server-side
       if (storedToken.expiresAt.getTime() <= Date.now()) {
-        await revokeRefreshToken(payload.subjectId);
+        await revokeRefreshToken(payload.subjectId,payload.type);
         res.clearCookie("accessToken");
         res.clearCookie("refreshToken");
         return res.status(401).json({ error: "Refresh token expired" });
@@ -240,15 +244,15 @@ export const authenticationMiddlewareAgent = async (
 
       const agent = await findAgentById(payload.subjectId);
       if (!agent) {
-        await revokeRefreshToken(payload.subjectId);
+        await revokeRefreshToken(payload.subjectId,payload
+          .type);
         res.clearCookie("accessToken");
         res.clearCookie("refreshToken");
         return res.status(401).json({ error: "User not found" });
       }
       // ROTATION: revoco quello vecchio e genero nuovi token
-      await revokeRefreshToken(payload.subjectId);
+      await revokeRefreshToken(payload.subjectId,payload.type);
 
-      // ✅ qui NON usare agent.type: metti Type.AGENT fisso
       const newAccessToken = generateAccessToken(
         { subjectId: agent.id, type: Type.AGENT },
         process.env.ACCESS_TOKEN_SECRET!,

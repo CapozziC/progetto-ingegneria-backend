@@ -5,6 +5,7 @@ import {
   generateAccessToken,
   generateRefreshToken ,
    hashRefreshToken,
+   revokeRefreshToken,
 } from "../utils/auth.utils.js";
 import {
   createRefreshToken,
@@ -52,6 +53,8 @@ export const loginAgent = async (req: Request, res: Response) => {
       return res.status(500).json({ error: "Failed to hash refresh token" });
     }
 
+    await revokeRefreshToken(agent.id,Type.AGENT)
+
     const refreshTokenEntry = createRefreshToken({
       subjectId: agent.id,
       id: hashedRefreshToken,
@@ -64,14 +67,14 @@ export const loginAgent = async (req: Request, res: Response) => {
       return res.status(500).json({ error: "Failed to save refresh token" });
     }
 
-    res.cookie("agentRefreshToken", refreshToken, {
+    res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
-    res.cookie("agentAccessToken", accessToken, {
+    res.cookie("accessToken", accessToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
