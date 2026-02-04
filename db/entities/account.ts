@@ -21,12 +21,12 @@ export enum Provider {
 @Entity("user")
 @Check(`length(trim("first_name")) > 0`)
 @Check(`length(trim("last_name")) > 0`)
-@Check(`length(trim("provider_user_id")) > 0 OR provider_user_id IS NULL`)
+@Check(`length(trim("provider_account_id")) > 0 OR provider_account_id IS NULL`)
 @Check(
   `email IS NULL OR (length(trim(both from email)) > 0 AND trim(both from email) ~ '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$')`,
 )
-@Unique("UQ_user_email", ["email"])
-@Unique("UQ_user_id_provider", ["providerUserId"])
+@Unique("UQ_account_email", ["email"])
+@Unique("UQ_account_id_provider", ["providerAccountId"])
 export class Account {
   @PrimaryGeneratedColumn()
   id!: number;
