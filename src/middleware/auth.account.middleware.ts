@@ -17,6 +17,14 @@ import { InvalidTokenError, ExpiredTokenError } from "../utils/error.utils.js";
 import { Type } from "../entities/refreshToken.js";
 import { RequestAccount } from "../types/express.js";
 
+
+/**
+ * 
+ * @param req 
+ * @param res 
+ * @param next 
+ * @returns 
+ */
 export const authenticationMiddlewareAccount = async (
   req: RequestAccount,
   res: Response,
