@@ -1,4 +1,4 @@
-import { AppDataSource } from "../../src/data-source.js";
+import { AppDataSource } from "../data-source.js";
 import { Agent } from "../../src/entities/agent.js";
 export const AgentRepository = AppDataSource.getRepository(Agent);
 
