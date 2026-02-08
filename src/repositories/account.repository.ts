@@ -11,6 +11,11 @@ export const findAccountByEmail = async (email: string) => {
   return await AccountRepository.findOne({ where: { email } });
 };
 
+/**
+ * 
+ * @param userData 
+ * @returns 
+ */
 export const createAccount = (userData: Partial<Account>): Account => {
   return AccountRepository.create(userData);
 };
