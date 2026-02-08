@@ -17,6 +17,7 @@ jobs:
         run: |
           cd ~/progetto-ingegneria-backend
           git reset --hard HEAD
+          git clean -fd
           git pull
           npm install
           npm run build
