@@ -1,6 +1,6 @@
 import { Request } from "express";
-import type { Account } from "../src/entities/account.ts";
-import type { Agent } from "../src/entities/agent.ts";
+import type { Account } from "../entities/account.ts";
+import type { Agent } from "../entities/agent.ts";
 
 export interface RequestAccount extends Request {
   account?: Account;

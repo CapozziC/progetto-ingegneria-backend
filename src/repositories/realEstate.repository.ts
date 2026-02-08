@@ -1,3 +1,3 @@
 import { AppDataSource } from "../data-source.js";
-import { RealEstate } from "../../src/entities/realEstate.js";
+import { RealEstate } from "../entities/realEstate.js";
 export const RealEstateRepository = AppDataSource.getRepository(RealEstate);

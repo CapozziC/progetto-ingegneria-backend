@@ -1,3 +1,3 @@
 import { AppDataSource } from "../data-source.js";
-import { Photo } from "../../src/entities/photo.js";
+import { Photo } from "../entities/photo.js";
 export const PhotoRepository = AppDataSource.getRepository(Photo);

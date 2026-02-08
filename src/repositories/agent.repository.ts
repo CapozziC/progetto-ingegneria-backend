@@ -1,5 +1,5 @@
 import { AppDataSource } from "../data-source.js";
-import { Agent } from "../../src/entities/agent.js";
+import { Agent } from "../entities/agent.js";
 export const AgentRepository = AppDataSource.getRepository(Agent);
 
 export const findAgentByUsername = async (
