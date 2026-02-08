@@ -2,6 +2,11 @@ import { AppDataSource } from "../../src/data-source.js";
 import { Account } from "../../src/entities/account.js";
 export const AccountRepository = AppDataSource.getRepository(Account);
 
+/**
+ * 
+ * @param email 
+ * @returns 
+ */
 export const findAccountByEmail = async (email: string) => {
   return await AccountRepository.findOne({ where: { email } });
 };
