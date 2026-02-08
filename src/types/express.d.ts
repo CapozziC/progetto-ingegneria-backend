@@ -1,6 +1,6 @@
 import { Request } from "express";
-import type { Account } from "../db/entities/account.js";
-import type { Agent } from "../db/entities/agent.js";
+import type { Account } from "../src/entities/account.ts";
+import type { Agent } from "../src/entities/agent.ts";
 
 export interface RequestAccount extends Request {
   account?: Account;

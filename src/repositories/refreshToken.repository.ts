@@ -1,5 +1,5 @@
-import { AppDataSource } from "../data-source.js";
-import { RefreshToken, Type } from "../entities/refreshToken.js";
+import { AppDataSource } from "../../src/data-source.js";
+import { RefreshToken, Type } from "../../src/entities/refreshToken.js";
 export const RefreshTokenRepository = AppDataSource.getRepository(RefreshToken);
 
 export const createRefreshToken = (

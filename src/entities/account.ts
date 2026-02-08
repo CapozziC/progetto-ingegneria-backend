@@ -18,7 +18,7 @@ export enum Provider {
   FACEBOOK = "facebook",
 }
 
-@Entity("Account")
+@Entity("account")
 @Check(`length(trim("first_name")) > 0`)
 @Check(`length(trim("last_name")) > 0`)
 @Check(`length(trim("provider_account_id")) > 0 OR provider_account_id IS NULL`)

@@ -2,9 +2,9 @@ import jwt, { Secret, SignOptions } from "jsonwebtoken";
 import crypto from "crypto";
 import "dotenv/config";
 import { Payload } from "../types/auth.type.js";
-import { deleteRefreshTokenBySubject} from "../db/repositories/refreshToken.repository.js";
+import { deleteRefreshTokenBySubject} from "../repositories/refreshToken.repository.js";
 import { InvalidTokenError, ExpiredTokenError} from "./error.utils.js";
-import { Type } from "../db/entities/refreshToken.js";
+import { Type } from "../entities/refreshToken.js";
 
 // Generate Access and Refresh Tokens for Users
 export const generateAccessToken = (

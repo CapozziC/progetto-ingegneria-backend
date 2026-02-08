@@ -6,6 +6,8 @@
     "target": "esnext",
     "strict": true,
     "esModuleInterop": true,
+    "outDir": "dist",
+    "rootDir": "src",
 
     // Environment Settings
     // See also https://aka.ms/tsconfig/module
@@ -35,6 +37,6 @@
     "moduleDetection": "force",
     "skipLibCheck": true
   },
-  "include": ["**/*.ts"],
-  "exclude": ["node_modules"]
+  "include": ["src/**/*.ts"],
+  "exclude": ["node_modules", "dist"]
 }

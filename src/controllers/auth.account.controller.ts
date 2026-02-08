@@ -2,12 +2,11 @@ import {
   findAccountByEmail,
   createAccount,
   saveAccount,
-} from "../db/repositories/account.repository.js";
+} from "../repositories/account.repository.js";
 import {
   createRefreshToken,
   saveRefreshToken,
-} from "../db/repositories/refreshToken.repository.js";
-
+} from "../repositories/refreshToken.repository.js";
 import {Response } from "express";
 import {
   generateAccessToken,
@@ -16,7 +15,7 @@ import {
   revokeRefreshToken,
 } from "../utils/auth.utils.js";
 import bcrypt from "bcryptjs";
-import { Type } from "../db/entities/refreshToken.js";
+import { Type } from "../entities/refreshToken.js";
 import { RequestAccount } from "../types/express.js";
 
 export const registerAccount = async (req: RequestAccount, res: Response) => {

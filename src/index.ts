@@ -1,6 +1,6 @@
 import express from "express";
 import authRoutes from "./routes/auth.route.js";
-import { AppDataSource } from "./db/data-source.js";
+import { AppDataSource } from "./data-source.js";
 
 try {
   // Initialize database connection

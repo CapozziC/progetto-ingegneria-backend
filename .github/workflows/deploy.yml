@@ -19,7 +19,6 @@ jobs:
           git reset --hard HEAD
           git pull
           npm install
-          npx tsc
-          npx typeorm-ts-node-esm migration:generate db/migrations/init -d db/data-source.ts
-          npx typeorm-ts-node-esm migration:run -d db/data-source.ts
+          npm run build
+          npm run typeorm migration:run -- -d dist/data-source.js
           sudo systemctl restart backend.service

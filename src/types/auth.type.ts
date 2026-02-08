@@ -1,4 +1,4 @@
-import { Type } from "../db/entities/refreshToken.js";
+import { Type } from "../entities/refreshToken.js";
 
 export type Payload = {
   subjectId: number;

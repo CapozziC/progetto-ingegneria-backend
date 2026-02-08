@@ -1,6 +1,6 @@
 import {Response } from "express";
 import bcrypt from "bcryptjs";
-import { findAgentByUsername } from "../db/repositories/agent.repository.js";
+import { findAgentByUsername } from "../repositories/agent.repository.js";
 import { RequestAgent } from "../types/express.js";
 import {
   generateAccessToken,
@@ -11,8 +11,8 @@ import {
 import {
   createRefreshToken,
   saveRefreshToken,
-} from "../db/repositories/refreshToken.repository.js";
-import { Type } from "../db/entities/refreshToken.js";
+} from "../repositories/refreshToken.repository.js";
+import { Type } from "../entities/refreshToken.js";
 
 export const loginAgent = async (req:RequestAgent, res: Response) => {
   try {

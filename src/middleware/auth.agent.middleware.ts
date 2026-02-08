@@ -1,14 +1,14 @@
 import { NextFunction, Response } from "express";
 import {
     findAgentById,
-  } from "../db/repositories/agent.repository.js";
+  } from "../repositories/agent.repository.js";
   import {
     findRefreshTokenBySubject,
     createRefreshToken,
     saveRefreshToken,
-  } from "../db/repositories/refreshToken.repository.js";
+  } from "../repositories/refreshToken.repository.js";
   import { revokeRefreshToken } from "../utils/auth.utils.js";
-  import { Type } from "../db/entities/refreshToken.js";
+  import { Type } from "../entities/refreshToken.js";
   import { RequestAgent } from "../types/express.js";
   import {
     generateAccessToken,

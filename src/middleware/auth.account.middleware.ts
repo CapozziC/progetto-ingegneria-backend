@@ -1,4 +1,4 @@
-import { findAccountById } from "../db/repositories/account.repository.js";
+import { findAccountById } from "../repositories/account.repository.js";
 import { Response, NextFunction } from "express";
 import {
   generateAccessToken,
@@ -12,9 +12,9 @@ import {
   findRefreshTokenBySubject,
   saveRefreshToken,
   createRefreshToken,
-} from "../db/repositories/refreshToken.repository.js";
+} from "../repositories/refreshToken.repository.js";
 import { InvalidTokenError, ExpiredTokenError } from "../utils/error.utils.js";
-import { Type } from "../db/entities/refreshToken.js";
+import { Type } from "../entities/refreshToken.js";
 import { RequestAccount } from "../types/express.js";
 
 export const authenticationMiddlewareAccount = async (
