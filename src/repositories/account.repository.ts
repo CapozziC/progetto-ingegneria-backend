@@ -2,29 +2,14 @@ import { AppDataSource } from "../../src/data-source.js";
 import { Account } from "../../src/entities/account.js";
 export const AccountRepository = AppDataSource.getRepository(Account);
 
-/**
- * 
- * @param email 
- * @returns 
- */
 export const findAccountByEmail = async (email: string) => {
   return await AccountRepository.findOne({ where: { email } });
 };
 
-/**
- * 
- * @param userData 
- * @returns 
- */
 export const createAccount = (userData: Partial<Account>): Account => {
   return AccountRepository.create(userData);
 };
 
-/**
- * 
- * @param account 
- * @returns 
- */
 export const saveAccount = async (account: Account): Promise<Account> => {
   return await AccountRepository.save(account);
 };

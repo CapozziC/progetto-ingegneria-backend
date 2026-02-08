@@ -20,11 +20,16 @@ import {
 import { ExpiredTokenError, InvalidTokenError } from "../utils/error.utils.js";
 
 /**
- * 
- * @param req 
- * @param res 
- * @param next 
- * @returns 
+ * Agent authentication middleware.
+ *
+ * Validates the `accessToken` when present; if it is expired or missing,
+ * attempts refresh using `refreshToken`, rotating and persisting it in the DB.
+ * Sets `req.agent` and calls `next()` when the session is valid.
+ *
+ * @param req Express request with an optional authenticated `agent`.
+ * @param res Express response used to send errors or updated cookies.
+ * @param next Callback to pass control to the next middleware.
+ * @returns Promise<void> or an HTTP response on error.
  */
 export const authenticationMiddlewareAgent = async (
   req: RequestAgent,
