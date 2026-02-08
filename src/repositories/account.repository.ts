@@ -20,6 +20,11 @@ export const createAccount = (userData: Partial<Account>): Account => {
   return AccountRepository.create(userData);
 };
 
+/**
+ * 
+ * @param account 
+ * @returns 
+ */
 export const saveAccount = async (account: Account): Promise<Account> => {
   return await AccountRepository.save(account);
 };
