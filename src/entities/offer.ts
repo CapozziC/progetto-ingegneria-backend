@@ -46,13 +46,13 @@ export class Offer {
   })
   status!: Status;
 
-  @Column({ name: "advertisement_id" })
+  @Column({ type: "int", name: "advertisement_id" })
   advertisementId!: number;
 
-  @Column({ name: "account_id" })
+  @Column({ type: "int", name: "account_id" })
   accountId!: number;
 
-  @Column({ name: "agent_id" })
+  @Column({ type: "int", name: "agent_id" })
   agentId!: number;
 
   /**

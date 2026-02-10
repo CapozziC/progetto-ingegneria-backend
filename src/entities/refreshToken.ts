@@ -16,7 +16,7 @@ export enum Type {
 @Entity("refresh_token")
 @Check(`"expires_at" > "created_at"`)
 @Index("idx_refresh_token_subject_type", ["subjectId", "type"])
-@Unique("UQ_subjectId_type",["subjectId", "type"])
+@Unique("UQ_subjectId_type", ["subjectId", "type"])
 export class RefreshToken {
   @PrimaryColumn({ type: "text" })
   id!: string;

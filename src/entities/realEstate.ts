@@ -22,48 +22,47 @@ export enum Type {
 export class RealEstate {
   @PrimaryGeneratedColumn()
   id!: number;
-  
+
   @Column({ type: "int" })
   size!: number;
 
   @Column({ type: "int" })
   rooms!: number;
 
-  @Column({type: "int" })
+  @Column({ type: "int" })
   floor!: number;
-  
 
-  @Column({ default: false })
+  @Column({ type: "boolean", default: false })
   elevator!: boolean;
 
-  @Column({name: "air_conditioning", default: false })
+  @Column({ name: "air_conditioning", type: "boolean", default: false })
   airConditioning!: boolean;
 
-  @Column({ default: false })
+  @Column({ type: "boolean", default: false })
   heating!: boolean;
 
-  @Column({ default: false })
+  @Column({ type: "boolean", default: false })
   concierge!: boolean;
 
-  @Column({ default: false })
+  @Column({ type: "boolean", default: false })
   parking!: boolean;
 
-  @Column({ default: false })
+  @Column({ type: "boolean", default: false })
   garage!: boolean;
 
-  @Column({ default: false })
+  @Column({ type: "boolean", default: false })
   furnished!: boolean;
 
-  @Column({ name: "solar_panels", default: false })
+  @Column({ name: "solar_panels", type: "boolean", default: false })
   solarPanels!: boolean;
 
-  @Column({ default: false })
+  @Column({ type: "boolean", default: false })
   balcony!: boolean;
 
-  @Column({ default: false })
+  @Column({ type: "boolean", default: false })
   terrace!: boolean;
 
-  @Column({ default: false })
+  @Column({ type: "boolean", default: false })
   garden!: boolean;
 
   @Column({ name: "energy_class", type: "enum", enum: EnergyClass })
@@ -77,6 +76,4 @@ export class RealEstate {
     srid: 4326,
   })
   location!: Point;
-
-  
 }

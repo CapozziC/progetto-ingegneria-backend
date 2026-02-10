@@ -54,13 +54,13 @@ export class Appointment {
   })
   status!: Status;
 
-  @Column({ name: "agent_id" })
+  @Column({ type: "int", name: "agent_id" })
   agentId!: number;
 
-  @Column({ name: "account_id" })
+  @Column({ type: "int", name: "account_id" })
   accountId!: number;
 
-  @Column({ name: "advertisement_id" })
+  @Column({ type: "int", name: "advertisement_id" })
   advertisementId!: number;
 
   /**
@@ -70,7 +70,7 @@ export class Appointment {
   @ManyToOne(() => Account, (account) => account.appointments, {
     onDelete: "RESTRICT",
   })
-  @JoinColumn({ name: "user_id" , foreignKeyConstraintName: "FK_appointment_account"})
+  @JoinColumn({ name: "account_id" , foreignKeyConstraintName: "FK_appointment_account"})
   account!: Account;
   /**
    * Advertisement this appointment refers to

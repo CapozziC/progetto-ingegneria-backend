@@ -21,7 +21,7 @@ import type { Agency } from "./agency.js";
 @Check(`length(trim("last_name")) > 1`)
 @Check(`length(trim("password")) > 0`)
 @Check(`"phone_number" ~ '^\\+[1-9][0-9]{7,14}$'`)
-@Unique("UQ_agent_username_agencyId", ["username", "agencyId"])
+@Unique("UQ_agent_username_agencyId", ["username", "agency"])
 export class Agent {
   @PrimaryGeneratedColumn()
   id!: number;
@@ -32,7 +32,7 @@ export class Agent {
   @Column({ name: "last_name", type: "varchar", length: 30 })
   lastName!: string;
 
-  @Column({type: "text" })
+  @Column({ type: "text" })
   username!: string;
 
   @Column({ type: "varchar", length: 255 })
@@ -40,7 +40,7 @@ export class Agent {
 
   @CreateDateColumn({
     name: "created_at",
-    type: "timestamp with time zone"
+    type: "timestamp with time zone",
   })
   createdAt!: Date;
 
@@ -53,11 +53,11 @@ export class Agent {
   @Column({ name: "phone_number", type: "varchar", length: 15 })
   phoneNumber!: string;
 
-  @Column({ name: "is_admin" })
+  @Column({ type: "boolean", name: "is_admin" })
   isAdmin!: boolean;
 
-  @Column({name: "is_password_change", default:false})
-  isPasswordChange!:boolean;
+  @Column({ type: "boolean", name: "is_password_change", default: false })
+  isPasswordChange!: boolean;
 
   /**
    * Advertisements managed by this Agent
@@ -67,14 +67,6 @@ export class Agent {
     (advertisement: Advertisement) => advertisement.agent,
   )
   advertisements!: Advertisement[];
-
-  @Index("IDX_agent_agency_id", ["agencyId"])
-  @Column({ name: "agency_id" })
-  agencyId!: number;
-
-  @Index("IDX_agent_administrator_id", ["administratorId"])
-  @Column({ name: "administrator_id", nullable: true })
-  administratorId!: number | null;
 
   /**
    * Offers managed by this Agent
@@ -95,17 +87,26 @@ export class Agent {
   @ManyToOne("Agency", (realEstateAgency: Agency) => realEstateAgency.agent, {
     onDelete: "CASCADE",
   })
-  @JoinColumn({ name: "agency_id" , foreignKeyConstraintName: "FK_agent_agency"})
+  @JoinColumn({
+    name: "agency_id",
+    foreignKeyConstraintName: "FK_agent_agency",
+  })
+  @Index("IDX_agent_agency_id")
   agency!: Agency;
 
   /**
    * Administrator responsible for this Agent
    */
   @ManyToOne(() => Agent, (agent) => agent.agents, {
-    onDelete: "SET NULL",onUpdate: "CASCADE",
+    onDelete: "SET NULL",
+    onUpdate: "CASCADE",
     nullable: true,
   })
-  @JoinColumn({ name: "administrator_id" , foreignKeyConstraintName: "FK_agent_administrator"})
+  @JoinColumn({
+    name: "administrator_id",
+    foreignKeyConstraintName: "FK_agent_administrator",
+  })
+  @Index("IDX_agent_administrator_id")
   administrator!: Agent;
 
   /**

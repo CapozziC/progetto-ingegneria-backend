@@ -71,11 +71,11 @@ export class Advertisement {
   type!: Type;
 
   @Index("IDX_adv_agent_id", ["agentId"])
-  @Column({ name: "agent_id" })
+  @Column({ type: "int", name: "agent_id" })
   agentId!: number;
 
   @Index("IDX_adv_real_estate_id", ["realEstateId"])
-  @Column({ name: "real_estate_id" })
+  @Column({ type: "int", name: "real_estate_id" })
   realEstateId!: number;
 
   /**
@@ -86,7 +86,10 @@ export class Advertisement {
     onDelete: "RESTRICT",
     onUpdate: "CASCADE",
   })
-  @JoinColumn({ name: "agent_id", foreignKeyConstraintName: "FK_advertisement_agent" })
+  @JoinColumn({
+    name: "agent_id",
+    foreignKeyConstraintName: "FK_advertisement_agent",
+  })
   agent!: Agent;
 
   /**
@@ -137,8 +140,10 @@ export class Advertisement {
   @OneToOne(() => RealEstate, {
     onDelete: "CASCADE",
     cascade: true,
-
   })
-  @JoinColumn({ name: "real_estate_id" , foreignKeyConstraintName: "FK_advertisement_real_estate" })
+  @JoinColumn({
+    name: "real_estate_id",
+    foreignKeyConstraintName: "FK_advertisement_real_estate",
+  })
   realEstate!: RealEstate;
 }

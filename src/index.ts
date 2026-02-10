@@ -1,4 +1,6 @@
+import "reflect-metadata";
 import express from "express";
+import cookieParser from "cookie-parser";
 import authRoutes from "./routes/auth.route.js";
 import { AppDataSource } from "./data-source.js";
 
@@ -8,6 +10,7 @@ try {
   const port = 3000;
   const app = express();
   app.use(express.json());
+  app.use(cookieParser());
 
   // Use auth routes
   app.use("/auth", authRoutes);
@@ -16,7 +19,6 @@ try {
   app.get("/", (req, res) => {
     res.send("Hello World!");
   });
-  
 
   // Check backend connection
   app.listen(port, "0.0.0.0", () => {

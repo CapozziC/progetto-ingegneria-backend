@@ -39,7 +39,7 @@ export class Photo {
   position!: number;
 
   @Index("IDX_advertisement_id")
-  @Column({ name: "advertisement_id" })
+  @Column({ type: "int", name: "advertisement_id" })
   advertisementId!: number;
 
   /**
