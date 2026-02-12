@@ -21,7 +21,7 @@ import type { Agency } from "./agency.js";
 @Check(`length(trim("last_name")) > 1`)
 @Check(`length(trim("password")) > 0`)
 @Check(`"phone_number" ~ '^\\+[1-9][0-9]{7,14}$'`)
-@Unique("UQ_agent_username_agencyId", ["username", "agency"])
+@Unique("UQ_agent_username_agency", ["username", "agency"])
 export class Agent {
   @PrimaryGeneratedColumn()
   id!: number;
@@ -107,7 +107,7 @@ export class Agent {
     foreignKeyConstraintName: "FK_agent_administrator",
   })
   @Index("IDX_agent_administrator_id")
-  administrator!: Agent;
+  administrator!: Agent | null;
 
   /**
    * Agents managed by this Administrator

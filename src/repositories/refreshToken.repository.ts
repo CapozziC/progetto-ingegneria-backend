@@ -27,3 +27,7 @@ export const findRefreshTokenBySubject = async (
 ): Promise<RefreshToken | null> => {
   return await RefreshTokenRepository.findOne({ where: { subjectId, type } });
 };
+
+export const deleteRefreshTokenById = async (id: string): Promise<void> => {
+  await RefreshTokenRepository.delete({ id });
+};

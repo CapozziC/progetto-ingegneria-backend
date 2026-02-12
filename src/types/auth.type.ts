@@ -4,3 +4,4 @@ export type Payload = {
   subjectId: number;
   type: Type;
 };
+

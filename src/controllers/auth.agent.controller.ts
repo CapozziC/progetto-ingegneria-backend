@@ -1,32 +1,113 @@
-import {Response } from "express";
+import { Request, Response } from "express";
 import bcrypt from "bcryptjs";
-import { findAgentByUsername } from "../repositories/agent.repository.js";
-import { RequestAgent } from "../types/express.js";
+import {
+  createAgent,
+  saveAgent,
+  findAgentsByAgencyAndUsernamePrefix,
+  findAgentsByAgencyIdAndUsername,
+} from "../repositories/agent.repository.js";
+import {
+  normalizeUsernameBase,
+  nextUsernameFromExisting,
+} from "../utils/username.utils.js";
+import { generateTemporaryPassword } from "../utils/password.utils.js";
 import {
   generateAccessToken,
-  generateRefreshToken ,
-   hashRefreshToken,
-   revokeRefreshToken,
+  generateRefreshToken,
+  hashRefreshToken,
+  revokeRefreshToken,
 } from "../utils/auth.utils.js";
 import {
   createRefreshToken,
   saveRefreshToken,
 } from "../repositories/refreshToken.repository.js";
+import { RequestAgent } from "../types/express.js";
 import { Type } from "../entities/refreshToken.js";
 
-export const loginAgent = async (req:RequestAgent, res: Response) => {
+export const createNewAgent = async (req: RequestAgent, res: Response) => {
   try {
-    const { username, password } = req.body;
+    const { firstName, lastName, phoneNumber, isAdmin } = req.body;
+    const Agent = req.agent;
+    if (!Agent) {
+      return res.status(403).json({ error: "Agent not found" });
+    }
+    if (!Agent.isAdmin) {
+      return res
+        .status(403)
+        .json({ error: "Unauthorized: Only admin can create other agents" });
+    }
+
+    if (!Agent.agency) {
+      return res
+        .status(403)
+        .json({ error: "Unauthorized: Agent does not belong to any agency" });
+    }
+
+    if (!firstName || !lastName) {
+      return res
+        .status(400)
+        .json({ error: "First name and last name are required" });
+    }
+
+    if (!phoneNumber) {
+      return res.status(400).json({ error: "Phone number is required" });
+    }
+    const usernameBase = normalizeUsernameBase(firstName, lastName);
+    const existingUsernames = (
+      await findAgentsByAgencyAndUsernamePrefix(Agent.agency.id, usernameBase)
+    ).map((agent) => agent.username);
+
+    const username = nextUsernameFromExisting(usernameBase, existingUsernames);
+
+    const temporaryPassword = generateTemporaryPassword();
+    //Inserire logica per invio email con temporary password e username
+    const hashedPassword = await bcrypt.hash(temporaryPassword, 10);
+
+    // Create and save the new agent
+    const newAgent = createAgent({
+      firstName,
+      lastName,
+      username: username,
+      password: hashedPassword,
+      phoneNumber,
+      isAdmin,
+      agency: Agent.agency,
+      administrator: Agent.administrator,
+    });
+
+    const savedAgent = await saveAgent(newAgent);
+    return res.status(201).json({
+      message: "Agent created successfully",
+      agentId: savedAgent.id,
+      username: savedAgent.username,
+      temporaryPassword: temporaryPassword,
+    });
+  } catch (error) {
+    console.error("Error creating agent:", error);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+export const loginAgent = async (req: Request, res: Response) => {
+  try {
+    const { agencyId, username, password } = req.body;
+
+    if (!agencyId) {
+      return res.status(400).json({ error: "Agency ID is required" });
+    }
+
     if (!username) {
       return res.status(400).json({ error: "Username is required" });
     }
     if (!password) {
       return res.status(400).json({ error: "Password is required" });
     }
-    const agent = await findAgentByUsername(username);
+
+    const agent = await findAgentsByAgencyIdAndUsername(agencyId, username);
     if (!agent) {
       return res.status(404).json({ error: "Agent not found" });
     }
+
     const isPasswordValid = await bcrypt.compare(password, agent.password);
 
     if (!isPasswordValid) {
@@ -54,7 +135,7 @@ export const loginAgent = async (req:RequestAgent, res: Response) => {
       return res.status(500).json({ error: "Failed to hash refresh token" });
     }
 
-    await revokeRefreshToken(agent.id,Type.AGENT)
+    await revokeRefreshToken(agent.id, Type.AGENT);
 
     const refreshTokenEntry = createRefreshToken({
       subjectId: agent.id,
@@ -88,5 +169,3 @@ export const loginAgent = async (req:RequestAgent, res: Response) => {
     return res.status(500).json({ error: "Internal server error" });
   }
 };
-
-

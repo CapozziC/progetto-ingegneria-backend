@@ -1,0 +1,36 @@
+/**
+ * Utility functions for username normalization.
+ */
+export const normalizeUsernameBase = (firstName: string, lastName: string) => {
+  const base = `${firstName}${lastName}`
+    .toLowerCase()
+    .normalize("NFD") // separa accenti
+    .replace(/[\u0300-\u036f]/g, "") // rimuove accenti
+    .replace(/[^a-z0-9]/g, ""); // toglie spazi/simboli
+  return base;
+};
+
+/**
+ * Generates the next available username based on a base and a list of existing usernames.
+ * @param {string} base - The base username to use for generation.
+ * @param {string[]} usernames - An array of existing usernames to check against.
+ * @returns {string} The next available username.
+ */
+
+export const nextUsernameFromExisting = (base: string, usernames: string[]) => {
+  // accetta: base, base1, base2, ...
+  let max = -1;
+
+  for (const u of usernames) {
+    if (u === base) {
+      max = Math.max(max, 0);
+      continue;
+    }
+    const m = u.match(new RegExp(`^${base}(\\d+)$`));
+    if (m) max = Math.max(max, Number(m[1]));
+  }
+
+  // se max = -1 => nessuno esiste, uso base
+  // se max = 0 => esiste base, prossimo è base1
+  return max < 0 ? base : `${base}${max + 1}`;
+};

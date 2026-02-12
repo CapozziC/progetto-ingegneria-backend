@@ -7,7 +7,7 @@ import {
   createRefreshToken,
   saveRefreshToken,
 } from "../repositories/refreshToken.repository.js";
-import {Response } from "express";
+import { Response } from "express";
 import {
   generateAccessToken,
   generateRefreshToken,
@@ -74,7 +74,7 @@ export const registerAccount = async (req: RequestAccount, res: Response) => {
       return res.status(500).json({ error: "Refresh token hashing failed" });
     }
 
-    await revokeRefreshToken(savedAccount.id, Type.ACCOUNT); 
+    await revokeRefreshToken(savedAccount.id, Type.ACCOUNT);
 
     const refreshTokenEntry = createRefreshToken({
       id: hashedRefreshToken,
@@ -91,14 +91,14 @@ export const registerAccount = async (req: RequestAccount, res: Response) => {
     res.cookie("accessToken", accessToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite:"strict",
+      sameSite: "strict",
       maxAge: 15 * 60 * 1000, // 15 minutes
     });
 
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite:"strict",
+      sameSite: "strict",
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
 
@@ -176,20 +176,45 @@ export const loginAccount = async (req: RequestAccount, res: Response) => {
     res.cookie("accessToken", accessToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite:"strict",
+      sameSite: "strict",
       maxAge: 15 * 60 * 1000, // 15 minutes
     });
 
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite:"strict",
+      sameSite: "strict",
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
 
     return res.status(200).json({ message: "Login successful" });
   } catch (error) {
     console.error("Login error:", error);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+export const LogoutAccount = async (req: RequestAccount, res: Response) => {
+  try {
+    const account = req.account;
+    if (!account) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    await revokeRefreshToken(account.id, Type.ACCOUNT);
+    res.clearCookie("accessToken", {
+      httpOnly: true,
+      sameSite: "strict",
+      secure: process.env.NODE_ENV === "production",
+    });
+    res.clearCookie("refreshToken", {
+      httpOnly: true,
+      sameSite: "strict",
+      secure: process.env.NODE_ENV === "production",
+    });
+    return res.status(200).json({ message: "Logout successful" });
+  } catch (error) {
+    console.error("Logout error:", error);
     return res.status(500).json({ error: "Internal server error" });
   }
 };

@@ -2,8 +2,8 @@ import jwt, { Secret, SignOptions } from "jsonwebtoken";
 import crypto from "crypto";
 import "dotenv/config";
 import { Payload } from "../types/auth.type.js";
-import { deleteRefreshTokenBySubject} from "../repositories/refreshToken.repository.js";
-import { InvalidTokenError, ExpiredTokenError} from "./error.utils.js";
+import { deleteRefreshTokenBySubject } from "../repositories/refreshToken.repository.js";
+import { InvalidTokenError, ExpiredTokenError } from "./error.utils.js";
 import { Type } from "../entities/refreshToken.js";
 
 // Generate Access and Refresh Tokens for Users
@@ -15,7 +15,6 @@ export const generateAccessToken = (
   return jwt.sign(payload, secret, { expiresIn });
 };
 
-
 export const generateRefreshToken = (
   payload: Payload,
   secret: Secret,
@@ -23,7 +22,6 @@ export const generateRefreshToken = (
 ): string => {
   return jwt.sign(payload, secret, { expiresIn });
 };
-
 
 export const verifyAccessToken = (accessToken: string): Payload => {
   if (!accessToken) {
@@ -59,16 +57,17 @@ export const verifyRefreshToken = (refreshToken: string): Payload => {
     }
     throw new InvalidTokenError("refresh", err);
   }
-}
+};
 
-
-
-export const revokeRefreshToken = async (subjectId: number,type:Type): Promise<void> => {
+export const revokeRefreshToken = async (
+  subjectId: number,
+  type: Type,
+): Promise<void> => {
   try {
-    await deleteRefreshTokenBySubject(subjectId,type);
+    await deleteRefreshTokenBySubject(subjectId, type);
   } catch (error) {
     console.error(
-      `Failed to revoke refresh token for subject ${subjectId}  ${type}:`,
+      `Failed to revoke refresh token for subject ${subjectId}  ${type} `,
       error,
     );
     throw new Error("Failed to revoke refresh token");
