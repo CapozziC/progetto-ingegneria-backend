@@ -169,3 +169,27 @@ export const loginAgent = async (req: Request, res: Response) => {
     return res.status(500).json({ error: "Internal server error" });
   }
 };
+export const LogoutAgent = async (req: RequestAgent, res: Response) => {
+  try {
+    const agent = req.agent;
+    if (!agent) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    await revokeRefreshToken(agent.id, Type.AGENT);
+    res.clearCookie("accessToken", {
+      httpOnly: true,
+      sameSite: "strict",
+      secure: process.env.NODE_ENV === "production",
+    });
+    res.clearCookie("refreshToken", {
+      httpOnly: true,
+      sameSite: "strict",
+      secure: process.env.NODE_ENV === "production",
+    });
+    return res.status(200).json({ message: "Logout successful" });
+  } catch (error) {
+    console.error("Logout error:", error);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+};
