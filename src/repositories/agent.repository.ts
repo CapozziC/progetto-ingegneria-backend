@@ -9,9 +9,7 @@ export const createAgent = (agentData: Partial<Agent>): Agent => {
 export const saveAgent = async (agent: Agent): Promise<Agent> => {
   return await AgentRepository.save(agent);
 };
-export const findAgentById = async (id: number): Promise<Agent | null> => {
-  return await AgentRepository.findOne({ where: { id } });
-};
+
 export const findAgentsByAgencyIdAndUsername = async (
   agencyId: number,
   username: string,
@@ -32,4 +30,32 @@ export const findAgentsByAgencyAndUsernamePrefix = async (
     .where("agency.id = :agencyId", { agencyId })
     .andWhere("agent.username LIKE :prefix", { prefix: `${prefix}%` })
     .getMany();
+};
+
+export const deleteAgentById = async (id: number): Promise<void> => {
+  await AgentRepository.delete({ id });
+};
+
+
+export const findAgentById = async (id: number): Promise<Agent | null> => {
+  return AgentRepository.findOne({
+    where: { id },
+    relations: ["agency"],
+  });
+};
+
+
+
+export const findAgentCreatedByAdmin = async (
+  agentId: number,
+  agencyId: number,
+  administratorId: number,
+): Promise<Agent | null> => {
+  return await AgentRepository.findOne({
+    where: {
+      id: agentId,
+      agency: { id: agencyId },
+      administrator: { id: administratorId },
+    },
+  });
 };

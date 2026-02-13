@@ -70,14 +70,6 @@ export class Advertisement {
   })
   type!: Type;
 
-  @Index("IDX_adv_agent_id", ["agentId"])
-  @Column({ type: "int", name: "agent_id" })
-  agentId!: number;
-
-  @Index("IDX_adv_real_estate_id", ["realEstateId"])
-  @Column({ type: "int", name: "real_estate_id" })
-  realEstateId!: number;
-
   /**
    * Agent who published and manages this advertisement.
    * If the agent is deleted, restrict deletion if advertisements exist.
@@ -90,6 +82,7 @@ export class Advertisement {
     name: "agent_id",
     foreignKeyConstraintName: "FK_advertisement_agent",
   })
+  @Index("IDX_adv_agent_id")
   agent!: Agent;
 
   /**
@@ -145,5 +138,6 @@ export class Advertisement {
     name: "real_estate_id",
     foreignKeyConstraintName: "FK_advertisement_real_estate",
   })
+  @Index("IDX_adv_real_estate_id")
   realEstate!: RealEstate;
 }

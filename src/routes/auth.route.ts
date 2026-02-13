@@ -6,7 +6,6 @@ import {
 import { createNewAgencyWithFirstAgent } from "../controllers/auth.agency.controller.js";
 import {
   loginAgent,
-  createNewAgent,
   LogoutAgent,
 } from "../controllers/auth.agent.controller.js";
 import { authenticationMiddlewareAccount } from "../middleware/auth.account.middleware.js";
@@ -22,10 +21,6 @@ router.post("/agent/login", loginAgent);
 router.post("/agent/logout",authenticationMiddlewareAgent,LogoutAgent)
 router.post("/user/logout",authenticationMiddlewareAccount,LogoutAccount)
 router.post("/agency/create", createNewAgencyWithFirstAgent);
-router.post(
-  "/agent/createAgent",
-  authenticationMiddlewareAgent,
-  createNewAgent,
-);
+
 
 export default router;

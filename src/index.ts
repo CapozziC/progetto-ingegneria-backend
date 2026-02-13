@@ -1,7 +1,10 @@
 import "reflect-metadata";
 import express from "express";
+import path from "path";
 import cookieParser from "cookie-parser";
 import authRoutes from "./routes/auth.route.js";
+import agentRoutes from "./routes/agent.route.js";
+import advertisementRoutes from "./routes/advertisement.route.js";
 import { AppDataSource } from "./data-source.js";
 
 try {
@@ -12,8 +15,12 @@ try {
   app.use(express.json());
   app.use(cookieParser());
 
+  app.use("/uploads", express.static(path.resolve("uploads")));
+
   // Use auth routes
   app.use("/auth", authRoutes);
+  app.use("/agent", agentRoutes);
+  app.use("/", advertisementRoutes);
 
   // Define a route handler for the default home page
   app.get("/", (req, res) => {
