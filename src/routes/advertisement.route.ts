@@ -5,10 +5,13 @@ import { uploadPhotos } from "../utils/multer.utils.js";
 import { parseJsonFields } from "../utils/objectParse.utils.js";
 import { validateBody } from "../middleware/validate.middleware.js";
 import { createAdvertisementSchema } from "../validations/advertisement.validation.js";
-import { createAdvertisementWithRealEstateAndPhotosTx } from "../controllers/advertisment.controller.js";
+import {
+  createAdvertisementWithRealEstateAndPhotosTx,
+  deleteAgentAdvertisement,
+} from "../controllers/advertisment.controller.js";
 
 router.post(
-  "/advertisements",
+  "/create",
   authenticationMiddlewareAgent,
   uploadPhotos,
   parseJsonFields(["realEstate"]),
@@ -16,4 +19,9 @@ router.post(
   createAdvertisementWithRealEstateAndPhotosTx,
 );
 
+router.delete(
+  "/delete/:id",
+  authenticationMiddlewareAgent,
+  deleteAgentAdvertisement,
+);
 export default router;

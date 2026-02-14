@@ -2,6 +2,10 @@ import type { Response } from "express";
 import path from "path";
 import type { Point } from "geojson";
 import { deleteUploadedFilesSafe } from "../controllers/upload.controller.js";
+import {
+  findAdvertisementOwnerId,
+  deleteAdvertisementById,
+} from "../repositories/advertisement.repository.js";
 
 import { AppDataSource } from "../data-source.js";
 import { Advertisement } from "../entities/advertisement.js";
@@ -29,8 +33,7 @@ export const createAdvertisementWithRealEstateAndPhotosTx = async (
   res: Response,
 ) => {
   const files = (req.files as Express.Multer.File[]) ?? [];
-
-  // 🔐 1️⃣ Controllo autenticazione
+  //Controllo autenticazione
   if (!req.agent) {
     await deleteUploadedFilesSafe(files);
     return res.status(401).json({ error: "Unauthorized" });
@@ -126,14 +129,55 @@ export const createAdvertisementWithRealEstateAndPhotosTx = async (
   } catch (err) {
     try {
       await queryRunner.rollbackTransaction();
-    } catch {}
+    } catch {
+      await deleteUploadedFilesSafe(files);
 
-    await deleteUploadedFilesSafe(files);
+      return res.status(500).json({
+        error: "Failed to create advertisement",
+      });
+    } finally {
+      await queryRunner.release();
+    }
+  }
+};
 
-    return res.status(500).json({
-      error: "Failed to create advertisement",
-    });
-  } finally {
-    await queryRunner.release();
+export const deleteAgentAdvertisement = async (
+  req: RequestAgent,
+  res: Response,
+) => {
+  try {
+    //Controllo autenticazione
+    const agent = req.agent;
+    if (!agent) {
+      return res
+        .status(401)
+        .json({ error: "Unauthorized: agent not logged in" });
+    }
+
+    const advertisementId = Number(req.params.id);
+    if (!Number.isInteger(advertisementId) || advertisementId <= 0) {
+      return res.status(400).json({ error: "Invalid advertisement id" });
+    }
+
+    const ownerId = await findAdvertisementOwnerId(advertisementId);
+
+    if (!ownerId) {
+      return res.status(404).json({ error: "Advertisement not found" });
+    }
+
+    if (ownerId !== agent.id) {
+      return res.status(403).json({
+        error: "Forbidden: you can delete only your own advertisements",
+      });
+    }
+
+    await deleteAdvertisementById(advertisementId);
+
+    return res
+      .status(200)
+      .json({ message: "Advertisement deleted successfully" });
+  } catch (err) {
+    console.error("deleteMyAdvertisement error:", err);
+    return res.status(500).json({ error: "Internal server error" });
   }
 };

@@ -1,5 +1,8 @@
 import { NextFunction, Response } from "express";
-import { findAgentById } from "../repositories/agent.repository.js";
+import {
+  findAgentById,
+  findAgentAuthById,
+} from "../repositories/agent.repository.js";
 import {
   findRefreshTokenBySubject,
   createRefreshToken,
@@ -50,7 +53,7 @@ export const authenticationMiddlewareAgent = async (
         res.clearCookie("refreshToken");
         return res.status(403).json({ error: "Forbidden" });
       }
-      const agent = await findAgentById(payload.subjectId);
+      const agent = await findAgentAuthById(payload.subjectId);
       if (!agent) return res.status(401).json({ error: "Agent not found" });
 
       req.agent = agent;
@@ -61,7 +64,7 @@ export const authenticationMiddlewareAgent = async (
         return res.status(401).json({ error: "Invalid access token" });
       }
       if (err instanceof ExpiredTokenError) {
-        res.clearCookie("refreshToken");
+        res.clearCookie("accessToken");
         return res.status(401).json({ error: "Access token expired" });
       }
     }
@@ -116,7 +119,7 @@ export const authenticationMiddlewareAgent = async (
     await revokeRefreshToken(payload.subjectId, payload.type);
 
     const newAccessToken = generateAccessToken(
-      { subjectId: agent.id, type: Type.AGENT},
+      { subjectId: agent.id, type: Type.AGENT },
       process.env.ACCESS_TOKEN_SECRET!,
       "15m",
     );
@@ -158,4 +161,37 @@ export const authenticationMiddlewareAgent = async (
   }
 };
 
+export const authAgentFirstLoginOnly = async (
+  req: RequestAgent,
+  res: Response,
+  next: NextFunction,
+) => {
+  const accessToken = req.cookies?.accessToken as string | undefined;
+  if (!accessToken)
+    return res.status(401).json({ error: "Missing access token" });
 
+  try {
+    const payload = verifyAccessToken(accessToken);
+
+    if (payload.type !== Type.AGENT) {
+      res.clearCookie("accessToken");
+      return res.status(403).json({ error: "Forbidden" });
+    }
+
+    const agent = await findAgentById(payload.subjectId);
+    if (!agent) return res.status(401).json({ error: "Agent not found" });
+
+    if (agent.isPasswordChange) {
+      return res.status(403).json({ error: "Password change not required" });
+    }
+
+    req.agent = agent;
+    return next();
+  } catch (err) {
+    if (err instanceof InvalidTokenError)
+      return res.status(401).json({ error: "Invalid access token" });
+    if (err instanceof ExpiredTokenError)
+      return res.status(401).json({ error: "Access token expired" });
+    return res.status(401).json({ error: "Unauthorized" });
+  }
+};

@@ -36,15 +36,9 @@ export const deleteAgentById = async (id: number): Promise<void> => {
   await AgentRepository.delete({ id });
 };
 
-
 export const findAgentById = async (id: number): Promise<Agent | null> => {
-  return AgentRepository.findOne({
-    where: { id },
-    relations: ["agency"],
-  });
+  return AppDataSource.getRepository(Agent).findOne({ where: { id } });
 };
-
-
 
 export const findAgentCreatedByAdmin = async (
   agentId: number,
@@ -56,6 +50,23 @@ export const findAgentCreatedByAdmin = async (
       id: agentId,
       agency: { id: agencyId },
       administrator: { id: administratorId },
+    },
+  });
+};
+
+export const updateAgentPhoneNumber = async (
+  agentId: number,
+  phoneNumber: string,
+): Promise<void> => {
+  await AgentRepository.update({ id: agentId }, { phoneNumber });
+};
+
+export const findAgentAuthById = async (id: number): Promise<Agent | null> => {
+  return await AgentRepository.findOne({
+    where: { id },
+    relations: {
+      agency: true,
+      administrator: true, // opzionale
     },
   });
 };

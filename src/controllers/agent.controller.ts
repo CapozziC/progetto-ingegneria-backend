@@ -6,6 +6,7 @@ import {
   saveAgent,
   findAgentsByAgencyAndUsernamePrefix,
   findAgentCreatedByAdmin,
+  updateAgentPhoneNumber,
 } from "../repositories/agent.repository.js";
 import { AppDataSource } from "../data-source.js";
 import {
@@ -15,13 +16,17 @@ import {
 import { generateTemporaryPassword } from "../utils/password.utils.js";
 import { Advertisement } from "../entities/advertisement.js";
 import { Agent } from "../entities/agent.js";
+import { findAdvertisementsByAgentId } from "../repositories/advertisement.repository.js";
 
 export const createNewAgent = async (req: RequestAgent, res: Response) => {
   try {
     const { firstName, lastName, phoneNumber, isAdmin } = req.body;
     const agent = req.agent;
+    //Controllo autenticazione
     if (!agent) {
-      return res.status(403).json({ error: "Agent not found" });
+      return res
+        .status(403)
+        .json({ error: "Unauthorized: agent not logged in" });
     }
     if (!agent.isAdmin) {
       return res
@@ -149,5 +154,66 @@ export const deleteAgent = async (req: RequestAgent, res: Response) => {
   } catch (error) {
     console.error("Delete agent error:", error);
     return res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+export const getAgentAdvByAgentId = async (
+  req: RequestAgent,
+  res: Response,
+) => {
+  try {
+    //Controllo autenticazione
+    const agent = req.agent;
+    if (!agent) {
+      return res
+        .status(401)
+        .json({ error: "Unauthorized: agent not logged in" });
+    }
+
+    const advertisements = await findAdvertisementsByAgentId(agent.id);
+    return res.status(200).json({
+      count: advertisements.length,
+      advertisements,
+    });
+  } catch (err) {
+    console.error(" getAgentAdvByAgentId error:", err);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+export const updatePhoneNumberAgent = async (req: RequestAgent, res: Response) => {
+  try {
+    const { phoneNumber } = req.body;
+    const agent = req.agent;
+    if (!agent) {
+      return res.status(401).json({
+        error: "Unauthorized: agent not logged in",
+      });
+    }
+
+    if (!phoneNumber) {
+      return res.status(400).json({
+        error: "Phone number is required",
+      });
+    }
+
+    //fare con schema Joi
+    const phoneRegex = /^\+[1-9][0-9]{7,14}$/;
+    if (!phoneRegex.test(phoneNumber)) {
+      return res.status(400).json({
+        error: "Invalid phone number format. Use E.164 format (+39333...)",
+      });
+    }
+
+    await updateAgentPhoneNumber(agent.id, phoneNumber);
+
+    return res.status(200).json({
+      message: "Phone number updated successfully",
+    });
+  } catch (err) {
+    console.error("updateMyPhoneNumber error:", err);
+    return res.status(500).json({
+      error: "Internal server error",
+    });
   }
 };

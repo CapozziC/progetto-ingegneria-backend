@@ -20,7 +20,7 @@ try {
   // Use auth routes
   app.use("/auth", authRoutes);
   app.use("/agent", agentRoutes);
-  app.use("/", advertisementRoutes);
+  app.use("/advertisement", advertisementRoutes);
 
   // Define a route handler for the default home page
   app.get("/", (req, res) => {
