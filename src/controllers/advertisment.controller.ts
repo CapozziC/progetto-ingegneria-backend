@@ -126,7 +126,7 @@ export const createAdvertisementWithRealEstateAndPhotosTx = async (
       realEstate: savedRealEstate,
       photos: savedPhotos,
     });
-  } catch (err) {
+  } catch {
     try {
       await queryRunner.rollbackTransaction();
     } catch {

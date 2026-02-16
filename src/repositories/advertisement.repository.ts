@@ -1,5 +1,6 @@
 import { AppDataSource } from "../data-source.js";
 import { Advertisement } from "../entities/advertisement.js";
+import { RealEstate } from "../entities/realEstate.js";
 export const AdvertisementRepository =
   AppDataSource.getRepository(Advertisement);
 
@@ -34,8 +35,20 @@ export const findAdvertisementOwnerId = async (
   return adv?.agent?.id ?? null;
 };
 
-export const deleteAdvertisementById = async (
-  advertisementId: number,
-): Promise<void> => {
-  await AdvertisementRepository.delete({ id: advertisementId });
+export const deleteAdvertisementById = async (advertisementId: number) => {
+  await AppDataSource.transaction(async (manager) => {
+    const adv = await manager.getRepository(Advertisement).findOne({
+      where: { id: advertisementId },
+      relations: { realEstate: true },
+    });
+    if (!adv) return;
+
+    const realEstateId = adv.realEstate?.id;
+
+    await manager.getRepository(Advertisement).delete({ id: advertisementId });
+
+    if (realEstateId) {
+      await manager.getRepository(RealEstate).delete({ id: realEstateId });
+    }
+  });
 };
