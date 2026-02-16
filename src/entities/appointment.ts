@@ -25,6 +25,10 @@ export enum Status {
 @Check(`(status IN ('confirmed', 'cancelled', 'rejected') 
   OR appointment_at > CURRENT_TIMESTAMP)`)
 @Index("IDX_appointmentAt_status_agent", ["status", "appointmentAt", "agentId"])
+@Index("UQ_appointment_agent_slot_active", ["agentId", "appointmentAt"], {
+  unique: true,
+  where: `"status" IN ('requested', 'confirmed')`,
+})
 export class Appointment {
   @PrimaryGeneratedColumn()
   id!: number;
@@ -70,7 +74,10 @@ export class Appointment {
   @ManyToOne(() => Account, (account) => account.appointments, {
     onDelete: "RESTRICT",
   })
-  @JoinColumn({ name: "account_id" , foreignKeyConstraintName: "FK_appointment_account"})
+  @JoinColumn({
+    name: "account_id",
+    foreignKeyConstraintName: "FK_appointment_account",
+  })
   account!: Account;
   /**
    * Advertisement this appointment refers to
@@ -81,7 +88,10 @@ export class Appointment {
     (advertisement) => advertisement.appointments,
     { onDelete: "CASCADE" },
   )
-  @JoinColumn({ name: "advertisement_id" , foreignKeyConstraintName: "FK_appointment_advertisement"})
+  @JoinColumn({
+    name: "advertisement_id",
+    foreignKeyConstraintName: "FK_appointment_advertisement",
+  })
   advertisement!: Advertisement;
 
   /**
@@ -92,6 +102,9 @@ export class Appointment {
     onDelete: "CASCADE",
     onUpdate: "CASCADE",
   })
-  @JoinColumn({ name: "agent_id" , foreignKeyConstraintName: "FK_appointment_agent"})
+  @JoinColumn({
+    name: "agent_id",
+    foreignKeyConstraintName: "FK_appointment_agent",
+  })
   agent!: Agent;
 }
