@@ -33,6 +33,6 @@ jobs:
 
       - name: Run migrations
         run: |
-          node -r dotenv/config ./node_modules/typeorm-ts-node-esm/dist/cli.js migration:run -d dist/data-source.js
+          node -r dotenv/config npm run typeorm migration:run -- -d dist/data-source.js
       - name: Restart backend service
         run: sudo systemctl restart backend.service
