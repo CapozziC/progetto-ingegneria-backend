@@ -13,6 +13,12 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Reset local changes and pull latest code
+        run: |
+          git reset --hard HEAD
+          git clean -fd
+          git pull
+
       - name: Setup Node from .nvmrc
         uses: actions/setup-node@v4
         with:
