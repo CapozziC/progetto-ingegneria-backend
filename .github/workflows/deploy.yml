@@ -5,31 +5,22 @@ on:
     branches:
       - main
 
+concurrency:
+  group: deploy-backend
+  cancel-in-progress: true
+
 jobs:
   deploy:
     runs-on: self-hosted
+    timeout-minutes: 20
 
-    env:
-      DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-      DB_USER: ${{ secrets.DB_USER }}
-      DB_HOST: ${{ secrets.DB_HOST }}
-      DB_PORT: ${{ secrets.DB_PORT }}
-      DB_NAME: ${{ secrets.DB_NAME }}
-      ACCESS_TOKEN_SECRET: ${{ secrets.ACCESS_TOKEN }}
-      REFRESH_TOKEN_SECRET: ${{ secrets.REFRESH_TOKEN }}
-      NODE_ENV: ${{ secrets.NODE_ENV }}
-      UPLOAD_DIR: ${{ secrets.UPLOAD_DIR }}
+    defaults:
+      run:
+        working-directory: ${{ github.workspace }}
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
-      - name: Reset local changes and pull latest code
-        run: |
-          cd ~/progetto-ingegneria-backend
-          git reset --hard HEAD
-          git clean -fd
-          git pull
 
       - name: Setup Node from .nvmrc
         uses: actions/setup-node@v4
@@ -37,20 +28,14 @@ jobs:
           node-version-file: ".nvmrc"
           cache: "npm"
 
+      - name: Show Node and npm versions
+        run: node -v && npm -v
+
       - name: Install dependencies
         run: npm ci --include=dev
 
       - name: Build project
         run: npm run build
-
-      - name: Check Db passowrd
-        run: |
-          echo "DB_PASSWORD: $DB_PASSWORD"
-          echo "DB_USER : $DB_USER"
-          echo "DB_HOST : $DB_HOST"
-          echo "DB_PORT : $DB_PORT"
-          echo "DB_NAME : $DB_NAME"
-          echo "NODE_ENV : $NODE_ENV"
 
       - name: Run migrations
         run: npm run typeorm migration:run -- -d dist/data-source.js
