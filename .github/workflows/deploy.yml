@@ -38,7 +38,11 @@ jobs:
         run: npm run build
 
       - name: Run migrations
-        run: npm run typeorm migration:run -- -d dist/data-source.js
+        run: |
+          set -a
+          source /home/user/progetto-ingegneria-backend/.env
+          set +a
+          npm run typeorm migration:run -- -d dist/data-source.js
 
       - name: Restart backend service
         run: sudo systemctl restart backend.service
