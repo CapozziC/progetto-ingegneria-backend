@@ -155,13 +155,13 @@ export const createAdvertisementWithRealEstateAndPhotosTx = async (
     }
   }
 };
+
 /**
  * Delete an advertisement if it belongs to the authenticated agent, in a single transaction also with its related real estate and photos
  * @param req RequestAgent
  * @param res Response
  * @returns JSON with success message or error
  */
-
 export const deleteAgentAdvertisement = async (
   req: RequestAgent,
   res: Response,
