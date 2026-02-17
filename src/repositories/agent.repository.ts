@@ -2,6 +2,10 @@ import { AppDataSource } from "../data-source.js";
 import { Agent } from "../entities/agent.js";
 export const AgentRepository = AppDataSource.getRepository(Agent);
 
+function withAgency(agencyId: number) {
+  return { agency: { id: agencyId } };
+}
+
 /**
  * Create a new agent instance with the provided data. This function takes a partial agent object containing the necessary fields for agent creation and returns a new Agent instance that can be saved to the database.
  * @param agentData A partial object containing the necessary fields for creating a new agent
@@ -31,10 +35,10 @@ export const findAgentsByAgencyIdAndUsername = async (
   agencyId: number,
   username: string,
 ): Promise<Agent | null> => {
-  return await AgentRepository.findOne({
+  return AgentRepository.findOne({
     where: {
       username,
-      agency: { id: agencyId },
+      ...withAgency(agencyId),
     },
   });
 };
@@ -70,7 +74,7 @@ export const deleteAgentById = async (id: number): Promise<void> => {
  * @returns A Promise that resolves to the Agent object if found, or null if not found
  */
 export const findAgentById = async (id: number): Promise<Agent | null> => {
-  return AppDataSource.getRepository(Agent).findOne({ where: { id } });
+  return AgentRepository.findOne({ where: { id } });
 };
 /**
  *  Find an agent created by a specific admin within a specific agency. This function queries the database for an agent with the specified agent ID, agency ID, and administrator ID, and returns it if found. If no agent is found with the given criteria, it returns null.
@@ -85,10 +89,10 @@ export const findAgentCreatedByAdmin = async (
   agencyId: number,
   administratorId: number,
 ): Promise<Agent | null> => {
-  return await AgentRepository.findOne({
+  return AgentRepository.findOne({
     where: {
       id: agentId,
-      agency: { id: agencyId },
+      ...withAgency(agencyId),
       administrator: { id: administratorId },
     },
   });
@@ -113,7 +117,7 @@ export const updateAgentPhoneNumber = async (
  * @returns A Promise that resolves to the Agent object with its related entities if found, or null if not found
  */
 export const findAgentAuthById = async (id: number): Promise<Agent | null> => {
-  return await AgentRepository.findOne({
+  return AgentRepository.findOne({
     where: { id },
     relations: {
       agency: true,

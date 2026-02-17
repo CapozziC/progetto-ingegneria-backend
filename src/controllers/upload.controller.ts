@@ -1,8 +1,11 @@
 import { Request, Response } from "express";
 import fs from "fs/promises";
 import path from "path";
+
 /**
- * Convert a file extension to a PhotoFormat enum value. The function takes a file extension as input, removes the leading dot, converts it to uppercase and returns the corresponding PhotoFormat enum value. If the extension does not match any of the known formats (JPG, JPEG, PNG, HEIC), it defaults to JPG.
+ * Convert a file extension to a PhotoFormat enum value.
+ * The function takes a file extension as input, removes the leading dot, converts it to uppercase and returns the corresponding PhotoFormat enum value.
+ * If the extension does not match any of the known formats (JPG, JPEG, PNG, HEIC), it defaults to JPG.
  * @param ext The file extension to convert (e.g. ".jpg", ".png")
  * @returns The corresponding PhotoFormat enum value (e.g. PhotoFormat.JPG, PhotoFormat.PNG)
  */
@@ -16,7 +19,9 @@ const extToFormat = (ext: string) => {
 };
 
 /**
- * Upload photos for an advertisement. The uploaded files are processed to generate their URLs and formats, which are then returned in the response. The files are expected to be stored in a public directory accessible via a URL.
+ * Upload photos for an advertisement.
+ * The uploaded files are processed to generate their URLs and formats, which are then returned in the response.
+ * The files are expected to be stored in a public directory accessible via a URL.
  * @param req The Express request object, which should contain the uploaded files in req.files
  * @param res The Express response object, used to send the response back to the client
  * @returns A JSON response containing an array of photo objects with their URLs and formats
@@ -35,7 +40,8 @@ export const uploadAdvertisementPhotos = (req: Request, res: Response) => {
 };
 
 /**
- * Safely delete uploaded files in case of an error during processing. This function attempts to delete each file and ignores any errors that occur during deletion, ensuring that the main error handling flow is not disrupted.
+ * Safely delete uploaded files in case of an error during processing.
+ * This function attempts to delete each file and ignores any errors that occur during deletion, ensuring that the main error handling flow is not disrupted.
  * @param files An array of uploaded files to be deleted
  */
 export const deleteUploadedFilesSafe = async (files: Express.Multer.File[]) => {

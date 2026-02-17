@@ -12,6 +12,13 @@ import {
 } from "../utils/username.utils.js";
 import { deleteUploadedFilesSafe } from "./upload.controller.js";
 
+/**
+ * Convert a file extension to the corresponding Format enum value for the agency logo.
+ * This function takes a file extension as input, normalizes it by removing the leading dot and converting it to uppercase,
+ * and then maps it to the appropriate Format enum value. If the extension does not match any known formats, it defaults to Format.JPG.
+ * @param ext The file extension of the uploaded logo file (e.g., ".jpg", ".png")
+ * @returns The corresponding Format enum value for the agency logo
+ */
 const extToLogoFormat = (ext: string): Format => {
   const e = ext.replace(".", "").toUpperCase();
   if (e === "JPG") return Format.JPG;
@@ -20,8 +27,12 @@ const extToLogoFormat = (ext: string): Format => {
   if (e === "HEIC") return Format.HEIC;
   return Format.JPG;
 };
+
 /**
- * Create a new agency with its first agent (administrator) in a single transaction. The first agent's username is generated based on their first name and last name, and a temporary password is created. Both the agency and the agent are saved to the database. If any error occurs during the process, the transaction is rolled back and an appropriate error response is sent.
+ * Create a new agency with its first agent (administrator) in a single transaction.
+ * The first agent's username is generated based on their first name and last name, and a temporary password is created.
+ * Both the agency and the agent are saved to the database.
+ * If any error occurs during the process, the transaction is rolled back and an appropriate error response is sent.
  * @param req Request with body containing the necessary information to create the agency and the first agent, and optionally a file for the agency logo. The expected body parameters are:
  * @param res Response with the created agency and agent details, including the generated credentials for the agent, or an error message if the creation fails. The response includes:
  * @returns JSON with the created agency and agent details, including the generated credentials for the agent, or an error message if the creation fails.

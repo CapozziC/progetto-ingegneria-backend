@@ -57,13 +57,13 @@ export const verifyAccessToken = (accessToken: string): Payload => {
     throw new InvalidTokenError("access", err);
   }
 };
+
 /**
  * Verify the validity of a JWT refresh token and return its payload if valid. If the token is missing, invalid or expired, an appropriate error is thrown. The function uses the secret key to verify the token's signature and ensure its integrity.
  * @param refreshToken The JWT refresh token to verify
  * @returns The payload contained in the refresh token if it is valid
  * @throws InvalidTokenError if the token is missing or invalid, ExpiredTokenError if the token has expired
  */
-
 export const verifyRefreshToken = (refreshToken: string): Payload => {
   if (!refreshToken) {
     throw new InvalidTokenError("refresh");
@@ -109,7 +109,6 @@ export const revokeRefreshToken = async (
  * @param token The refresh token to be hashed
  * @returns  A hexadecimal string representing the hashed value of the refresh token
  */
-
 export const hashRefreshToken = (token: string): string => {
   return crypto.createHash("sha256").update(token).digest("hex");
 };

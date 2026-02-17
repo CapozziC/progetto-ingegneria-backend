@@ -4,6 +4,35 @@ import { Appointment, Status } from "../entities/appointment.js";
 import { FindOptionsWhere } from "typeorm/browser";
 export const AppointmentRepository = AppDataSource.getRepository(Appointment);
 
+type AppointmentFilter = {
+  status?: Status;
+  from?: Date;
+  to?: Date;
+};
+
+/**
+ * Helper function to build the where clause for finding appointments with optional filtering by status and date range. This function constructs a where clause based on the provided base criteria and additional filtering options, allowing for flexible querying of appointments based on their status and appointment date.
+ * @param base An object representing the base criteria for filtering appointments (e.g., agentId or accountId)
+ * @param options An optional object containing additional filtering criteria, including appointment status and date range (from and to)
+ * @returns An object representing the where clause for filtering appointments based on the provided criteria and options
+ */
+function buildAppointmentFilters(
+  base: FindOptionsWhere<Appointment>,
+  options?: AppointmentFilter,
+): FindOptionsWhere<Appointment> {
+  const where: FindOptionsWhere<Appointment> = { ...base };
+
+  if (options?.status) {
+    where.status = options.status;
+  }
+
+  if (options?.from && options?.to) {
+    where.appointmentAt = Between(options.from, options.to);
+  }
+
+  return where;
+}
+
 /**
  * Find all taken appointment dates for a specific agent within a given date range.
  * @param agentId The unique identifier of the agent for whom to find taken appointments
@@ -47,22 +76,10 @@ export const saveAppointment = async (
 
 export const findAppointmentsByAgentId = async (
   agentId: number,
-  options?: {
-    status?: Status;
-    from?: Date;
-    to?: Date;
-  },
+  options?: AppointmentFilter,
 ) => {
-  const where: FindOptionsWhere<Appointment> = { agentId };
-
-  if (options?.status) {
-    where.status = options.status;
-  }
-  if (options?.from && options?.to) {
-    where.appointmentAt = Between(options.from, options.to);
-  }
   return AppointmentRepository.find({
-    where,
+    where: buildAppointmentFilters({ agentId }, options),
     relations: { advertisement: true, account: true },
     order: { appointmentAt: "ASC" },
   });
@@ -92,24 +109,10 @@ export const findAppointmentByIdForAgent = async (
  */
 export const findAppointmentsByAccount = async (
   accountId: number,
-  options?: {
-    status?: Status;
-    from?: Date;
-    to?: Date;
-  },
+  options?: AppointmentFilter,
 ): Promise<Appointment[]> => {
-  const where: FindOptionsWhere<Appointment> = { accountId };
-
-  if (options?.status) {
-    where.status = options.status;
-  }
-
-  if (options?.from && options?.to) {
-    where.appointmentAt = Between(options.from, options.to);
-  }
-
   return AppointmentRepository.find({
-    where,
+    where: buildAppointmentFilters({ accountId }, options),
     relations: {
       advertisement: true,
       agent: true,

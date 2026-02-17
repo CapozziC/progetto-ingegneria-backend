@@ -8,7 +8,7 @@ export const AccountRepository = AppDataSource.getRepository(Account);
  * @returns A Promise that resolves to the Account object if found, or null if not found
  */
 export const findAccountByEmail = async (email: string) => {
-  return await AccountRepository.findOne({ where: { email } });
+  return AccountRepository.findOne({ where: { email } });
 };
 
 /**
@@ -25,7 +25,7 @@ export const createAccount = (userData: Partial<Account>): Account => {
  * @returns A Promise that resolves to the saved Account object
  */
 export const saveAccount = async (account: Account): Promise<Account> => {
-  return await AccountRepository.save(account);
+  return AccountRepository.save(account);
 };
 
 /**
@@ -35,5 +35,5 @@ export const saveAccount = async (account: Account): Promise<Account> => {
  */
 
 export const findAccountById = async (id: number): Promise<Account | null> => {
-  return await AccountRepository.findOne({ where: { id } });
+  return AccountRepository.findOne({ where: { id } });
 };

@@ -2,7 +2,9 @@ import { findTakenAppointmentsForAgent } from "../repositories/appointment.repos
 import { AdvertisementRepository } from "../repositories/advertisement.repository.js";
 
 /**
- * Converts a Date object to a string key for use in sets or maps. This function is used to create a unique identifier for each appointment slot based on its date and time, allowing for efficient comparison and filtering of available slots against taken appointments.
+ * Converts a Date object to a string key for use in sets or maps.
+ * This function is used to create a unique identifier for each appointment slot based on its date and time,
+ * allowing for efficient comparison and filtering of available slots against taken appointments.
  * @param d The Date object representing the appointment slot to convert
  * @returns A string key in ISO format representing the date and time of the appointment slot
  */
@@ -10,7 +12,10 @@ function toKey(d: Date): string {
   return d.toISOString(); // key unica
 }
 /**
- * Generates a list of available hourly slots for appointments based on the specified date range. The function creates a grid of potential appointment times, typically on an hourly basis, and then filters out the slots that are already taken by existing appointments. The resulting list of available slots can be used to display options to users when scheduling new appointments.
+ * Generates a list of available hourly slots for appointments based on the specified date range.
+ * The function creates a grid of potential appointment times, typically on an hourly basis,
+ * and then filters out the slots that are already taken by existing appointments.
+ * The resulting list of available slots can be used to display options to users when scheduling new appointments.
  * @param from The start date and time of the range for which to generate available slots
  * @param to The end date and time of the range for which to generate available slots
  * @returns An array of Date objects representing the available hourly slots for appointments within the specified date range
@@ -39,7 +44,11 @@ function generateHourlySlots(from: Date, to: Date): Date[] {
 }
 
 /**
- * Get available appointment slots for a specific advertisement within a given date range. This function retrieves the advertisement to identify the associated agent, generates a grid of potential hourly slots within the specified date range, and then filters out the slots that are already taken by existing appointments for that agent. The resulting list of available slots can be used to display options to users when scheduling new appointments for the advertisement.
+ * Get available appointment slots for a specific advertisement within a given date range.
+ * This function retrieves the advertisement to identify the associated agent,
+ * generates a grid of potential hourly slots within the specified date range,
+ * and then filters out the slots that are already taken by existing appointments for that agent.
+ * The resulting list of available slots can be used to display options to users when scheduling new appointments for the advertisement.
  * @param advertisementId The unique identifier of the advertisement for which to get available appointment slots
  * @param from  The start date and time of the range for which to get available slots
  * @param to The end date and time of the range for which to get available slots

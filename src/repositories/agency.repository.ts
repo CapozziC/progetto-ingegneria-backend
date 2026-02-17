@@ -9,7 +9,7 @@ export const AgencyRepository = AppDataSource.getRepository(Agency);
 export const findAgencyByName = async (
   name: string,
 ): Promise<Agency | null> => {
-  return await AgencyRepository.findOne({ where: { name } });
+  return AgencyRepository.findOne({ where: { name } });
 };
 
 /**
@@ -20,7 +20,7 @@ export const findAgencyByName = async (
 export const findAgencyByEmail = async (
   email: string,
 ): Promise<Agency | null> => {
-  return await AgencyRepository.findOne({ where: { email } });
+  return AgencyRepository.findOne({ where: { email } });
 };
 
 /**
@@ -37,5 +37,5 @@ export const createAgency = (data: Partial<Agency>): Agency => {
  * @returns A Promise that resolves to the saved Agency object
  */
 export const saveAgency = async (agency: Agency): Promise<Agency> => {
-  return await AgencyRepository.save(agency);
+  return AgencyRepository.save(agency);
 };

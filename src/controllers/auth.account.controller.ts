@@ -24,7 +24,6 @@ import { RequestAccount } from "../types/express.js";
  * @param res Response with success message or error message
  * @returns JSON with success message or error message
  */
-
 export const registerAccount = async (req: RequestAccount, res: Response) => {
   try {
     const { firstName, lastName, email, password } = req.body;
@@ -122,7 +121,6 @@ export const registerAccount = async (req: RequestAccount, res: Response) => {
  * @param res  Response with success message or error message
  * @returns  JSON with success message or error message
  */
-
 export const loginAccount = async (req: RequestAccount, res: Response) => {
   try {
     const { email, password } = req.body;

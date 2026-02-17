@@ -4,6 +4,23 @@ import { RealEstate } from "../entities/realEstate.js";
 export const AdvertisementRepository =
   AppDataSource.getRepository(Advertisement);
 
+const advertisementRelations = {
+  realEstate: true,
+  photos: true,
+  offers: true,
+  appointments: true,
+  pois: true,
+} as const;
+
+/**
+ * Helper function to build the where clause for finding advertisements by agent ID. This function constructs a where clause that filters advertisements based on the associated agent's ID. It is used in the findAdvertisementsByAgentId function to retrieve advertisements created by a specific agent.
+ * @param agentId The unique identifier of the agent whose advertisements to filter by
+ * @returns An object representing the where clause for filtering advertisements by agent ID
+ */
+function withAgent(agentId: number) {
+  return { agent: { id: agentId } };
+}
+
 /**
  * Find all advertisements created by a specific agent, including their related real estate, photos, offers, appointments, and points of interest. The results are ordered by creation date in descending order.
  * @param agentId The unique identifier of the agent whose advertisements to find
@@ -11,14 +28,8 @@ export const AdvertisementRepository =
  */
 export const findAdvertisementsByAgentId = async (agentId: number) => {
   return AdvertisementRepository.find({
-    where: { agent: { id: agentId } },
-    relations: {
-      realEstate: true,
-      photos: true,
-      offers: true,
-      appointments: true,
-      pois: true,
-    },
+    where: withAgent(agentId),
+    relations: advertisementRelations,
     order: { createdAt: "DESC" },
   });
 };
@@ -52,7 +63,10 @@ export const findAdvertisementOwnerId = async (
  */
 export const deleteAdvertisementById = async (advertisementId: number) => {
   await AppDataSource.transaction(async (manager) => {
-    const adv = await manager.getRepository(Advertisement).findOne({
+    const advertisementRepo = manager.getRepository(Advertisement);
+    const realEstateRepo = manager.getRepository(RealEstate);
+
+    const adv = await advertisementRepo.findOne({
       where: { id: advertisementId },
       relations: { realEstate: true },
     });
@@ -60,10 +74,10 @@ export const deleteAdvertisementById = async (advertisementId: number) => {
 
     const realEstateId = adv.realEstate?.id;
 
-    await manager.getRepository(Advertisement).delete({ id: advertisementId });
+    await advertisementRepo.delete({ id: advertisementId });
 
     if (realEstateId) {
-      await manager.getRepository(RealEstate).delete({ id: realEstateId });
+      await realEstateRepo.delete({ id: realEstateId });
     }
   });
 };

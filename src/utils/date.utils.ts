@@ -27,6 +27,7 @@ export function isValidDate(value: unknown): value is Date {
 export function isValidISODateString(value: unknown): boolean {
   return parseISODate(value) !== null;
 }
+
 /**
  *  Returns a new Date object representing the start of the day (00:00:00) for the given date.
  * @param d The date for which to calculate the start of the day
@@ -37,11 +38,11 @@ export function startOfDay(d: Date): Date {
   x.setHours(0, 0, 0, 0);
   return x;
 }
+
 /** Returns a new Date object representing the end of the day (23:59:59.999) for the given date.
  * @param d The date for which to calculate the end of the day
  * @returns A new Date object representing the end of the day for the given date
  */
-
 export function endOfDay(d: Date): Date {
   const x = new Date(d);
   x.setHours(23, 59, 59, 999);
