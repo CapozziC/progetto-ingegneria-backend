@@ -59,12 +59,6 @@ export const createNewAgent = async (req: RequestAgent, res: Response) => {
     const temporaryPassword = generateTemporaryPassword();
     //Inserire logica per invio email con temporary password e username
     const hashedPassword = await bcrypt.hash(temporaryPassword, 10);
-    console.log("REQ.AGENT:", {
-      id: agent.id,
-      isAdmin: agent.isAdmin,
-      agency: agent.agency,
-      agencyId: agent.agency?.id,
-    });
 
     // Create and save the new agent
     const newAgent = createAgent({
@@ -181,7 +175,10 @@ export const getAgentAdvByAgentId = async (
   }
 };
 
-export const updatePhoneNumberAgent = async (req: RequestAgent, res: Response) => {
+export const updatePhoneNumberAgent = async (
+  req: RequestAgent,
+  res: Response,
+) => {
   try {
     const { phoneNumber } = req.body;
     const agent = req.agent;
@@ -194,14 +191,6 @@ export const updatePhoneNumberAgent = async (req: RequestAgent, res: Response) =
     if (!phoneNumber) {
       return res.status(400).json({
         error: "Phone number is required",
-      });
-    }
-
-    //fare con schema Joi
-    const phoneRegex = /^\+[1-9][0-9]{7,14}$/;
-    if (!phoneRegex.test(phoneNumber)) {
-      return res.status(400).json({
-        error: "Invalid phone number format. Use E.164 format (+39333...)",
       });
     }
 

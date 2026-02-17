@@ -6,7 +6,6 @@ import {
   findAdvertisementOwnerId,
   deleteAdvertisementById,
 } from "../repositories/advertisement.repository.js";
-
 import { AppDataSource } from "../data-source.js";
 import { Advertisement } from "../entities/advertisement.js";
 import { RealEstate } from "../entities/realEstate.js";
@@ -181,3 +180,4 @@ export const deleteAgentAdvertisement = async (
     return res.status(500).json({ error: "Internal server error" });
   }
 };
+

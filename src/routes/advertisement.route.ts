@@ -9,6 +9,12 @@ import {
   createAdvertisementWithRealEstateAndPhotosTx,
   deleteAgentAdvertisement,
 } from "../controllers/advertisment.controller.js";
+import {
+  getAvailableDays,
+  getAvailableSlotsByDay,
+  createAppointment
+} from "../controllers/appointment.controller.js";
+import { authenticationMiddlewareAccount } from "../middleware/auth.account.middleware.js";
 
 router.post(
   "/create",
@@ -23,5 +29,21 @@ router.delete(
   "/delete/:id",
   authenticationMiddlewareAgent,
   deleteAgentAdvertisement,
+);
+
+router.get(
+  "/advertisements/:id/available-days",
+  authenticationMiddlewareAccount,
+  getAvailableDays,
+);
+router.get(
+  "/advertisements/:id/available-slots",
+  authenticationMiddlewareAccount,
+  getAvailableSlotsByDay,
+);
+router.post(
+  "/advertisements/:id/appointments",
+  authenticationMiddlewareAccount,
+  createAppointment,
 );
 export default router;

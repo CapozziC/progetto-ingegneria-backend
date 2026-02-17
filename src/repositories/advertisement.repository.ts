@@ -52,3 +52,5 @@ export const deleteAdvertisementById = async (advertisementId: number) => {
     }
   });
 };
+
+
