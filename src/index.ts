@@ -1,4 +1,5 @@
 import "reflect-metadata";
+import { AppDataSource } from "./data-source.js";
 import express from "express";
 import cookieParser from "cookie-parser";
 import authRoutes from "./routes/auth.route.js";
@@ -6,7 +7,6 @@ import agentRoutes from "./routes/agent.route.js";
 import advertisementRoutes from "./routes/advertisement.route.js";
 import appointmentRoutes from "./routes/appointment.route.js";
 import accountRoutes from "./routes/account.route.js";
-import { AppDataSource } from "./data-source.js";
 
 try {
   // Initialize database connection
@@ -16,7 +16,7 @@ try {
   app.use(express.json());
   app.use(cookieParser());
 
-  const uploadDir = process.env.UPLOAD_DIR || "/Users/carla/Desktop/uploads";
+  const uploadDir = process.env.UPLOAD_DIR || "uploads";
   app.use("/uploads", express.static(uploadDir));
 
   // Use auth routes
