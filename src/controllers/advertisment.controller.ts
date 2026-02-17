@@ -13,11 +13,22 @@ import { Photo, Format as PhotoFormat } from "../entities/photo.js";
 import { RequestAgent } from "../types/express.js";
 import { Agent } from "../entities/agent.js";
 
+/**
+ *  Create a GeoJSON Point with SRID 4326 from longitude and latitude
+ * @param lng
+ * @param lat
+ * @returns
+ */
 const makePoint4326 = (lng: number, lat: number): Point => ({
   type: "Point",
   coordinates: [lng, lat],
 });
 
+/**
+ *  Convert file extension to PhotoFormat enum
+ * @param ext
+ * @returns
+ */
 const extToPhotoFormatEnum = (ext: string): PhotoFormat => {
   const e = ext.replace(".", "").toUpperCase();
   if (e === "JPG") return PhotoFormat.JPG;
@@ -26,6 +37,13 @@ const extToPhotoFormatEnum = (ext: string): PhotoFormat => {
   if (e === "HEIC") return PhotoFormat.HEIC;
   return PhotoFormat.JPG;
 };
+
+/**
+ *  Create an advertisement with its related real estate and photos in a single transaction
+ * @param req
+ * @param res
+ * @returns
+ */
 
 export const createAdvertisementWithRealEstateAndPhotosTx = async (
   req: RequestAgent,
@@ -139,6 +157,13 @@ export const createAdvertisementWithRealEstateAndPhotosTx = async (
     }
   }
 };
+/**
+ * Delete an advertisement if it belongs to the authenticated agent, in a single transaction also with its related real estate and photos
+ * @req RequestAgent
+ *  @param res Response
+ * @return JSON with success message or error
+ *
+ */
 
 export const deleteAgentAdvertisement = async (
   req: RequestAgent,
@@ -180,4 +205,3 @@ export const deleteAgentAdvertisement = async (
     return res.status(500).json({ error: "Internal server error" });
   }
 };
-

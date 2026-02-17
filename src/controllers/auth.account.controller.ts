@@ -18,6 +18,13 @@ import bcrypt from "bcryptjs";
 import { Type } from "../entities/refreshToken.js";
 import { RequestAccount } from "../types/express.js";
 
+/**
+ * Register a new account with the provided first name, last name, email and password. The password is hashed before saving. If registration is successful, an access token and a refresh token are generated and sent as httpOnly cookies.
+ * @param req
+ * @param res
+ * @returns
+ */
+
 export const registerAccount = async (req: RequestAccount, res: Response) => {
   try {
     const { firstName, lastName, email, password } = req.body;
@@ -109,6 +116,13 @@ export const registerAccount = async (req: RequestAccount, res: Response) => {
   }
 };
 
+/**
+ *  Login an account with the provided email and password. If the credentials are valid, an access token and a refresh token are generated and sent as httpOnly cookies.
+ * @param req 
+ * @param res 
+ * @returns 
+ */
+
 export const loginAccount = async (req: RequestAccount, res: Response) => {
   try {
     const { email, password } = req.body;
@@ -194,6 +208,13 @@ export const loginAccount = async (req: RequestAccount, res: Response) => {
   }
 };
 
+/**
+ * 
+ * Logout an authenticated account by revoking the refresh token and clearing the access token and refresh token cookies.
+ * @param req 
+ * @param res 
+ * @returns 
+ */
 export const LogoutAccount = async (req: RequestAccount, res: Response) => {
   try {
     const account = req.account;

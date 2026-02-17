@@ -18,6 +18,12 @@ import { Advertisement } from "../entities/advertisement.js";
 import { Agent } from "../entities/agent.js";
 import { findAdvertisementsByAgentId } from "../repositories/advertisement.repository.js";
 
+/**
+ *  Create a new agent under the same agency of the admin creating it, with a generated username and temporary password. Only admin agents can create new agents.
+ * @param req
+ * @param res
+ * @returns
+ */
 export const createNewAgent = async (req: RequestAgent, res: Response) => {
   try {
     const { firstName, lastName, phoneNumber, isAdmin } = req.body;
@@ -86,6 +92,12 @@ export const createNewAgent = async (req: RequestAgent, res: Response) => {
   }
 };
 
+/**
+ *  Delete an agent created by the authenticated admin, reassigning all their advertisements to the admin, in a single transaction. Only admin agents can delete agents, and they cannot delete themselves.
+ * @param req
+ * @param res
+ * @returns
+ */
 export const deleteAgent = async (req: RequestAgent, res: Response) => {
   try {
     const agentIdToDelete = Number(req.params.id);
@@ -151,6 +163,12 @@ export const deleteAgent = async (req: RequestAgent, res: Response) => {
   }
 };
 
+/**
+ *  Get all advertisements of the authenticated agent
+ * @param req
+ * @param res
+ * @returns
+ */
 export const getAgentAdvByAgentId = async (
   req: RequestAgent,
   res: Response,
@@ -174,6 +192,13 @@ export const getAgentAdvByAgentId = async (
     return res.status(500).json({ error: "Internal server error" });
   }
 };
+
+/**
+ *  Update the phone number of the authenticated agent
+ * @param req
+ * @param res
+ * @returns
+ */
 
 export const updatePhoneNumberAgent = async (
   req: RequestAgent,

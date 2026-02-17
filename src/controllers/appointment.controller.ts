@@ -14,8 +14,11 @@ import { findAdvertisementOwnerId } from "../repositories/advertisement.reposito
 import { isValidHourlySlot } from "../utils/slots.utils.js";
 import { QueryFailedError } from "typeorm";
 /**
- * Dato un oggetto Date, restituisce una stringa "YYYY-MM-DD" da usare come chiave per raggruppare gli slot per giorno
- * @param d
+ * Return the appointments of the authenticated account, optionally filtered by status and date range
+ *  The query parameters 'from' and 'to' must be ISO strings (e.g. 2024-07-01T00:00:00.000Z)
+ * The query parameter 'status' must be one of the values of the Status enum
+ * @param req
+ * @param res
  * @returns
  */
 function dayKey(d: Date): string {
@@ -23,9 +26,9 @@ function dayKey(d: Date): string {
 }
 
 /**
- * Controlla se l'errore è un vincolo di unicità violato da Postgres (es. slot già preso)
- * @param err
- * @returns
+ *Control if the error is a Postgres unique violation error (code 23505), which indicates that the appointment slot is already taken
+ *@param err
+ *@returns true if the error is a Postgres unique violation, false otherwise
  *
  */
 function isPgUniqueViolation(err: unknown): boolean {
@@ -38,9 +41,9 @@ function isPgUniqueViolation(err: unknown): boolean {
 }
 
 /**
- * Restituisce gli appuntamenti dell'account autenticato, eventualmente filtrati per status e range di date
- * I parametri di query 'from' e 'to' devono essere stringhe ISO (es. 2024-07-01T00:00:00.000Z)
- * Il parametro di query 'status' deve essere uno dei valori dell'enum Status
+ * Get the available days for appointments for a given advertisement and date range
+ * The query parameters 'from' and 'to' must be ISO strings (e.g. 2024-07-01T00:00:00.000Z)
+ * Returns a list of days with their available hours
  * @param req
  * @param res
  * @returns
@@ -94,11 +97,9 @@ export const getAvailableDays = async (req: RequestAccount, res: Response) => {
 };
 
 /**
- *  Crea un appuntamento per l'account autenticato, per l'advertisement specificato e lo slot specificato
- *  Lo slot deve essere un'ora intera (es. 14:00) e deve essere disponibile (non già prenotato da altri)
- *  Se lo slot è già prenotato, restituisce un errore 409 (Conflict)
- *  Se l'advertisement non esiste, restituisce un errore 404 (Not Found)
- *  Se la data dello slot è passata o non è un'ora intera valida, restituisce un errore 400 (Bad Request)
+ * Get the available slots for the specified advertisement and day
+ * The query parameter 'day' must be an ISO string (e.g. 2024-07-01)
+ * Returns a list of available slots in ISO format (e.g. 2024-07-01T14:00:00.000Z)
  * @param req
  * @param res
  * @returns
@@ -148,10 +149,14 @@ export const getAvailableSlotsByDay = async (
 };
 
 /**
- *  Crea un appuntamento per l'account autenticato, per l'advertisement specificato e lo slot specificato
- * @param req
- * @param res
- * @return
+ *The account creates an appointment for the specified advertisement and slot
+ *The slot must be a whole hour (e.g. 14:00) and must be available (not already booked by others)
+ *If the slot is already booked, returns a 409 (Conflict) error
+ *If the advertisement does not exist, returns a 404 (Not Found) error
+ *If the date of the slot is in the past or is not a valid whole hour, returns a 400 (Bad Request) error
+ *@param req
+ *@param res
+ *@returns
  * */
 
 export const createAppointment = async (req: RequestAccount, res: Response) => {
@@ -221,10 +226,12 @@ export const createAppointment = async (req: RequestAccount, res: Response) => {
 };
 
 /**
- *  Restituisce gli appuntamenti dell'agente autenticato, eventualmente filtrati per status e range di date
- * @param req
- * @param res
- * @returns
+ *Return the appointments of the authenticated agent, optionally filtered by status and date range
+ *The query parameters 'from' and 'to' must be ISO strings (e.g. 2024-07-01T00:00:00.000Z)
+ *The query parameter 'status' must be one of the values of the Status enum
+ *@param req
+ *@param res
+ *@returns
  */
 
 export const getAppointmentsForAgent = async (
@@ -289,12 +296,12 @@ export const getAppointmentsForAgent = async (
 };
 
 /**
- *  L'agente conferma un appuntamento richiesto, cambiandone lo status in 'CONFIRMED'
- *  Restituisce un errore 400 se l'appuntamento non è in stato 'REQUESTED'
- *  Restituisce un errore 404 se l'appuntamento non esiste o non appartiene all'agente
- * @param req
- * @param res
- * @returns
+ *The agent confirms a requested appointment, changing its status to 'CONFIRMED'
+ *Returns a 400 error if the appointment is not in 'REQUESTED' status
+ *Returns a 404 error if the appointment does not exist or does not belong to the agent
+ *@param req
+ *@param res
+ *@returns
  */
 
 export const agentConfirmAppointment = async (
@@ -346,12 +353,12 @@ export const agentConfirmAppointment = async (
 };
 
 /**
- * L'agente rifiuta un appuntamento richiesto, cambiandone lo status in 'REJECTED'
- * Restituisce un errore 400 se l'appuntamento non è in stato 'REQUESTED'
- * Restituisce un errore 404 se l'appuntamento non esiste o non appartiene all'agente
- * @param req
- * @param res
- * @returns
+ *Agent refuses an appointment requested, changing its status to 'REJECTED'
+ *Returns a 400 error if the appointment is not in 'REQUESTED' status
+ *Returns a 404 error if the appointment does not exist or does not belong to the agent
+ *@param req
+ *@param res
+ *@returns
  */
 
 export const agentRejectAppointment = async (
@@ -403,9 +410,9 @@ export const agentRejectAppointment = async (
 };
 
 /**
- *  Restituisce gli appuntamenti dell'account autenticato, eventualmente filtrati per status e range di date
- * I parametri di query 'from' e 'to' devono essere stringhe ISO (es. 2024-07-01T00:00:00.000Z)
- * Il parametro di query 'status' deve essere uno dei valori dell'enum Status
+ *Return the appointments of the authenticated account, optionally filtered by status and date range
+ *The query parameters 'from' and 'to' must be ISO strings (e.g. 2024-07-01T00:00:00.000Z)
+ *The query parameter 'status' must be one of the values of the Status enum
  * @param req
  * @param res
  * @returns
@@ -456,9 +463,10 @@ export const getAppointmentsForAccount = async (
     return res.status(500).json({ error: "Internal server error" });
   }
 };
-/** *  L'account cancella un appuntamento richiesto o confermato, cambiandone lo status in 'CANCELLED'
- *  Restituisce un errore 400 se l'appuntamento non è in stato 'REQUESTED' o 'CONFIRMED'
- *  Restituisce un errore 404 se l'appuntamento non esiste o non appartiene all'account
+/** *
+ * The account cancels an appointment, changing its status to 'CANCELLED'
+ * Returns a 400 error if the appointment is not in 'REQUESTED' or 'CONFIRMED' status
+ * Returns a 404 error if the appointment does not exist or does not belong to the account
  * @param req
  * @param res
  * @returns
@@ -493,7 +501,6 @@ export const accountCancelAppointment = async (
       });
     }
 
-    // Regola business
     if (
       appointment.status !== Status.REQUESTED &&
       appointment.status !== Status.CONFIRMED

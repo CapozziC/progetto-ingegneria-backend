@@ -9,6 +9,12 @@ import {
   nextUsernameFromExisting,
 } from "../utils/username.utils.js";
 
+/**
+ * Create a new agency with its first agent (administrator) in a single transaction. The first agent's username is generated based on their first name and last name, and a temporary password is created. Both the agency and the agent are saved to the database. If any error occurs during the process, the transaction is rolled back and an appropriate error response is sent.
+ * @param req
+ * @param res
+ * @returns
+ */
 export const createNewAgencyWithFirstAgent = async (
   req: Request,
   res: Response,
