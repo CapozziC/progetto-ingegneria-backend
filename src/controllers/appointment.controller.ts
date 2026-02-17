@@ -17,9 +17,9 @@ import { QueryFailedError } from "typeorm";
  * Return the appointments of the authenticated account, optionally filtered by status and date range
  *  The query parameters 'from' and 'to' must be ISO strings (e.g. 2024-07-01T00:00:00.000Z)
  * The query parameter 'status' must be one of the values of the Status enum
- * @param req
- * @param res
- * @returns
+ * @param req RequestAccount with authenticated account in req.account
+ * @param res Response with list of appointments of the authenticated account or error message
+ * @returns JSON with list of appointments of the authenticated account or error message
  */
 function dayKey(d: Date): string {
   return d.toISOString().slice(0, 10); // YYYY-MM-DD
@@ -27,9 +27,8 @@ function dayKey(d: Date): string {
 
 /**
  *Control if the error is a Postgres unique violation error (code 23505), which indicates that the appointment slot is already taken
- *@param err
+ *@param err The error to check
  *@returns true if the error is a Postgres unique violation, false otherwise
- *
  */
 function isPgUniqueViolation(err: unknown): boolean {
   // Postgres unique violation: 23505
@@ -44,9 +43,9 @@ function isPgUniqueViolation(err: unknown): boolean {
  * Get the available days for appointments for a given advertisement and date range
  * The query parameters 'from' and 'to' must be ISO strings (e.g. 2024-07-01T00:00:00.000Z)
  * Returns a list of days with their available hours
- * @param req
- * @param res
- * @returns
+ * @param req  RequestAccount with authenticated account in req.account and advertisement id in req.params.id
+ * @param res Response with list of available days and hours for the specified advertisement and date range or error message
+ * @returns  JSON with list of available days and hours for the specified advertisement and date range or error message
  */
 export const getAvailableDays = async (req: RequestAccount, res: Response) => {
   try {
@@ -100,9 +99,9 @@ export const getAvailableDays = async (req: RequestAccount, res: Response) => {
  * Get the available slots for the specified advertisement and day
  * The query parameter 'day' must be an ISO string (e.g. 2024-07-01)
  * Returns a list of available slots in ISO format (e.g. 2024-07-01T14:00:00.000Z)
- * @param req
- * @param res
- * @returns
+ * @param req RequestAccount with authenticated account in req.account, advertisement id in req.params.id and day in req.query.day
+ * @param res Response with list of available slots for the specified advertisement and day or error message
+ * @returns JSON with list of available slots for the specified advertisement and day or error message
  */
 
 export const getAvailableSlotsByDay = async (
@@ -154,9 +153,9 @@ export const getAvailableSlotsByDay = async (
  *If the slot is already booked, returns a 409 (Conflict) error
  *If the advertisement does not exist, returns a 404 (Not Found) error
  *If the date of the slot is in the past or is not a valid whole hour, returns a 400 (Bad Request) error
- *@param req
- *@param res
- *@returns
+ *@param req RequestAccount with authenticated account in req.account, advertisement id in req.params.id and appointmentAt (ISO string) in req.body.appointmentAt
+ *@param res Response with success message and appointment details or error message
+ *@returns JSON with success message and appointment details or error message
  * */
 
 export const createAppointment = async (req: RequestAccount, res: Response) => {
@@ -229,9 +228,9 @@ export const createAppointment = async (req: RequestAccount, res: Response) => {
  *Return the appointments of the authenticated agent, optionally filtered by status and date range
  *The query parameters 'from' and 'to' must be ISO strings (e.g. 2024-07-01T00:00:00.000Z)
  *The query parameter 'status' must be one of the values of the Status enum
- *@param req
- *@param res
- *@returns
+ *@param req RequestAgent with authenticated agent in req.agent and optional query parameters status, from and to for filtering the appointments
+ *@param res Response with list of appointments of the authenticated agent matching the filters or error message
+ *@returns JSON with list of appointments of the authenticated agent matching the filters or error message
  */
 
 export const getAppointmentsForAgent = async (
@@ -299,9 +298,9 @@ export const getAppointmentsForAgent = async (
  *The agent confirms a requested appointment, changing its status to 'CONFIRMED'
  *Returns a 400 error if the appointment is not in 'REQUESTED' status
  *Returns a 404 error if the appointment does not exist or does not belong to the agent
- *@param req
- *@param res
- *@returns
+ *@param req RequestAgent with authenticated agent in req.agent and appointment id in req.params.id
+ *@param res Response with success message and appointment details or error message
+ *@returns JSON with success message and appointment details or error message
  */
 
 export const agentConfirmAppointment = async (
@@ -356,9 +355,9 @@ export const agentConfirmAppointment = async (
  *Agent refuses an appointment requested, changing its status to 'REJECTED'
  *Returns a 400 error if the appointment is not in 'REQUESTED' status
  *Returns a 404 error if the appointment does not exist or does not belong to the agent
- *@param req
- *@param res
- *@returns
+ *@param req RequestAgent with authenticated agent in req.agent and appointment id in req.params.id
+ *@param res Response with success message and appointment details or error message
+ *@returns JSON with success message and appointment details or error message
  */
 
 export const agentRejectAppointment = async (
@@ -413,9 +412,9 @@ export const agentRejectAppointment = async (
  *Return the appointments of the authenticated account, optionally filtered by status and date range
  *The query parameters 'from' and 'to' must be ISO strings (e.g. 2024-07-01T00:00:00.000Z)
  *The query parameter 'status' must be one of the values of the Status enum
- * @param req
- * @param res
- * @returns
+ * @param req RequestAccount with authenticated account in req.account and optional query parameters status, from and to for filtering the appointments 
+ * @param res Response with list of appointments of the authenticated account matching the filters or error message
+ * @returns JSON with list of appointments of the authenticated account matching the filters or error message
  */
 export const getAppointmentsForAccount = async (
   req: RequestAccount,
@@ -467,9 +466,9 @@ export const getAppointmentsForAccount = async (
  * The account cancels an appointment, changing its status to 'CANCELLED'
  * Returns a 400 error if the appointment is not in 'REQUESTED' or 'CONFIRMED' status
  * Returns a 404 error if the appointment does not exist or does not belong to the account
- * @param req
- * @param res
- * @returns
+ * @param req RequestAccount with authenticated account in req.account and appointment id in req.params.id
+ * @param res Response with success message and appointment details or error message
+ * @returns JSON with success message and appointment details or error message
  */
 export const accountCancelAppointment = async (
   req: RequestAccount,

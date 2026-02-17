@@ -7,9 +7,9 @@ export const AppointmentRepository = AppDataSource.getRepository(Appointment);
 /**
  * Find all taken appointment dates for a specific agent within a given date range.
  * @param agentId The unique identifier of the agent for whom to find taken appointments
- * @param from
- * @param to
- * @returns
+ * @param from The start date of the range to check for taken appointments
+ * @param to The end date of the range to check for taken appointments
+ * @returns A Promise that resolves to an array of Date objects representing the taken appointment dates for the specified agent within the given date range
  */
 export const findTakenAppointmentsForAgent = async (
   agentId: number,

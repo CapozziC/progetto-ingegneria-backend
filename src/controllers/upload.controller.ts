@@ -17,9 +17,9 @@ const extToFormat = (ext: string) => {
 
 /**
  * Upload photos for an advertisement. The uploaded files are processed to generate their URLs and formats, which are then returned in the response. The files are expected to be stored in a public directory accessible via a URL.
- * @param req
- * @param res
- * @returns
+ * @param req The Express request object, which should contain the uploaded files in req.files
+ * @param res The Express response object, used to send the response back to the client
+ * @returns A JSON response containing an array of photo objects with their URLs and formats
  */
 export const uploadAdvertisementPhotos = (req: Request, res: Response) => {
   const files = (req.files as Express.Multer.File[]) ?? [];
@@ -43,3 +43,4 @@ export const deleteUploadedFilesSafe = async (files: Express.Multer.File[]) => {
     files.map((f) => (f.path ? fs.unlink(f.path) : Promise.resolve())),
   );
 };
+

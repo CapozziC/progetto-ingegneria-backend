@@ -15,9 +15,9 @@ import { Agent } from "../entities/agent.js";
 
 /**
  *  Create a GeoJSON Point with SRID 4326 from longitude and latitude
- * @param lng
- * @param lat
- * @returns
+ * @param lng longitude
+ * @param lat latitude
+ * @returns a GeoJSON Point with SRID 4326
  */
 const makePoint4326 = (lng: number, lat: number): Point => ({
   type: "Point",
@@ -26,8 +26,8 @@ const makePoint4326 = (lng: number, lat: number): Point => ({
 
 /**
  *  Convert file extension to PhotoFormat enum
- * @param ext
- * @returns
+ * @param ext file extension (e.g. ".jpg", ".png")
+ * @returns corresponding PhotoFormat enum value (e.g. PhotoFormat.JPG, PhotoFormat.PNG)
  */
 const extToPhotoFormatEnum = (ext: string): PhotoFormat => {
   const e = ext.replace(".", "").toUpperCase();
@@ -40,11 +40,10 @@ const extToPhotoFormatEnum = (ext: string): PhotoFormat => {
 
 /**
  *  Create an advertisement with its related real estate and photos in a single transaction
- * @param req
- * @param res
- * @returns
+ * @param req RequestAgent with body containing advertisement data, real estate data and photos (already validated by Joi)
+ * @param res Response with created advertisement, real estate and photos or error message
+ * @returns JSON with created advertisement, real estate and photos or error message
  */
-
 export const createAdvertisementWithRealEstateAndPhotosTx = async (
   req: RequestAgent,
   res: Response,
@@ -70,58 +69,57 @@ export const createAdvertisementWithRealEstateAndPhotosTx = async (
     /**
      * REAL ESTATE
      */
-    const re = new RealEstate();
-    re.size = body.realEstate.size;
-    re.rooms = body.realEstate.rooms;
-    re.floor = body.realEstate.floor;
+    const reDto = body.realEstate;
+    const re = Object.assign(new RealEstate(), {
+      size: reDto.size,
+      rooms: reDto.rooms,
+      floor: reDto.floor,
 
-    re.elevator = body.realEstate.elevator;
-    re.airConditioning = body.realEstate.airConditioning;
-    re.heating = body.realEstate.heating;
-    re.concierge = body.realEstate.concierge;
-    re.parking = body.realEstate.parking;
-    re.garage = body.realEstate.garage;
-    re.furnished = body.realEstate.furnished;
-    re.solarPanels = body.realEstate.solarPanels;
-    re.balcony = body.realEstate.balcony;
-    re.terrace = body.realEstate.terrace;
-    re.garden = body.realEstate.garden;
+      elevator: reDto.elevator,
+      airConditioning: reDto.airConditioning,
+      heating: reDto.heating,
+      concierge: reDto.concierge,
+      parking: reDto.parking,
+      garage: reDto.garage,
+      furnished: reDto.furnished,
+      solarPanels: reDto.solarPanels,
+      balcony: reDto.balcony,
+      terrace: reDto.terrace,
+      garden: reDto.garden,
 
-    re.energyClass = body.realEstate.energyClass;
-    re.housingType = body.realEstate.housingType;
+      energyClass: reDto.energyClass,
+      housingType: reDto.housingType,
+    });
 
-    re.location = makePoint4326(
-      body.realEstate.location.lng,
-      body.realEstate.location.lat,
-    );
+    re.location = makePoint4326(reDto.location.lng, reDto.location.lat);
 
     const savedRealEstate = await queryRunner.manager.save(RealEstate, re);
 
     /**
      * ADVERTISEMENT
      */
-    const adv = new Advertisement();
-    adv.description = body.description;
-    adv.price = body.price;
-    adv.type = body.type;
-    adv.status = body.status;
-
-    adv.agent = { id: agentId } as Agent;
-    adv.realEstate = savedRealEstate;
+    const adv = Object.assign(new Advertisement(), {
+      description: body.description,
+      price: body.price,
+      type: body.type,
+      status: body.status,
+      agent: { id: agentId } as Agent,
+      realEstate: savedRealEstate,
+    });
 
     const savedAdv = await queryRunner.manager.save(Advertisement, adv);
 
     /**
      * PHOTOS
      */
-    const photoEntities = files.map((f, idx) => {
-      const p = new Photo();
-      p.advertisementId = savedAdv.id;
-      p.url = `${baseUrl}/uploads/${f.filename}`;
-      p.format = extToPhotoFormatEnum(path.extname(f.originalname));
-      p.position = idx;
-      return p;
-    });
+    const photoEntities = files.map((f, idx) =>
+      Object.assign(new Photo(), {
+        advertisementId: savedAdv.id,
+        url: `${baseUrl}/uploads/${f.filename}`,
+        format: extToPhotoFormatEnum(path.extname(f.originalname)),
+        position: idx,
+      }),
+    );
 
     const savedPhotos =
       photoEntities.length > 0
@@ -159,10 +157,9 @@ export const createAdvertisementWithRealEstateAndPhotosTx = async (
 };
 /**
  * Delete an advertisement if it belongs to the authenticated agent, in a single transaction also with its related real estate and photos
- * @req RequestAgent
- *  @param res Response
- * @return JSON with success message or error
- *
+ * @param req RequestAgent
+ * @param res Response
+ * @returns JSON with success message or error
  */
 
 export const deleteAgentAdvertisement = async (

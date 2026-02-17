@@ -20,9 +20,9 @@ import { findAdvertisementsByAgentId } from "../repositories/advertisement.repos
 
 /**
  *  Create a new agent under the same agency of the admin creating it, with a generated username and temporary password. Only admin agents can create new agents.
- * @param req
- * @param res
- * @returns
+ * @param req RequestAgent with body containing firstName, lastName, phoneNumber and isAdmin of the new agent to create. The authenticated admin agent must be in req.agent.
+ * @param res Response with success message and credentials of the created agent or error message
+ * @returns JSON with success message and credentials of the created agent or error message
  */
 export const createNewAgent = async (req: RequestAgent, res: Response) => {
   try {
@@ -94,9 +94,9 @@ export const createNewAgent = async (req: RequestAgent, res: Response) => {
 
 /**
  *  Delete an agent created by the authenticated admin, reassigning all their advertisements to the admin, in a single transaction. Only admin agents can delete agents, and they cannot delete themselves.
- * @param req
- * @param res
- * @returns
+ * @param req RequestAgent with authenticated admin agent in req.agent and agent id to delete in req.params.id
+ * @param res Response with success message or error message
+ * @returns JSON with success message or error message
  */
 export const deleteAgent = async (req: RequestAgent, res: Response) => {
   try {
@@ -165,9 +165,9 @@ export const deleteAgent = async (req: RequestAgent, res: Response) => {
 
 /**
  *  Get all advertisements of the authenticated agent
- * @param req
- * @param res
- * @returns
+ * @param req RequestAgent with authenticated agent in req.agent
+ * @param res Response with list of advertisements of the authenticated agent or error message
+ * @returns   JSON with list of advertisements of the authenticated agent or error message
  */
 export const getAgentAdvByAgentId = async (
   req: RequestAgent,
@@ -195,9 +195,9 @@ export const getAgentAdvByAgentId = async (
 
 /**
  *  Update the phone number of the authenticated agent
- * @param req
- * @param res
- * @returns
+ * @param req RequestAgent with authenticated agent in req.agent and phone number in req.body.phoneNumber
+ * @param res Response with success message or error message
+ * @returns JSON with success message or error message
  */
 
 export const updatePhoneNumberAgent = async (

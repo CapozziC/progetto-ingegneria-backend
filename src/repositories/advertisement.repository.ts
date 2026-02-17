@@ -25,8 +25,8 @@ export const findAdvertisementsByAgentId = async (agentId: number) => {
 
 /**
  * Find the owner (agent) ID of a specific advertisement. This function queries the database for the advertisement with the given ID and retrieves the ID of the agent who created it. If the advertisement is not found or does not have an associated agent, it returns null.
- * @param advertisementId 
- * @returns 
+ * @param advertisementId  The unique identifier of the advertisement whose owner ID to find
+ * @returns  A Promise that resolves to the ID of the agent who owns the advertisement, or null if the advertisement is not found or does not have an associated agent
  */
 export const findAdvertisementOwnerId = async (
   advertisementId: number,
@@ -47,7 +47,8 @@ export const findAdvertisementOwnerId = async (
 
 /**              
  * Delete an advertisement by its ID, along with its related real estate. This function performs a database transaction to ensure that both the advertisement and its associated real estate are deleted atomically. If the advertisement is not found, the function simply returns without performing any deletion.   
- * @param advertisementId 
+ * @param advertisementId The unique identifier of the advertisement to delete
+ * @returns A Promise that resolves when the deletion is complete
  */
 export const deleteAdvertisementById = async (advertisementId: number) => {
   await AppDataSource.transaction(async (manager) => {

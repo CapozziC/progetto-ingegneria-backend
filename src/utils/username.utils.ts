@@ -1,5 +1,8 @@
 /**
- * Utility functions for username normalization.
+ * Normalizes a first and last name into a base username string.
+ * @param firstName The first name to normalize
+ * @param lastName The last name to normalize
+ * @returns A normalized base username string
  */
 export const normalizeUsernameBase = (firstName: string, lastName: string) => {
   const base = `${firstName}${lastName}`

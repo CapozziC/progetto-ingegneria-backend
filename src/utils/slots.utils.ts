@@ -4,7 +4,12 @@ import { AdvertisementRepository } from "../repositories/advertisement.repositor
 function toKey(d: Date): string {
   return d.toISOString(); // key unica
 }
-
+/**
+ * Generates a list of available hourly slots for appointments based on the specified date range. The function creates a grid of potential appointment times, typically on an hourly basis, and then filters out the slots that are already taken by existing appointments. The resulting list of available slots can be used to display options to users when scheduling new appointments.
+ * @param from The start date and time of the range for which to generate available slots
+ * @param to The end date and time of the range for which to generate available slots
+ * @returns An array of Date objects representing the available hourly slots for appointments within the specified date range
+ */
 function generateHourlySlots(from: Date, to: Date): Date[] {
   const slots: Date[] = [];
   const cur = new Date(from);
@@ -28,6 +33,13 @@ function generateHourlySlots(from: Date, to: Date): Date[] {
   return slots;
 }
 
+/**
+ * Get available appointment slots for a specific advertisement within a given date range. This function retrieves the advertisement to identify the associated agent, generates a grid of potential hourly slots within the specified date range, and then filters out the slots that are already taken by existing appointments for that agent. The resulting list of available slots can be used to display options to users when scheduling new appointments for the advertisement.
+ * @param advertisementId The unique identifier of the advertisement for which to get available appointment slots
+ * @param from  The start date and time of the range for which to get available slots
+ * @param to The end date and time of the range for which to get available slots
+ * @returns An array of Date objects representing the available appointment slots for the specified advertisement within the given date range
+ */
 export async function getAvailableSlotsForAdvertisement(
   advertisementId: number,
   from: Date,

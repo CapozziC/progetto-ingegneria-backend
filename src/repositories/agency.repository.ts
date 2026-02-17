@@ -14,8 +14,8 @@ export const findAgencyByName = async (
 
 /**
  *  Find an agency by its email address. This function queries the database for an agency with the specified email and returns it if found. If no agency is found with the given email, it returns null.
- * @param email
- * @returns
+ * @param email The email address of the agency to find
+ * @returns A Promise that resolves to the Agency object if found, or null if not found
  */
 export const findAgencyByEmail = async (
   email: string,
@@ -25,8 +25,8 @@ export const findAgencyByEmail = async (
 
 /**
  *  Create a new agency instance with the provided data. This function takes a partial agency object containing the necessary fields for agency creation and returns a new Agency instance that can be saved to the database.
- * @param data
- * @returns
+ * @param data A partial object containing the necessary fields for creating a new agency
+ * @returns A new Agency instance created from the provided data
  */
 export const createAgency = (data: Partial<Agency>): Agency => {
   return AgencyRepository.create(data);

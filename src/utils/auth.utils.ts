@@ -6,7 +6,13 @@ import { deleteRefreshTokenBySubject } from "../repositories/refreshToken.reposi
 import { InvalidTokenError, ExpiredTokenError } from "./error.utils.js";
 import { Type } from "../entities/refreshToken.js";
 
-// Generate Access and Refresh Tokens for Users
+/**
+ * Generate a JWT access token with the given payload, secret and expiration time. The payload should contain the necessary information to identify the subject of the token (e.g. agent ID or account ID) and the type of subject (e.g. agent or account). The secret is used to sign the token and should be kept secure. The expiresIn parameter specifies how long the token is valid for (e.g. "10m" for 10 minutes).
+ * @param payload The payload to include in the token, containing the subject ID and type
+ * @param secret The secret key used to sign the token
+ * @param expiresIn The expiration time for the token (e.g. "10m" for 10 minutes)
+ * @returns A signed JWT access token as a string
+ */
 export const generateAccessToken = (
   payload: Payload,
   secret: Secret,
@@ -15,6 +21,13 @@ export const generateAccessToken = (
   return jwt.sign(payload, secret, { expiresIn });
 };
 
+/**
+ * Generate a JWT refresh token with the given payload, secret and expiration time. The payload should contain the necessary information to identify the subject of the token (e.g. agent ID or account ID) and the type of subject (e.g. agent or account). The secret is used to sign the token and should be kept secure. The expiresIn parameter specifies how long the token is valid for (e.g. "7d" for 7 days).
+ * @param payload The payload to include in the token, containing the subject ID and type
+ * @param secret The secret key used to sign the token
+ * @param expiresIn The expiration time for the token (e.g. "7d" for 7 days)
+ * @returns A signed JWT refresh token as a string
+ */
 export const generateRefreshToken = (
   payload: Payload,
   secret: Secret,
@@ -23,6 +36,11 @@ export const generateRefreshToken = (
   return jwt.sign(payload, secret, { expiresIn });
 };
 
+/** Verify the validity of a JWT access token and return its payload if valid. If the token is missing, invalid or expired, an appropriate error is thrown. The function uses the secret key to verify the token's signature and ensure its integrity.
+ * @param accessToken The JWT access token to verify
+ * @returns The payload contained in the access token if it is valid
+ * @throws InvalidTokenError if the token is missing or invalid, ExpiredTokenError if the token has expired
+ */
 export const verifyAccessToken = (accessToken: string): Payload => {
   if (!accessToken) {
     throw new InvalidTokenError("access");
@@ -40,6 +58,12 @@ export const verifyAccessToken = (accessToken: string): Payload => {
     throw new InvalidTokenError("access", err);
   }
 };
+/**
+ * Verify the validity of a JWT refresh token and return its payload if valid. If the token is missing, invalid or expired, an appropriate error is thrown. The function uses the secret key to verify the token's signature and ensure its integrity.
+ * @param refreshToken The JWT refresh token to verify
+ * @returns The payload contained in the refresh token if it is valid
+ * @throws InvalidTokenError if the token is missing or invalid, ExpiredTokenError if the token has expired
+ */
 
 export const verifyRefreshToken = (refreshToken: string): Payload => {
   if (!refreshToken) {
@@ -59,6 +83,13 @@ export const verifyRefreshToken = (refreshToken: string): Payload => {
   }
 };
 
+/**
+ *  Revoke a refresh token for a specific subject (agent or account) by deleting it from the database. This function is typically called during logout to ensure that the refresh token can no longer be used to obtain new access tokens. If the revocation process fails, an error is logged and an exception is thrown.
+ * @param subjectId The unique identifier of the subject (agent or account) for whom to revoke the refresh token
+ * @param type The type of subject (agent or account) for whom to revoke the refresh token
+ * @returns A Promise that resolves when the revocation process is complete
+ * @throws An error if the revocation process fails
+ */
 export const revokeRefreshToken = async (
   subjectId: number,
   type: Type,
@@ -73,6 +104,12 @@ export const revokeRefreshToken = async (
     throw new Error("Failed to revoke refresh token");
   }
 };
+
+/**
+ *  Hash a refresh token using SHA-256 algorithm. This function takes a refresh token as input and returns its hashed value as a hexadecimal string. Hashing the refresh token adds an extra layer of security by ensuring that the actual token value is not stored in the database, making it more difficult for attackers to misuse stolen tokens.
+ * @param token The refresh token to be hashed
+ * @returns  A hexadecimal string representing the hashed value of the refresh token
+ */
 
 export const hashRefreshToken = (token: string): string => {
   return crypto.createHash("sha256").update(token).digest("hex");

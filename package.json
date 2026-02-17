@@ -10,6 +10,10 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "typeorm": "typeorm-ts-node-esm"
   },
+  "engines": {
+    "node": "25.6.1",
+    "npm": "11.9.0"
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",

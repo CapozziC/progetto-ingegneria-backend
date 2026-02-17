@@ -13,13 +13,24 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Use Node version from .nvmrc
+        run: |
+          source ~/.nvm/nvm.sh
+          nvm install
+          nvm use
+
       - name: Deploy backend
         run: |
           cd ~/progetto-ingegneria-backend
           git reset --hard HEAD
           git clean -fd
           git pull
-          npm install
+
+          source ~/.nvm/nvm.sh
+          nvm use
+
+          npm ci
           npm run build
           npm run typeorm migration:run -- -d dist/data-source.js
+
           sudo systemctl restart backend.service

@@ -20,9 +20,9 @@ import { Type } from "../entities/refreshToken.js";
 import { Agent } from "../entities/agent.js";
 /**
  * Login an agent with the provided agency ID, username and password. If the credentials are valid, an access token and a refresh token are generated and sent as httpOnly cookies. If the agent is logging in for the first time (isPasswordChange=false), only an access token is sent and the client is informed that a password change is required.
- * @param req 
- * @param res 
- * @returns 
+ * @param req Request with body containing agencyId, username and password for the agent to login
+ * @param res  Response with success message or error message
+ * @returns   JSON with success message or error message
  */
 export const loginAgent = async (req: Request, res: Response) => {
   try {
@@ -69,7 +69,7 @@ export const loginAgent = async (req: Request, res: Response) => {
 
       return res.status(200).json({
         message: "Password change required",
-        isPasswordChage: false,
+        isPasswordChange: false,
       });
     }
 
@@ -130,9 +130,9 @@ export const loginAgent = async (req: Request, res: Response) => {
 };
 /**
  * Logout an agent by revoking their refresh token and clearing their access and refresh tokens from cookies.
- * @param req 
- * @param res 
- * @returns 
+ * @param req Request with authenticated agent in req.agent
+ * @param res Response with success message or error message
+ * @returns JSON with success message or error message
  */
 export const LogoutAgent = async (req: RequestAgent, res: Response) => {
   try {
@@ -160,12 +160,12 @@ export const LogoutAgent = async (req: RequestAgent, res: Response) => {
 };
 
 /**
- * Change the password of an agent on first login. 
+ * Change the password of an agent on first login.
  * The agent must provide the current temporary password, a new password and a confirmation of the new password. If the current password is correct and the new password meets the requirements, the password is updated, isPasswordChange is set to true and any existing refresh tokens are revoked.
  *  A new access token and refresh token are generated and sent as httpOnly cookies.
- * @param req 
- * @param res 
- * @returns 
+ * @param req Request with body containing currentPassword, newPassword and confirmPassword for the agent to change password
+ * @param res Response with success message or error message
+ * @returns JSON with success message or error message
  */
 export const changePasswordFirstLogin = async (
   req: RequestAgent,
@@ -229,7 +229,6 @@ export const changePasswordFirstLogin = async (
       await revokeRefreshToken(freshAgent.id, Type.AGENT);
     });
 
-  
     const accessToken = generateAccessToken(
       { subjectId: freshAgent.id, type: Type.AGENT },
       process.env.ACCESS_TOKEN_SECRET!,

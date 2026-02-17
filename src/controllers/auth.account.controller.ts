@@ -20,9 +20,9 @@ import { RequestAccount } from "../types/express.js";
 
 /**
  * Register a new account with the provided first name, last name, email and password. The password is hashed before saving. If registration is successful, an access token and a refresh token are generated and sent as httpOnly cookies.
- * @param req
- * @param res
- * @returns
+ * @param req RequestAccount with body containing firstName, lastName, email and password for the new account to register
+ * @param res Response with success message or error message
+ * @returns JSON with success message or error message
  */
 
 export const registerAccount = async (req: RequestAccount, res: Response) => {
@@ -118,9 +118,9 @@ export const registerAccount = async (req: RequestAccount, res: Response) => {
 
 /**
  *  Login an account with the provided email and password. If the credentials are valid, an access token and a refresh token are generated and sent as httpOnly cookies.
- * @param req 
- * @param res 
- * @returns 
+ * @param req  RequestAccount with body containing email and password for the account to login
+ * @param res  Response with success message or error message
+ * @returns  JSON with success message or error message
  */
 
 export const loginAccount = async (req: RequestAccount, res: Response) => {
@@ -209,11 +209,11 @@ export const loginAccount = async (req: RequestAccount, res: Response) => {
 };
 
 /**
- * 
+ *
  * Logout an authenticated account by revoking the refresh token and clearing the access token and refresh token cookies.
- * @param req 
- * @param res 
- * @returns 
+ * @param req  RequestAccount with authenticated account in req.account
+ * @param res   Response with success message or error message
+ * @returns   JSON with success message or error message
  */
 export const LogoutAccount = async (req: RequestAccount, res: Response) => {
   try {

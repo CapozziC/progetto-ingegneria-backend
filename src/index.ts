@@ -1,6 +1,5 @@
 import "reflect-metadata";
 import express from "express";
-import path from "path";
 import cookieParser from "cookie-parser";
 import authRoutes from "./routes/auth.route.js";
 import agentRoutes from "./routes/agent.route.js";
@@ -17,7 +16,8 @@ try {
   app.use(express.json());
   app.use(cookieParser());
 
-  app.use("/uploads", express.static(path.resolve("uploads")));
+  const uploadDir = process.env.UPLOAD_DIR || "/Users/carla/Desktop/uploads";
+  app.use("/uploads", express.static(uploadDir));
 
   // Use auth routes
   app.use("/auth", authRoutes);

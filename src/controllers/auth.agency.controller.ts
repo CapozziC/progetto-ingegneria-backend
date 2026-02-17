@@ -3,17 +3,28 @@ import bcrypt from "bcryptjs";
 import { AppDataSource } from "../data-source.js";
 import { Agency } from "../entities/agency.js";
 import { Agent } from "../entities/agent.js";
+import { Logo, Format } from "../entities/logo.js";
+import path from "path";
 import { generateTemporaryPassword } from "../utils/password.utils.js";
 import {
   normalizeUsernameBase,
   nextUsernameFromExisting,
 } from "../utils/username.utils.js";
+import { deleteUploadedFilesSafe } from "./upload.controller.js";
 
+const extToLogoFormat = (ext: string): Format => {
+  const e = ext.replace(".", "").toUpperCase();
+  if (e === "JPG") return Format.JPG;
+  if (e === "JPEG") return Format.JPEG;
+  if (e === "PNG") return Format.PNG;
+  if (e === "HEIC") return Format.HEIC;
+  return Format.JPG;
+};
 /**
  * Create a new agency with its first agent (administrator) in a single transaction. The first agent's username is generated based on their first name and last name, and a temporary password is created. Both the agency and the agent are saved to the database. If any error occurs during the process, the transaction is rolled back and an appropriate error response is sent.
- * @param req
- * @param res
- * @returns
+ * @param req Request with body containing the necessary information to create the agency and the first agent, and optionally a file for the agency logo. The expected body parameters are:
+ * @param res Response with the created agency and agent details, including the generated credentials for the agent, or an error message if the creation fails. The response includes:
+ * @returns JSON with the created agency and agent details, including the generated credentials for the agent, or an error message if the creation fails.
  */
 export const createNewAgencyWithFirstAgent = async (
   req: Request,
@@ -31,7 +42,7 @@ export const createNewAgencyWithFirstAgent = async (
     agentPhoneNumber,
   } = req.body;
 
-  // ✅ Validazioni
+  // Validazioni
   if (!name) return res.status(400).json({ error: "Name is required" });
   if (!email) return res.status(400).json({ error: "Email is required" });
   if (!agencyPhoneNumber)
@@ -51,8 +62,9 @@ export const createNewAgencyWithFirstAgent = async (
   try {
     const agencyRepo = queryRunner.manager.getRepository(Agency);
     const agentRepo = queryRunner.manager.getRepository(Agent);
+    const logoRepo = queryRunner.manager.getRepository(Logo);
 
-    // ✅ Duplicati Agency (dentro transazione)
+    // Duplicati Agency (dentro transazione)
     const existingAgencyByName = await agencyRepo.findOne({
       where: { name: String(name).trim() },
     });
@@ -75,6 +87,24 @@ export const createNewAgencyWithFirstAgent = async (
     });
 
     const savedAgency = await agencyRepo.save(newAgency);
+
+    if (req.file) {
+      const baseUrl = `${req.protocol}://${req.get("host")}`;
+
+      // se salvi in sottocartella /logos -> url = `${baseUrl}/uploads/logos/${req.file.filename}`
+      // se salvi tutto in /uploads -> url = `${baseUrl}/uploads/${req.file.filename}`
+      const url = `${baseUrl}/uploads/logos/${req.file.filename}`;
+
+      const format = extToLogoFormat(path.extname(req.file.originalname));
+
+      const logo = logoRepo.create({
+        url,
+        format,
+        agency: savedAgency,
+      });
+
+      await logoRepo.save(logo);
+    }
 
     // 2) Username generation (prefix + numero)
     const usernameBase = normalizeUsernameBase(firstName, lastName);
@@ -145,6 +175,10 @@ export const createNewAgencyWithFirstAgent = async (
   } catch (error) {
     await queryRunner.rollbackTransaction();
     console.error("Error creating agency + first agent:", error);
+
+    if (req.file) {
+      await deleteUploadedFilesSafe([req.file]);
+    }
 
     return res.status(500).json({
       error: "Internal server error",

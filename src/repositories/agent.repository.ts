@@ -4,8 +4,8 @@ export const AgentRepository = AppDataSource.getRepository(Agent);
 
 /**
  * Create a new agent instance with the provided data. This function takes a partial agent object containing the necessary fields for agent creation and returns a new Agent instance that can be saved to the database.
- * @param agentData
- * @returns
+ * @param agentData A partial object containing the necessary fields for creating a new agent
+ * @returns A new Agent instance created from the provided data
  */
 export const createAgent = (agentData: Partial<Agent>): Agent => {
   return AgentRepository.create(agentData);

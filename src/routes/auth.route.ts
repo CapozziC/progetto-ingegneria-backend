@@ -2,7 +2,6 @@ import {
   registerAccount,
   loginAccount,
   LogoutAccount,
-  
 } from "../controllers/auth.account.controller.js";
 import { createNewAgencyWithFirstAgent } from "../controllers/auth.agency.controller.js";
 import {
@@ -16,6 +15,7 @@ import {
   authAgentFirstLoginOnly,
 } from "../middleware/auth.agent.middleware.js";
 import express from "express";
+import { uploadLogo } from "../utils/multer.utils.js";
 
 // Create a router instance
 const router = express.Router();
@@ -25,7 +25,7 @@ router.post("/user/login", loginAccount);
 router.post("/agent/login", loginAgent);
 router.post("/agent/logout", authenticationMiddlewareAgent, LogoutAgent);
 router.post("/user/logout", authenticationMiddlewareAccount, LogoutAccount);
-router.post("/agency/create", createNewAgencyWithFirstAgent);
+router.post("/agency/create", uploadLogo, createNewAgencyWithFirstAgent);
 router.post(
   "/agent/login/change-password",
   authAgentFirstLoginOnly,
