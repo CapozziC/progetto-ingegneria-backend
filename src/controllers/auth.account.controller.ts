@@ -94,7 +94,7 @@ export const registerAccount = async (req: RequestAccount, res: Response) => {
     if (!savedRefreshToken) {
       return res.status(500).json({ error: "Saving refresh token failed" });
     }
-
+    // Set tokens as httpOnly cookies
     res.cookie("accessToken", accessToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
