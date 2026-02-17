@@ -9,6 +9,17 @@ jobs:
   deploy:
     runs-on: self-hosted
 
+    env:
+      DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+      DB_USER: ${{ secrets.DB_USER }}
+      DB_HOST: ${{ secrets.DB_HOST }}
+      DB_PORT: ${{ secrets.DB_PORT }}
+      DB_NAME: ${{ secrets.DB_NAME }}
+      ACCESS_TOKEN_SECRET: ${{ secrets.ACCESS_TOKEN }}
+      REFRESH_TOKEN_SECRET: ${{ secrets.REFRESH_TOKEN }}
+      NODE_ENV: ${{ secrets.NODE_ENV }}
+      UPLOAD_DIR: ${{ secrets.UPLOAD_DIR }}
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4

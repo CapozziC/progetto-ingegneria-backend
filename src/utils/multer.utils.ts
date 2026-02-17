@@ -3,7 +3,7 @@ import path from "path";
 import crypto from "crypto";
 import fs from "fs";
 
-const uploadDir = process.env.UPLOAD_DIR || "/Users/carla/Desktop/uploads";
+const uploadDir = process.env.UPLOAD_DIR || "uploads";
 
 // crea sottocartelle se non esistono
 const ensureDir = (dir: string) => {
@@ -18,7 +18,8 @@ ensureDir(logosDir);
 
 const fileFilter: multer.Options["fileFilter"] = (_req, file, cb) => {
   const allowed = ["image/jpeg", "image/png", "image/heic"];
-  if (!allowed.includes(file.mimetype)) return cb(new Error("Unsupported file type"));
+  if (!allowed.includes(file.mimetype))
+    return cb(new Error("Unsupported file type"));
   cb(null, true);
 };
 
