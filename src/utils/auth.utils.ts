@@ -1,6 +1,5 @@
 import jwt, { Secret, SignOptions } from "jsonwebtoken";
 import crypto from "crypto";
-import "dotenv/config";
 import { Payload } from "../types/auth.type.js";
 import { deleteRefreshTokenBySubject } from "../repositories/refreshToken.repository.js";
 import { InvalidTokenError, ExpiredTokenError } from "./error.utils.js";
