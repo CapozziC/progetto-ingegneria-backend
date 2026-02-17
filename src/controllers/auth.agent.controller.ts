@@ -250,7 +250,7 @@ export const changePasswordFirstLogin = async (
       expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
     });
     await saveRefreshToken(refreshTokenEntry);
-
+     // Set new tokens as httpOnly cookies
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
