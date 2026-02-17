@@ -32,9 +32,8 @@ jobs:
       - name: Build project
         run: npm run build
 
-      - name: Check Db passowrd
-        run: |
-          echo "DB_PASSWORD: ${#DB_PASSWORD}"
+      - name: Load .env
+        run: export $(grep -v '^#' ~/progetto-ingegneria-backend/.env | xargs)
 
       - name: Run migrations
         run: npm run typeorm migration:run -- -d dist/data-source.js
