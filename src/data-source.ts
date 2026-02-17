@@ -1,6 +1,7 @@
 import "reflect-metadata";
 import { DataSource } from "typeorm";
-import "dotenv/config";
+import * as dotenv from "dotenv";
+dotenv.config();
 const isProd = process.env.NODE_ENV === "production";
 
 export const AppDataSource = new DataSource({
