@@ -1,6 +1,11 @@
 import { findTakenAppointmentsForAgent } from "../repositories/appointment.repository.js";
 import { AdvertisementRepository } from "../repositories/advertisement.repository.js";
 
+/**
+ * Converts a Date object to a string key for use in sets or maps. This function is used to create a unique identifier for each appointment slot based on its date and time, allowing for efficient comparison and filtering of available slots against taken appointments.
+ * @param d The Date object representing the appointment slot to convert
+ * @returns A string key in ISO format representing the date and time of the appointment slot
+ */
 function toKey(d: Date): string {
   return d.toISOString(); // key unica
 }
