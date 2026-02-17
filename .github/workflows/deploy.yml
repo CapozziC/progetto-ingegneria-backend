@@ -32,7 +32,6 @@ jobs:
         run: npm run build
 
       - name: Run migrations
-        run: |
-          npx -r dotenv/config npm run typeorm migration:run -- -d dist/data-source.js
+        run: npm run typeorm migration:run -- -d dist/data-source.js
       - name: Restart backend service
         run: sudo systemctl restart backend.service
