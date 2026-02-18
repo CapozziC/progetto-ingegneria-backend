@@ -41,6 +41,10 @@ export const createNewAgencyWithFirstAgent = async (
   req: Request,
   res: Response,
 ) => {
+  console.log("\n========================================");
+  console.log("🏢 CREATE AGENCY + FIRST AGENT START");
+  console.log("========================================");
+
   const {
     // Agency
     name,
@@ -53,33 +57,46 @@ export const createNewAgencyWithFirstAgent = async (
     agentPhoneNumber,
   } = req.body;
 
-  // Validazioni
-  if (!name) return res.status(400).json({ error: "Name is required" });
-  if (!email) return res.status(400).json({ error: "Email is required" });
-  if (!agencyPhoneNumber)
-    return res.status(400).json({ error: "Agency phone number is required" });
+  console.log("📋 Dati ricevuti:", {
+    name,
+    email,
+    agencyPhoneNumber,
+    firstName,
+    lastName,
+    agentPhoneNumber,
+    hasFile: !!req.file,
+  });
 
-  if (!firstName)
-    return res.status(400).json({ error: "First name is required" });
-  if (!lastName)
-    return res.status(400).json({ error: "Last name is required" });
-  if (!agentPhoneNumber)
-    return res.status(400).json({ error: "Agent phone number is required" });
+  // Validazioni
+  if (!name || !email || !agencyPhoneNumber) {
+    console.log("❌ Dati mancanti");
+    return res.status(400).json({ error: "Name, email and agency phone number are required" });
+  }
+  if (!firstName || !lastName || !agentPhoneNumber) {
+    console.log("❌ Dati mancanti per agente");
+    return res.status(400).json({ error: "First name, last name and agent phone number are required" });
+  }
 
   const queryRunner = AppDataSource.createQueryRunner();
   await queryRunner.connect();
   await queryRunner.startTransaction();
 
   try {
+    console.log("✅ Transazione avviata");
+
     const agencyRepo = queryRunner.manager.getRepository(Agency);
     const agentRepo = queryRunner.manager.getRepository(Agent);
     const logoRepo = queryRunner.manager.getRepository(Logo);
 
     // Duplicati Agency (dentro transazione)
+    console.log("🔍 Verifico duplicati agency...");
+
     const existingAgencyByName = await agencyRepo.findOne({
       where: { name: String(name).trim() },
     });
     if (existingAgencyByName) {
+      console.log("❌ Agency con questo nome già esiste");
+      await queryRunner.rollbackTransaction();
       return res.status(409).json({ message: "Agency name already exists" });
     }
 
@@ -87,38 +104,59 @@ export const createNewAgencyWithFirstAgent = async (
       where: { email: String(email).trim().toLowerCase() },
     });
     if (existingAgencyByEmail) {
+      console.log("❌ Agency con questa email già esiste");
+      await queryRunner.rollbackTransaction();
       return res.status(409).json({ message: "Agency email already exists" });
     }
 
+    console.log("✅ No duplicati trovati");
+
     // 1) Create Agency
-    const newAgency = agencyRepo.create({
+    console.log("📍 Step 1: Creo Agency...");
+
+    const newAgency = Object.assign(new Agency(), {
       name: String(name).trim(),
       email: String(email).trim().toLowerCase(),
       phoneNumber: String(agencyPhoneNumber).trim(),
     });
 
     const savedAgency = await agencyRepo.save(newAgency);
+    console.log("✅ Agency salvata. ID:", savedAgency.id);
 
+    // 2) Create Logo if provided
     if (req.file) {
+      console.log("📷 Step 2: Salvo logo...");
+      console.log("📷 File info:", {
+        filename: req.file.filename,
+        originalname: req.file.originalname,
+        mimetype: req.file.mimetype,
+        size: req.file.size,
+      });
+
       const baseUrl = `${req.protocol}://${req.get("host")}`;
-
-      // se salvi in sottocartella /logos -> url = `${baseUrl}/uploads/logos/${req.file.filename}`
-      // se salvi tutto in /uploads -> url = `${baseUrl}/uploads/${req.file.filename}`
       const url = `${baseUrl}/uploads/logos/${req.file.filename}`;
-
       const format = extToLogoFormat(path.extname(req.file.originalname));
 
-      const logo = logoRepo.create({
+      console.log("📷 URL logo:", url);
+      console.log("📷 Format:", format);
+
+      const logo = Object.assign(new Logo(), {
         url,
         format,
         agency: savedAgency,
       });
 
-      await logoRepo.save(logo);
+      const savedLogo = await logoRepo.save(logo);
+      console.log("✅ Logo salvato. ID:", savedLogo.id);
+    } else {
+      console.log("⏭️  Nessun file logo fornito, salto");
     }
 
-    // 2) Username generation (prefix + numero)
+    // 3) Username generation (prefix + numero)
+    console.log("👤 Step 3: Genero username...");
+
     const usernameBase = normalizeUsernameBase(firstName, lastName);
+    console.log("👤 Username base:", usernameBase);
 
     // Trova usernames esistenti nell'agenzia che iniziano con usernameBase
     // Esempio: "mario.rossi", "mario.rossi2", "mario.rossi3"
@@ -130,18 +168,30 @@ export const createNewAgencyWithFirstAgent = async (
       .getMany();
 
     const existingUsernames = existingAgents.map((a) => a.username);
+    console.log("👤 Usernames esistenti:", existingUsernames);
+
     const usernameFinal = nextUsernameFromExisting(
       usernameBase,
       existingUsernames,
     );
+    console.log("✅ Username finale:", usernameFinal);
 
-    // 3) Temporary password
+    // 4) Temporary password
+    console.log("🔐 Step 4: Genero password temporanea...");
+
     const temporaryPassword = generateTemporaryPassword();
-    //Logica per invio credenziali per email
-    const hashedPassword = await bcrypt.hash(temporaryPassword, 10);
+    console.log(
+      "🔐 Password generata (primemq 5 char):",
+      temporaryPassword.substring(0, 5) + "***",
+    );
 
-    // 4) Create first Agent (admin)
-    const newAgent = agentRepo.create({
+    const hashedPassword = await bcrypt.hash(temporaryPassword, 10);
+    console.log("🔐 Password hashata");
+
+    // 5) Create first Agent (admin)
+    console.log("👨‍💼 Step 5: Creo primo agente...");
+
+    const newAgent = Object.assign(new Agent(), {
       firstName: String(firstName).trim(),
       lastName: String(lastName).trim(),
       phoneNumber: String(agentPhoneNumber).trim(),
@@ -149,15 +199,19 @@ export const createNewAgencyWithFirstAgent = async (
       isAdmin: true,
       isPasswordChange: false,
       password: hashedPassword,
-      administrator: undefined,
+      agency: savedAgency,
     });
 
-    newAgent.agency = savedAgency;
-
     const savedAgent = await agentRepo.save(newAgent);
+    console.log("✅ Agente creato. ID:", savedAgent.id);
 
     // ✅ Commit
     await queryRunner.commitTransaction();
+    console.log("✅ Transazione committed");
+
+    console.log("========================================");
+    console.log("✅ AGENCY + AGENTE CREATI CON SUCCESSO");
+    console.log("========================================\n");
 
     // ✅ Response (NO password hash)
     // Ti ritorno anche la temporaryPassword così la vedi in dev.
@@ -184,17 +238,27 @@ export const createNewAgencyWithFirstAgent = async (
       },
     });
   } catch (error) {
-    await queryRunner.rollbackTransaction();
-    console.error("Error creating agency + first agent:", error);
+    console.log("❌ ERRORE durante la creazione:", error);
+
+    try {
+      await queryRunner.rollbackTransaction();
+      console.log("✅ Transazione rollbacked");
+    } catch (rollbackError) {
+      console.log("❌ Errore durante rollback:", rollbackError);
+    }
 
     if (req.file) {
+      console.log("🗑️  Cancello file uploadati...");
       await deleteUploadedFilesSafe([req.file]);
     }
+
+    console.log("========================================\n");
 
     return res.status(500).json({
       error: "Internal server error",
     });
   } finally {
     await queryRunner.release();
+    console.log("✅ Query runner rilasciato");
   }
 };

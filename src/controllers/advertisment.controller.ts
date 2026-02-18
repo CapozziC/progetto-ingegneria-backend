@@ -74,7 +74,6 @@ export const createAdvertisementWithRealEstateAndPhotosTx = async (
       size: reDto.size,
       rooms: reDto.rooms,
       floor: reDto.floor,
-
       elevator: reDto.elevator,
       airConditioning: reDto.airConditioning,
       heating: reDto.heating,
@@ -86,7 +85,6 @@ export const createAdvertisementWithRealEstateAndPhotosTx = async (
       balcony: reDto.balcony,
       terrace: reDto.terrace,
       garden: reDto.garden,
-
       energyClass: reDto.energyClass,
       housingType: reDto.housingType,
     });
@@ -115,7 +113,7 @@ export const createAdvertisementWithRealEstateAndPhotosTx = async (
     const photoEntities = files.map((f, idx) =>
       Object.assign(new Photo(), {
         advertisementId: savedAdv.id,
-        url: `${baseUrl}/uploads/${f.filename}`,
+        url: `${baseUrl}/uploads/photos/${f.filename}`,
         format: extToPhotoFormatEnum(path.extname(f.originalname)),
         position: idx,
       }),

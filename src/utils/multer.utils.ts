@@ -3,7 +3,11 @@ import path from "path";
 import crypto from "crypto";
 import fs from "fs";
 
-const uploadDir = process.env.UPLOAD_DIR || "uploads";
+const uploadDir = process.env.UPLOAD_DIR;
+
+if (!uploadDir) {
+  throw new Error("UPLOAD_DIR environment variable is not defined");
+}
 
 const ensureDir = (dir: string) => {
   if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
