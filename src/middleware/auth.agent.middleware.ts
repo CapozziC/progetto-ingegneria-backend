@@ -149,6 +149,7 @@ export const authAgentFirstLoginOnly = async (
   next: NextFunction,
 ) => {
   const accessToken = req.cookies?.accessToken as string | undefined;
+  console.log("Access token:", accessToken);
   if (!accessToken)
     return res.status(401).json({ error: "Missing access token" });
 
