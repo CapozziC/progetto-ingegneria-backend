@@ -30,6 +30,9 @@ try {
   app.get("/", (req, res) => {
     res.send("Hello World!");
   });
+  app.get("/health", (req, res) => {
+    res.send("OK");
+  });
 
   // Check backend connection
   app.listen(port, "0.0.0.0", () => {
