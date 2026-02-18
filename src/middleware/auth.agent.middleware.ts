@@ -8,7 +8,6 @@ import {
   createRefreshToken,
   saveRefreshToken,
 } from "../repositories/refreshToken.repository.js";
-import { revokeRefreshToken } from "../utils/auth.utils.js";
 import { Type } from "../entities/refreshToken.js";
 import { RequestAgent } from "../types/express.js";
 import {
@@ -17,6 +16,9 @@ import {
   hashRefreshToken,
   verifyAccessToken,
   verifyRefreshToken,
+  revokeRefreshToken,
+  setAuthCookies,
+  clearAuthCookies,
 } from "../utils/auth.utils.js";
 import { ExpiredTokenError, InvalidTokenError } from "../utils/error.utils.js";
 
@@ -49,8 +51,7 @@ export const authenticationMiddlewareAgent = async (
       const payload = verifyAccessToken(accessToken);
       // ✅ Questo middleware è per AGENT
       if (payload.type !== Type.AGENT) {
-        res.clearCookie("accessToken");
-        res.clearCookie("refreshToken");
+        clearAuthCookies(res);
         return res.status(403).json({ error: "Forbidden" });
       }
       const agent = await findAgentAuthById(payload.subjectId);
@@ -60,11 +61,11 @@ export const authenticationMiddlewareAgent = async (
       return next();
     } catch (err) {
       if (err instanceof InvalidTokenError) {
-        res.clearCookie("accessToken");
+        clearAuthCookies(res);
         return res.status(401).json({ error: "Invalid access token" });
       }
       if (err instanceof ExpiredTokenError) {
-        res.clearCookie("accessToken");
+        clearAuthCookies(res);
         return res.status(401).json({ error: "Access token expired" });
       }
     }
@@ -76,8 +77,7 @@ export const authenticationMiddlewareAgent = async (
 
     // ✅ Questo middleware è per AGENT
     if (payload.type !== Type.AGENT) {
-      res.clearCookie("accessToken");
-      res.clearCookie("refreshToken");
+      clearAuthCookies(res);
       return res.status(403).json({ error: "Forbidden" });
     }
 
@@ -86,8 +86,7 @@ export const authenticationMiddlewareAgent = async (
       payload.type,
     );
     if (!storedToken) {
-      res.clearCookie("accessToken");
-      res.clearCookie("refreshToken");
+      clearAuthCookies(res);
       return res.status(401).json({ error: "Refresh token not found" });
     }
 
@@ -95,24 +94,21 @@ export const authenticationMiddlewareAgent = async (
     const incomingHash = hashRefreshToken(refreshToken);
     if (storedToken.id !== incomingHash) {
       await revokeRefreshToken(payload.subjectId, payload.type);
-      res.clearCookie("accessToken");
-      res.clearCookie("refreshToken");
+      clearAuthCookies(res);
       return res.status(401).json({ error: "Refresh token mismatch" });
     }
 
     // scadenza server-side
     if (storedToken.expiresAt.getTime() <= Date.now()) {
       await revokeRefreshToken(payload.subjectId, payload.type);
-      res.clearCookie("accessToken");
-      res.clearCookie("refreshToken");
+      clearAuthCookies(res);
       return res.status(401).json({ error: "Refresh token expired" });
     }
 
     const agent = await findAgentById(payload.subjectId);
     if (!agent) {
       await revokeRefreshToken(payload.subjectId, payload.type);
-      res.clearCookie("accessToken");
-      res.clearCookie("refreshToken");
+      clearAuthCookies(res);
       return res.status(401).json({ error: "User not found" });
     }
     // ROTATION: revoco quello vecchio e genero nuovi token
@@ -138,25 +134,11 @@ export const authenticationMiddlewareAgent = async (
     });
     await saveRefreshToken(refreshTokenEntry);
 
-    res.cookie("accessToken", newAccessToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-      maxAge: 15 * 60 * 1000,
-    });
-
-    res.cookie("refreshToken", newRefreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
-
+    setAuthCookies(res, newAccessToken, newRefreshToken);
     req.agent = agent;
     return next();
   } catch (err) {
-    res.clearCookie("accessToken");
-    res.clearCookie("refreshToken");
+    clearAuthCookies(res);
     return res.status(401).json({ error: "Invalid refresh token", cause: err });
   }
 };

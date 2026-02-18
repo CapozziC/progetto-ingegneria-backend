@@ -4,6 +4,7 @@ import { Payload } from "../types/auth.type.js";
 import { deleteRefreshTokenBySubject } from "../repositories/refreshToken.repository.js";
 import { InvalidTokenError, ExpiredTokenError } from "./error.utils.js";
 import { Type } from "../entities/refreshToken.js";
+import { Response } from "express";
 
 /**
  * Generate a JWT access token with the given payload, secret and expiration time. The payload should contain the necessary information to identify the subject of the token (e.g. agent ID or account ID) and the type of subject (e.g. agent or account). The secret is used to sign the token and should be kept secure. The expiresIn parameter specifies how long the token is valid for (e.g. "10m" for 10 minutes).
@@ -111,4 +112,47 @@ export const revokeRefreshToken = async (
  */
 export const hashRefreshToken = (token: string): string => {
   return crypto.createHash("sha256").update(token).digest("hex");
+};
+
+/**
+ * Set the access token and refresh token as httpOnly cookies in the response. The access token cookie is set to expire in 15 minutes, while the refresh token cookie is set to expire in 7 days. Both cookies are marked as httpOnly to prevent client-side scripts from accessing them, and they are configured to be secure and have a sameSite policy of "strict" to enhance security.
+ * @param res The Express response object used to set the cookies
+ * @param accessToken The JWT access token to be set as a cookie
+ * @param refreshToken The JWT refresh token to be set as a cookie
+ */
+export const setAuthCookies = (
+  res: Response,
+  accessToken: string,
+  refreshToken: string,
+) => {
+  res.cookie("accessToken", accessToken, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "strict",
+    maxAge: 15 * 60 * 1000, // 15 minutes
+  });
+
+  res.cookie("refreshToken", refreshToken, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "strict",
+    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+  });
+};
+
+/**
+ * Clear the access token and refresh token cookies from the response.
+ * @param res The Express response object from which to clear the cookies
+ */
+export const clearAuthCookies = (res: Response) => {
+  res.clearCookie("accessToken", {
+    httpOnly: true,
+    sameSite: "strict",
+    secure: process.env.NODE_ENV === "production",
+  });
+  res.clearCookie("refreshToken", {
+    httpOnly: true,
+    sameSite: "strict",
+    secure: process.env.NODE_ENV === "production",
+  });
 };

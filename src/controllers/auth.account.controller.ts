@@ -13,6 +13,8 @@ import {
   generateRefreshToken,
   hashRefreshToken,
   revokeRefreshToken,
+  setAuthCookies,
+  clearAuthCookies,
 } from "../utils/auth.utils.js";
 import bcrypt from "bcryptjs";
 import { Type } from "../entities/refreshToken.js";
@@ -28,18 +30,10 @@ export const registerAccount = async (req: RequestAccount, res: Response) => {
   try {
     const { firstName, lastName, email, password } = req.body;
 
-    if (!firstName || !lastName) {
-      return res
-        .status(400)
-        .json({ error: "First name and last name are required" });
-    }
-
-    if (!email) {
-      return res.status(400).json({ error: "Email is required" });
-    }
-
-    if (!password) {
-      return res.status(400).json({ error: "Password is required" });
+    if (!firstName || !lastName || !email || !password) {
+      return res.status(400).json({
+        error: "First name, last name, email and password are required",
+      });
     }
 
     const existingAccount = await findAccountByEmail(email);
@@ -94,19 +88,7 @@ export const registerAccount = async (req: RequestAccount, res: Response) => {
       return res.status(500).json({ error: "Saving refresh token failed" });
     }
     // Set tokens as httpOnly cookies
-    res.cookie("accessToken", accessToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-      maxAge: 15 * 60 * 1000, // 15 minutes
-    });
-
-    res.cookie("refreshToken", refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-    });
+    setAuthCookies(res, accessToken, refreshToken);
 
     return res.status(201).json({ message: "User registered successfully" });
   } catch (error) {
@@ -185,19 +167,7 @@ export const loginAccount = async (req: RequestAccount, res: Response) => {
       return res.status(500).json({ error: "Saving refresh token failed" });
     }
 
-    res.cookie("accessToken", accessToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-      maxAge: 15 * 60 * 1000, // 15 minutes
-    });
-
-    res.cookie("refreshToken", refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-    });
+    setAuthCookies(res, accessToken, refreshToken);
 
     return res.status(200).json({ message: "Login successful" });
   } catch (error) {
@@ -221,16 +191,7 @@ export const LogoutAccount = async (req: RequestAccount, res: Response) => {
     }
 
     await revokeRefreshToken(account.id, Type.ACCOUNT);
-    res.clearCookie("accessToken", {
-      httpOnly: true,
-      sameSite: "strict",
-      secure: process.env.NODE_ENV === "production",
-    });
-    res.clearCookie("refreshToken", {
-      httpOnly: true,
-      sameSite: "strict",
-      secure: process.env.NODE_ENV === "production",
-    });
+    clearAuthCookies(res);
     return res.status(200).json({ message: "Logout successful" });
   } catch (error) {
     console.error("Logout error:", error);

@@ -13,10 +13,12 @@ import {
   normalizeUsernameBase,
   nextUsernameFromExisting,
 } from "../utils/username.utils.js";
+import { requireAdmin, requireAgent } from "../utils/require.utils.js";
 import { generateTemporaryPassword } from "../utils/password.utils.js";
 import { Advertisement } from "../entities/advertisement.js";
 import { Agent } from "../entities/agent.js";
 import { findAdvertisementsByAgentId } from "../repositories/advertisement.repository.js";
+import { parsePositiveInt } from "../utils/objectParse.utils.js";
 
 /**
  * Create a new agent under the same agency of the admin creating it, with a generated username and temporary password.
@@ -28,24 +30,8 @@ import { findAdvertisementsByAgentId } from "../repositories/advertisement.repos
 export const createNewAgent = async (req: RequestAgent, res: Response) => {
   try {
     const { firstName, lastName, phoneNumber, isAdmin } = req.body;
-    const agent = req.agent;
-    //Controllo autenticazione
-    if (!agent) {
-      return res
-        .status(403)
-        .json({ error: "Unauthorized: agent not logged in" });
-    }
-    if (!agent.isAdmin) {
-      return res
-        .status(403)
-        .json({ error: "Unauthorized: Only admin can create other agents" });
-    }
-
-    if (!agent.agency) {
-      return res
-        .status(403)
-        .json({ error: "Unauthorized: Agent does not belong to any agency" });
-    }
+    const admin = requireAdmin(req, res);
+    if (!admin) return;
 
     if (!firstName || !lastName) {
       return res
@@ -58,8 +44,8 @@ export const createNewAgent = async (req: RequestAgent, res: Response) => {
     }
     const usernameBase = normalizeUsernameBase(firstName, lastName);
     const existingUsernames = (
-      await findAgentsByAgencyAndUsernamePrefix(agent.agency.id, usernameBase)
-    ).map((agent) => agent.username);
+      await findAgentsByAgencyAndUsernamePrefix(admin.agency.id, usernameBase)
+    ).map((a) => a.username);
 
     const username = nextUsernameFromExisting(usernameBase, existingUsernames);
 
@@ -74,10 +60,9 @@ export const createNewAgent = async (req: RequestAgent, res: Response) => {
       username: username,
       password: hashedPassword,
       phoneNumber,
-      isAdmin,
-      //agency: agent.agency,
-      agency: agent.agency,
-      administrator: agent,
+      isAdmin: Boolean(isAdmin),
+      agency: admin.agency,
+      administrator: admin,
     });
 
     const savedAgent = await saveAgent(newAgent);
@@ -102,15 +87,10 @@ export const createNewAgent = async (req: RequestAgent, res: Response) => {
  */
 export const deleteAgent = async (req: RequestAgent, res: Response) => {
   try {
-    const agentIdToDelete = Number(req.params.id);
-    const admin = req.agent;
+    const agentIdToDelete = parsePositiveInt(req.params.id);
+    const admin = requireAdmin(req, res);
+    if (!admin) return;
 
-    if (!admin) {
-      return res.status(401).json({ error: "Unauthorized" });
-    }
-    if (!admin.isAdmin) {
-      return res.status(403).json({ error: "Only admin can delete agents" });
-    }
     if (!agentIdToDelete) {
       return res.status(400).json({ error: "Agent id to delete is required" });
     }
@@ -177,12 +157,8 @@ export const getAgentAdvByAgentId = async (
 ) => {
   try {
     //Controllo autenticazione
-    const agent = req.agent;
-    if (!agent) {
-      return res
-        .status(401)
-        .json({ error: "Unauthorized: agent not logged in" });
-    }
+    const agent = requireAgent(req, res);
+    if (!agent) return;
 
     const advertisements = await findAdvertisementsByAgentId(agent.id);
     return res.status(200).json({
@@ -208,12 +184,8 @@ export const updatePhoneNumberAgent = async (
 ) => {
   try {
     const { phoneNumber } = req.body;
-    const agent = req.agent;
-    if (!agent) {
-      return res.status(401).json({
-        error: "Unauthorized: agent not logged in",
-      });
-    }
+    const agent = requireAgent(req, res);
+    if (!agent) return;
 
     if (!phoneNumber) {
       return res.status(400).json({

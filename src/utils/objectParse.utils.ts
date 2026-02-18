@@ -1,4 +1,5 @@
 import type { Request, Response, NextFunction } from "express";
+import { Status } from "../entities/appointment.js";
 
 /**
  * Middleware to parse specified fields in the request body as JSON.
@@ -16,7 +17,7 @@ export const parseJsonFields =
       const v = req.body?.[field];
       if (typeof v === "string") {
         try {
-          (req.body)[field] = JSON.parse(v);
+          req.body[field] = JSON.parse(v);
         } catch {
           return res.status(400).json({ error: `${field} must be valid JSON` });
         }
@@ -24,3 +25,18 @@ export const parseJsonFields =
     }
     next();
   };
+
+export const parsePositiveInt = (value: unknown): number | null => {
+  const n = Number(value);
+  return Number.isInteger(n) && n > 0 ? n : null;
+};
+
+
+export const parseStatus = (raw: unknown): Status | undefined | null => {
+  // undefined = non passato; null = passato ma invalido
+  if (raw == null) return undefined;
+  if (typeof raw !== "string") return null;
+  return Object.values(Status).includes(raw as Status) ? (raw as Status) : null;
+};
+
+

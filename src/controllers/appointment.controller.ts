@@ -1,5 +1,11 @@
 import { Response } from "express";
-import { parseISODate, startOfDay, endOfDay } from "../utils/date.utils.js";
+import {
+  parseISODate,
+  startOfDay,
+  endOfDay,
+  dayKey,
+  toHoursByDay,
+} from "../utils/date.utils.js";
 import { getAvailableSlotsForAdvertisement } from "../utils/slots.utils.js";
 import { RequestAccount, RequestAgent } from "../types/express.js";
 import {
@@ -13,18 +19,8 @@ import { Appointment, Status } from "../entities/appointment.js";
 import { findAdvertisementOwnerId } from "../repositories/advertisement.repository.js";
 import { isValidHourlySlot } from "../utils/slots.utils.js";
 import { QueryFailedError } from "typeorm";
-
-/**
- * Return the appointments of the authenticated account, optionally filtered by status and date range
- * The query parameters 'from' and 'to' must be ISO strings (e.g. 2024-07-01T00:00:00.000Z)
- * The query parameter 'status' must be one of the values of the Status enum
- * @param req RequestAccount with authenticated account in req.account
- * @param res Response with list of appointments of the authenticated account or error message
- * @returns JSON with list of appointments of the authenticated account or error message
- */
-function dayKey(d: Date): string {
-  return d.toISOString().slice(0, 10); // YYYY-MM-DD
-}
+import { requireAccount, requireAgent } from "../utils/require.utils.js";
+import { parsePositiveInt, parseStatus } from "../utils/objectParse.utils.js";
 
 /**
  * Control if the error is a Postgres unique violation error (code 23505), which indicates that the appointment slot is already taken
@@ -50,14 +46,10 @@ function isPgUniqueViolation(err: unknown): boolean {
  */
 export const getAvailableDays = async (req: RequestAccount, res: Response) => {
   try {
-    const account = req.account;
-    if (!account) {
-      return res
-        .status(401)
-        .json({ error: "Unauthorized: account not logged in" });
-    }
-    const advertisementId = Number(req.params.id);
-    if (!Number.isFinite(advertisementId) || advertisementId <= 0) {
+    const account = requireAccount(req, res);
+    if (!account) return;
+    const advertisementId = parsePositiveInt(req.params.id);
+    if (!advertisementId) {
       return res.status(400).json({ error: "Invalid advertisement id" });
     }
 
@@ -76,19 +68,11 @@ export const getAvailableDays = async (req: RequestAccount, res: Response) => {
       to,
     );
 
-    // raggruppa per giorno (per la tua UI)
-    const map = new Map<string, string[]>();
-    for (const s of slots) {
-      const key = dayKey(s);
-      const hhmm = s.toISOString().slice(11, 16); // "HH:MM" (ISO in UTC)
-      map.set(key, [...(map.get(key) ?? []), hhmm]);
-    }
-
     return res.json({
       advertisementId,
       from: from.toISOString(),
       to: to.toISOString(),
-      days: Array.from(map.entries()).map(([day, hours]) => ({ day, hours })),
+      days: toHoursByDay(slots),
     });
   } catch (e) {
     console.error("getAvailableDays error:", e);
@@ -110,19 +94,15 @@ export const getAvailableSlotsByDay = async (
   res: Response,
 ) => {
   try {
-    const account = req.account;
-    if (!account) {
-      return res
-        .status(401)
-        .json({ error: "Unauthorized: account not logged in" });
+    const account = requireAccount(req, res);
+    if (!account) return;
+
+    const advertisementId = parsePositiveInt(req.params.id);
+    if (!advertisementId) {
+      return res.status(400).json({ error: "Invalid advertisement id" });
     }
-    const advertisementId = Number(req.params.id);
+
     const day = typeof req.query.day === "string" ? req.query.day : null;
-    if (!advertisementId || advertisementId <= 0 || !day) {
-      return res
-        .status(400)
-        .json({ error: "advertisementId and day are required" });
-    }
 
     const d = parseISODate(day);
     if (!d)
@@ -161,15 +141,11 @@ export const getAvailableSlotsByDay = async (
 
 export const createAppointment = async (req: RequestAccount, res: Response) => {
   try {
-    const account = req.account;
-    if (!account) {
-      return res
-        .status(401)
-        .json({ error: "Unauthorized: account not logged in" });
-    }
+    const account = requireAccount(req, res);
+    if (!account) return;
 
-    const advertisementId = Number(req.params.id);
-    if (!Number.isFinite(advertisementId) || advertisementId <= 0) {
+    const advertisementId = parsePositiveInt(req.params.id);
+    if (!advertisementId) {
       return res.status(400).json({ error: "Invalid advertisement id" });
     }
 
@@ -240,23 +216,15 @@ export const getAppointmentsForAgent = async (
 ) => {
   try {
     const { status, from, to } = req.query;
-    const agent = req.agent;
-    if (!agent) {
-      return res
-        .status(401)
-        .json({ error: "Unauthorized: agent not logged in" });
-    }
+    const agent = requireAgent(req, res);
+    if (!agent) return;
 
-    let parsedStatus: Status | undefined;
-    if (typeof status === "string") {
-      if (!Object.values(Status).includes(status as Status)) {
-        return res.status(400).json({
-          error: "Invalid status value",
-        });
-      }
-      parsedStatus = status as Status;
+    const parsedStatus = parseStatus(status);
+    if (status !== undefined && parsedStatus === null) {
+      return res.status(400).json({
+        error: "Invalid status value",
+      });
     }
-
     let parsedFrom: Date | undefined;
     let parsedTo: Date | undefined;
 
@@ -274,7 +242,7 @@ export const getAppointmentsForAgent = async (
     }
 
     const appointments = await findAppointmentsByAgentId(agent.id, {
-      status: parsedStatus,
+      status: parsedStatus ?? undefined,
       from: parsedFrom,
       to: parsedTo,
     });
@@ -308,15 +276,11 @@ export const agentConfirmAppointment = async (
   res: Response,
 ) => {
   try {
-    const appointmentId = Number(req.params.id);
-    const agent = req.agent;
-    if (!agent) {
-      return res
-        .status(401)
-        .json({ error: "Unauthorized: agent not logged in" });
-    }
+    const appointmentId = parsePositiveInt(req.params.id);
+    const agent = requireAgent(req, res);
+    if (!agent) return;
 
-    if (!Number.isFinite(appointmentId) || appointmentId <= 0) {
+    if (!appointmentId) {
       return res.status(400).json({ error: "Invalid appointment id" });
     }
 
@@ -324,6 +288,7 @@ export const agentConfirmAppointment = async (
       appointmentId,
       agent.id,
     );
+
     if (!appointment) {
       return res.status(404).json({ error: "Appointment not found" });
     }
@@ -364,15 +329,11 @@ export const agentRejectAppointment = async (
   res: Response,
 ) => {
   try {
-    const appointmentId = Number(req.params.id);
-    const agent = req.agent;
-    if (!agent) {
-      return res
-        .status(401)
-        .json({ error: "Unauthorized: agent not logged in" });
-    }
+    const appointmentId = parsePositiveInt(req.params.id);
+    const agent = requireAgent(req, res);
+    if (!agent) return;
 
-    if (!Number.isFinite(appointmentId) || appointmentId <= 0) {
+    if (!appointmentId) {
       return res.status(400).json({ error: "Invalid appointment id" });
     }
 
@@ -411,7 +372,7 @@ export const agentRejectAppointment = async (
  *Return the appointments of the authenticated account, optionally filtered by status and date range
  *The query parameters 'from' and 'to' must be ISO strings (e.g. 2024-07-01T00:00:00.000Z)
  *The query parameter 'status' must be one of the values of the Status enum
- * @param req RequestAccount with authenticated account in req.account and optional query parameters status, from and to for filtering the appointments 
+ * @param req RequestAccount with authenticated account in req.account and optional query parameters status, from and to for filtering the appointments
  * @param res Response with list of appointments of the authenticated account matching the filters or error message
  * @returns JSON with list of appointments of the authenticated account matching the filters or error message
  */
@@ -421,27 +382,15 @@ export const getAppointmentsForAccount = async (
 ) => {
   try {
     const { status, from, to } = req.query;
-    const account = req.account;
-    if (!account) {
-      return res
-        .status(401)
-        .json({ error: "Unauthorized: account not logged in" });
-    }
-    let parsedStatus: Status | undefined;
-    if (typeof status === "string") {
-      if (!Object.values(Status).includes(status as Status)) {
-        return res.status(400).json({
-          error: "Invalid status value",
-        });
-      }
-      parsedStatus = status as Status;
-    }
+    const account = requireAccount(req, res);
+    if (!account) return;
+    const parsedStatus = parseStatus(status);
 
     const parsedFrom = from ? new Date(from as string) : undefined;
     const parsedTo = to ? new Date(to as string) : undefined;
 
     const appointments = await findAppointmentsByAccount(account.id, {
-      status: parsedStatus,
+      status: parsedStatus ?? undefined,
       from: parsedFrom,
       to: parsedTo,
     });
@@ -475,18 +424,12 @@ export const accountCancelAppointment = async (
   res: Response,
 ) => {
   try {
-    const account = req.account;
-    if (!account) {
-      return res.status(401).json({
-        error: "Unauthorized: account not logged in",
-      });
-    }
+    const account = requireAccount(req, res);
+    if (!account) return;
 
-    const appointmentId = Number(req.params.id);
-    if (!Number.isFinite(appointmentId) || appointmentId <= 0) {
-      return res.status(400).json({
-        error: "Invalid appointment id",
-      });
+    const appointmentId = parsePositiveInt(req.params.id);
+    if (!appointmentId) {
+      return res.status(400).json({ error: "Invalid appointment id" });
     }
 
     const appointment = await findAppointmentByIdForAccount(

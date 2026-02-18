@@ -9,6 +9,8 @@ import {
   generateRefreshToken,
   hashRefreshToken,
   revokeRefreshToken,
+  setAuthCookies,
+  clearAuthCookies,
 } from "../utils/auth.utils.js";
 import {
   createRefreshToken,
@@ -111,19 +113,7 @@ export const loginAgent = async (req: Request, res: Response) => {
       return res.status(500).json({ error: "Failed to save refresh token" });
     }
 
-    res.cookie("refreshToken", refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
-
-    res.cookie("accessToken", accessToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-      maxAge: 15 * 60 * 1000,
-    });
+    setAuthCookies(res, accessToken, refreshToken);
 
     return res.status(200).json({ message: "Login successful" });
   } catch (error) {
@@ -146,16 +136,7 @@ export const LogoutAgent = async (req: RequestAgent, res: Response) => {
     }
 
     await revokeRefreshToken(agent.id, Type.AGENT);
-    res.clearCookie("accessToken", {
-      httpOnly: true,
-      sameSite: "strict",
-      secure: process.env.NODE_ENV === "production",
-    });
-    res.clearCookie("refreshToken", {
-      httpOnly: true,
-      sameSite: "strict",
-      secure: process.env.NODE_ENV === "production",
-    });
+    clearAuthCookies(res);
     return res.status(200).json({ message: "Logout successful" });
   } catch (error) {
     console.error("Logout error:", error);
@@ -255,20 +236,8 @@ export const changePasswordFirstLogin = async (
       expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
     });
     await saveRefreshToken(refreshTokenEntry);
-     // Set new tokens as httpOnly cookies
-    res.cookie("refreshToken", refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
-
-    res.cookie("accessToken", accessToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-      maxAge: 15 * 60 * 1000,
-    });
+    // Set new tokens as httpOnly cookies
+    setAuthCookies(res, accessToken, refreshToken);
 
     return res.status(200).json({ message: "Password updated successfully" });
   } catch (err) {

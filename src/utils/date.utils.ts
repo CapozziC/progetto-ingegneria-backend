@@ -12,7 +12,7 @@ export function parseISODate(value: unknown): Date | null {
 
 /**
  * Checks if a given value is a valid Date object.
- * @param value The value to check for validity as a Date object  
+ * @param value The value to check for validity as a Date object
  * @returns True if the value is a valid Date object, false otherwise
  */
 export function isValidDate(value: unknown): value is Date {
@@ -47,4 +47,25 @@ export function endOfDay(d: Date): Date {
   const x = new Date(d);
   x.setHours(23, 59, 59, 999);
   return x;
+}
+/**  Returns a string in the format YYYY-MM-DD representing the day of the given date
+ * @param d The date for which to calculate the day key
+ * @returns A string in the format YYYY-MM-DD representing the day of the given date
+ */
+
+export function dayKey(d: Date): string {
+  return d.toISOString().slice(0, 10); // YYYY-MM-DD
+}
+
+export function toHoursByDay(
+  slots: Date[],
+): Array<{ day: string; hours: string[] }> {
+  const map = new Map<string, string[]>();
+  for (const s of slots) {
+    const key = dayKey(s);
+    const hhmm = s.toISOString().slice(11, 16); // UTC
+    const prev = map.get(key) ?? [];
+    map.set(key, [...prev, hhmm]);
+  }
+  return Array.from(map.entries()).map(([day, hours]) => ({ day, hours }));
 }
