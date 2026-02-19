@@ -12,6 +12,7 @@ import {
 } from "../utils/username.utils.js";
 import { deleteUploadedFilesSafe } from "./upload.controller.js";
 import { Like } from "typeorm";
+import { QueryFailedError } from "typeorm";
 
 /**
  * Convert a file extension to the corresponding Format enum value for the agency logo.
@@ -240,12 +241,11 @@ export const createNewAgencyWithFirstAgent = async (
         temporaryPassword, // ⚠️ solo per dev/test
       },
     });
-  } catch (error) {
+  } catch (error: unknown) {
     console.log("❌ ERRORE durante la creazione:", error);
 
     try {
       await queryRunner.rollbackTransaction();
-
       console.log("✅ Transazione rollbacked");
     } catch (rollbackError) {
       console.log("❌ Errore durante rollback:", rollbackError);
@@ -258,10 +258,23 @@ export const createNewAgencyWithFirstAgent = async (
 
     console.log("========================================\n");
 
+    // Messaggi safe e utili per debug
+    const message = error instanceof Error ? error.message : "Unknown error";
+
+    let pgDetail: string | undefined;
+    let pgCode: string | undefined;
+
+    if (error instanceof QueryFailedError) {
+      const driverErr = error.driverError as any; // pg driver error
+      pgDetail = driverErr?.detail;
+      pgCode = driverErr?.code;
+    }
+
     return res.status(500).json({
       error: "Internal server error",
-      details: error instanceof Error ? error.message : String(error),
-      pg: (error as any)?.driverError?.detail,
+      message,
+      pgCode,
+      pgDetail,
     });
   } finally {
     await queryRunner.release();
