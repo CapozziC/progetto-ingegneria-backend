@@ -11,6 +11,7 @@ import {
   nextUsernameFromExisting,
 } from "../utils/username.utils.js";
 import { deleteUploadedFilesSafe } from "./upload.controller.js";
+import { Like } from "typeorm";
 
 /**
  * Convert a file extension to the corresponding Format enum value for the agency logo.
@@ -76,11 +77,9 @@ export const createNewAgencyWithFirstAgent = async (
   }
   if (!firstName || !lastName || !agentPhoneNumber) {
     console.log("❌ Dati mancanti per agente");
-    return res
-      .status(400)
-      .json({
-        error: "First name, last name and agent phone number are required",
-      });
+    return res.status(400).json({
+      error: "First name, last name and agent phone number are required",
+    });
   }
 
   const queryRunner = AppDataSource.createQueryRunner();
@@ -163,12 +162,13 @@ export const createNewAgencyWithFirstAgent = async (
 
     // Trova usernames esistenti nell'agenzia che iniziano con usernameBase
     // Esempio: "mario.rossi", "mario.rossi2", "mario.rossi3"
-    const existingAgents = await agentRepo
-      .createQueryBuilder("a")
-      .select(["a.username"])
-      .where(`"a"."agency_id" = :agencyId`, { agencyId: savedAgency.id })
-      .andWhere("a.username LIKE :prefix", { prefix: `${usernameBase}%` })
-      .getMany();
+    const existingAgents = await agentRepo.find({
+      where: {
+        agency: { id: savedAgency.id },
+        username: Like(`${usernameBase}%`),
+      },
+      select: { username: true },
+    });
 
     const existingUsernames = existingAgents.map((a) => a.username);
     console.log("👤 Usernames esistenti:", existingUsernames);
@@ -245,6 +245,7 @@ export const createNewAgencyWithFirstAgent = async (
 
     try {
       await queryRunner.rollbackTransaction();
+
       console.log("✅ Transazione rollbacked");
     } catch (rollbackError) {
       console.log("❌ Errore durante rollback:", rollbackError);
@@ -259,6 +260,8 @@ export const createNewAgencyWithFirstAgent = async (
 
     return res.status(500).json({
       error: "Internal server error",
+      details: error instanceof Error ? error.message : String(error),
+      pg: (error as any)?.driverError?.detail,
     });
   } finally {
     await queryRunner.release();

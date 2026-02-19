@@ -14,8 +14,8 @@ import {
   authenticationMiddlewareAgent,
   authAgentFirstLoginOnly,
 } from "../middleware/auth.agent.middleware.js";
-import express from "express";
 import { uploadLogo } from "../utils/multer.utils.js";
+import express from "express";
 
 // Create a router instance
 const router = express.Router();
