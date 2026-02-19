@@ -47,6 +47,7 @@ export const createNewAgencyWithFirstAgent = async (
   console.log("🏢 CREATE AGENCY + FIRST AGENT START");
   console.log("========================================");
 
+  
   const {
     // Agency
     name,
