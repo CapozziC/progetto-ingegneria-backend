@@ -70,11 +70,17 @@ export const createNewAgencyWithFirstAgent = async (
   // Validazioni
   if (!name || !email || !agencyPhoneNumber) {
     console.log("❌ Dati mancanti");
-    return res.status(400).json({ error: "Name, email and agency phone number are required" });
+    return res
+      .status(400)
+      .json({ error: "Name, email and agency phone number are required" });
   }
   if (!firstName || !lastName || !agentPhoneNumber) {
     console.log("❌ Dati mancanti per agente");
-    return res.status(400).json({ error: "First name, last name and agent phone number are required" });
+    return res
+      .status(400)
+      .json({
+        error: "First name, last name and agent phone number are required",
+      });
   }
 
   const queryRunner = AppDataSource.createQueryRunner();
@@ -87,9 +93,6 @@ export const createNewAgencyWithFirstAgent = async (
     const agencyRepo = queryRunner.manager.getRepository(Agency);
     const agentRepo = queryRunner.manager.getRepository(Agent);
     const logoRepo = queryRunner.manager.getRepository(Logo);
-
-    // Duplicati Agency (dentro transazione)
-    console.log("🔍 Verifico duplicati agency...");
 
     const existingAgencyByName = await agencyRepo.findOne({
       where: { name: String(name).trim() },
