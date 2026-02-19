@@ -47,20 +47,25 @@ export const createNewAgencyWithFirstAgent = async (
   console.log("🏢 CREATE AGENCY + FIRST AGENT START");
   console.log("========================================");
 
+  const body = (req.body ?? {}) as any;
+  console.log("content-type:", req.headers["content-type"]);
+  console.log("body keys:", req.body ? Object.keys(req.body) : null);
+  console.log("file:", req.file?.originalname);
+
   const {
-    // Agency
     name,
     email,
     agencyPhoneNumber,
-
-    // Agent
     firstName,
     lastName,
     agentPhoneNumber,
-  } = req.body || {};
+  } = body;
+
   if (!req.body) {
-    console.log("❌ Nessun dato ricevuto nel body");
-    return res.status(400).json({ error: "Request body is required" });
+    return res.status(400).json({
+      error:
+        "Request body is required. Use multipart/form-data (Body -> form-data in Postman).",
+    });
   }
 
   console.log("📋 Dati ricevuti:", {

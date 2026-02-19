@@ -15,14 +15,15 @@ const ensureDir = (dir: string) => {
 
 const photosDir = path.join(uploadDir, "photos");
 const logosDir = path.join(uploadDir, "logos");
+
+ensureDir(photosDir);
+ensureDir(logosDir);
+
 console.log("[multer] UPLOAD_DIR =", uploadDir);
 console.log("[multer] photosDir =", photosDir);
 console.log("[multer] logosDir  =", logosDir);
 console.log("[multer] photos exists?", fs.existsSync(photosDir));
 console.log("[multer] logos exists?", fs.existsSync(logosDir));
-
-ensureDir(photosDir);
-ensureDir(logosDir);
 
 const fileFilter: multer.Options["fileFilter"] = (_req, file, cb) => {
   const allowed = ["image/jpeg", "image/png", "image/heic"];
