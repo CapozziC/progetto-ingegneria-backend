@@ -47,7 +47,6 @@ export const createNewAgencyWithFirstAgent = async (
   console.log("🏢 CREATE AGENCY + FIRST AGENT START");
   console.log("========================================");
 
-
   const {
     // Agency
     name,
@@ -58,7 +57,7 @@ export const createNewAgencyWithFirstAgent = async (
     firstName,
     lastName,
     agentPhoneNumber,
-  } = req.body;
+  } = req.body || {};
   if (!req.body) {
     console.log("❌ Nessun dato ricevuto nel body");
     return res.status(400).json({ error: "Request body is required" });
