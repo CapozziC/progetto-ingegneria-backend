@@ -25,16 +25,6 @@ router.post("/user/login", loginAccount);
 router.post("/agent/login", loginAgent);
 router.post("/agent/logout", authenticationMiddlewareAgent, LogoutAgent);
 router.post("/user/logout", authenticationMiddlewareAccount, LogoutAccount);
-/*router.post(
-  "/agency/create",
-  uploadLogo,
-  (req, _res, next) => {
-    console.log("MULTER OK body:", req.body);
-    console.log("MULTER OK file:", req.file?.originalname);
-    next();
-  },
-  createNewAgencyWithFirstAgent,
-);*/
 router.post(
   "/agency/create",
   (req, res, next) => {
