@@ -32,6 +32,10 @@ import { Agent } from "../entities/agent.js";
 export const loginAgent = async (req: Request, res: Response) => {
   try {
     const { agencyId, username, password } = req.body;
+    console.log("\n========================================");
+    console.log("🔐 AGENT LOGIN ATTEMPT");
+    console.log("Received login data:", { agencyId, username });
+    console.log("========================================");
 
     if (!agencyId) {
       return res.status(400).json({ error: "Agency ID is required" });
