@@ -16,7 +16,10 @@ try {
   app.use(express.json());
   app.use(cookieParser());
 
-  const uploadDir = process.env.UPLOAD_DIR || "uploads";
+  const uploadDir = process.env.UPLOAD_DIR;
+  if (!uploadDir) {
+    throw new Error("UPLOAD_DIR environment variable is not defined");
+  }
   app.use("/uploads", express.static(uploadDir));
 
   // Use auth routes

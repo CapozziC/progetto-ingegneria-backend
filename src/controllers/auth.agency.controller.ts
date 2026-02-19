@@ -58,6 +58,10 @@ export const createNewAgencyWithFirstAgent = async (
     lastName,
     agentPhoneNumber,
   } = req.body;
+  if (!req.body) {
+    console.log("❌ Nessun dato ricevuto nel body");
+    return res.status(400).json({ error: "Request body is required" });
+  }
 
   console.log("📋 Dati ricevuti:", {
     name,
