@@ -25,23 +25,7 @@ router.post("/user/login", loginAccount);
 router.post("/agent/login", loginAgent);
 router.post("/agent/logout", authenticationMiddlewareAgent, LogoutAgent);
 router.post("/user/logout", authenticationMiddlewareAccount, LogoutAccount);
-router.post(
-  "/agency/create",
-  (req, res, next) => {
-    uploadLogo(req, res, (err: any) => {
-      if (err) {
-        console.error("🔥 MULTER ERROR:", err);
-        return res.status(400).json({
-          error: "Multer error",
-          message: err.message,
-          code: err.code,
-        });
-      }
-      next();
-    });
-  },
-  createNewAgencyWithFirstAgent,
-);
+router.post("/agency/create", uploadLogo, createNewAgencyWithFirstAgent);
 
 router.post(
   "/agent/login/change-password",
