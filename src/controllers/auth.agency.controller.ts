@@ -46,7 +46,7 @@ export const createNewAgencyWithFirstAgent = async (
   console.log("\n========================================");
   console.log("🏢 CREATE AGENCY + FIRST AGENT START");
   console.log("========================================");
-
+// Log dettagli body e file per debug
   const body = (req.body ?? {}) as any;
   console.log("content-type:", req.headers["content-type"]);
   console.log("body keys:", req.body ? Object.keys(req.body) : null);
