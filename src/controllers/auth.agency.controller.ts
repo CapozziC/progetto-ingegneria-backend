@@ -47,7 +47,7 @@ export const createNewAgencyWithFirstAgent = async (
   console.log("🏢 CREATE AGENCY + FIRST AGENT START");
   console.log("========================================");
 
-  
+
   const {
     // Agency
     name,
@@ -270,7 +270,7 @@ export const createNewAgencyWithFirstAgent = async (
     let pgCode: string | undefined;
 
     if (error instanceof QueryFailedError) {
-      const driverErr = error.driverError as any; // pg driver error
+      const driverErr = error.driverError as { detail?: string; code?: string };
       pgDetail = driverErr?.detail;
       pgCode = driverErr?.code;
     }
