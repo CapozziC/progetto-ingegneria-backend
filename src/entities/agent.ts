@@ -20,6 +20,7 @@ import type { Agency } from "./agency.js";
 @Check(`length(trim("first_name")) > 1`)
 @Check(`length(trim("last_name")) > 1`)
 @Check(`length(trim("password")) > 0`)
+@Unique("UQ_agent_phone_number", ["phoneNumber"])
 @Check(`"phone_number" ~ '^\\+[1-9][0-9]{7,14}$'`)
 @Unique("UQ_agent_username_agency", ["username", "agency"])
 export class Agent {
