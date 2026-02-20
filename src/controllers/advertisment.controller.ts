@@ -113,6 +113,7 @@ export const createAdvertisementWithRealEstateAndPhotosTx = async (
     const photoEntities = files.map((f, idx) =>
       Object.assign(new Photo(), {
         advertisementId: savedAdv.id,
+        // Assuming photos are served from /uploads/photos/ directory
         url: `${baseUrl}/uploads/photos/${f.filename}`,
         format: extToPhotoFormatEnum(path.extname(f.originalname)),
         position: idx,
