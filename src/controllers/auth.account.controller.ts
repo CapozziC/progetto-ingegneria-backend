@@ -183,7 +183,7 @@ export const loginAccount = async (req: RequestAccount, res: Response) => {
  * @param res   Response with success message or error message
  * @returns   JSON with success message or error message
  */
-export const LogoutAccount = async (req: RequestAccount, res: Response) => {
+export const logoutAccount = async (req: RequestAccount, res: Response) => {
   try {
     const account = req.account;
     if (!account) {

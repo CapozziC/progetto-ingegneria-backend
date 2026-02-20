@@ -132,7 +132,7 @@ export const loginAgent = async (req: Request, res: Response) => {
  * @param res Response with success message or error message
  * @returns JSON with success message or error message
  */
-export const LogoutAgent = async (req: RequestAgent, res: Response) => {
+export const logoutAgent = async (req: RequestAgent, res: Response) => {
   try {
     const agent = req.agent;
     if (!agent) {
