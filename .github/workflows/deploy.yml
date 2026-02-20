@@ -22,12 +22,6 @@ jobs:
           git reset --hard origin/main
           git clean -fd
 
-      - name: Setup Node from .nvmrc
-        uses: actions/setup-node@v4
-        with:
-          node-version-file: "/home/user/progetto-ingegneria-backend/.nvmrc"
-          cache: "npm"
-
       - name: Show Node and npm versions
         run: node -v && npm -v
 
