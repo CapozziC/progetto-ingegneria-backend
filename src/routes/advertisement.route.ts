@@ -12,7 +12,7 @@ import {
 import {
   getAvailableDays,
   getAvailableSlotsByDay,
-  createAppointment
+  createAppointment,
 } from "../controllers/appointment.controller.js";
 import { authenticationMiddlewareAccount } from "../middleware/auth.account.middleware.js";
 
@@ -32,17 +32,17 @@ router.delete(
 );
 
 router.get(
-  "/advertisements/:id/available-days",
+  "/available_days/:id",
   authenticationMiddlewareAccount,
   getAvailableDays,
 );
 router.get(
-  "/advertisements/:id/available-slots",
+  "/available_slots/:id",
   authenticationMiddlewareAccount,
   getAvailableSlotsByDay,
 );
 router.post(
-  "/advertisements/:id/appointments",
+  "/create_appointments/:id",
   authenticationMiddlewareAccount,
   createAppointment,
 );

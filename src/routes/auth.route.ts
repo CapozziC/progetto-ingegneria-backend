@@ -20,15 +20,15 @@ import express from "express";
 // Create a router instance
 const router = express.Router();
 
-router.post("/user/register", registerAccount);
-router.post("/user/login", loginAccount);
+router.post("/account/register", registerAccount);
+router.post("/account/login", loginAccount);
 router.post("/agent/login", loginAgent);
 router.post("/agent/logout", authenticationMiddlewareAgent, LogoutAgent);
-router.post("/user/logout", authenticationMiddlewareAccount, LogoutAccount);
+router.post("/account/logout", authenticationMiddlewareAccount, LogoutAccount);
 router.post("/agency/create", uploadLogo, createNewAgencyWithFirstAgent);
 
 router.post(
-  "/agent/login/change-password",
+  "/agent/login/change_password",
   authAgentFirstLoginOnly,
   changePasswordFirstLogin,
 );

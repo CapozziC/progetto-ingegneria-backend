@@ -31,7 +31,7 @@ export const uploadAdvertisementPhotos = (req: Request, res: Response) => {
   const baseUrl = `${req.protocol}://${req.get("host")}`;
 
   const payload = files.map((f, idx) => {
-    const url = `${baseUrl}/uploads/${f.filename}`;
+    const url = `${baseUrl}/uploads/photos/${f.filename}`;
     const format = extToFormat(path.extname(f.originalname));
     return { url, format, position: idx };
   });

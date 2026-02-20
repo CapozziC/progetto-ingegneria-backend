@@ -22,7 +22,7 @@ try {
     throw new Error("UPLOAD_DIR environment variable is not defined");
   }
   app.use("/uploads", express.static(uploadDir));
-
+ 
   // Use auth routes
   app.use("/auth", authRoutes);
   app.use("/agent", agentRoutes);

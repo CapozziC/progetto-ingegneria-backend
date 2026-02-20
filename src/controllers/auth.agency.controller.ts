@@ -43,9 +43,7 @@ export const createNewAgencyWithFirstAgent = async (
   req: Request,
   res: Response,
 ) => {
-  console.log("\n========================================");
-  console.log("🏢 CREATE AGENCY + FIRST AGENT START");
-  console.log("========================================");
+  
 // Log dettagli body e file per debug
   const body = (req.body ?? {}) as any;
   console.log("content-type:", req.headers["content-type"]);
@@ -67,16 +65,6 @@ export const createNewAgencyWithFirstAgent = async (
         "Request body is required. Use multipart/form-data (Body -> form-data in Postman).",
     });
   }
-
-  console.log("📋 Dati ricevuti:", {
-    name,
-    email,
-    agencyPhoneNumber,
-    firstName,
-    lastName,
-    agentPhoneNumber,
-    hasFile: !!req.file,
-  });
 
   // Validazioni
   if (!name || !email || !agencyPhoneNumber) {
@@ -189,8 +177,7 @@ export const createNewAgencyWithFirstAgent = async (
     );
     console.log("✅ Username finale:", usernameFinal);
 
-    // 4) Temporary password
-    console.log("🔐 Step 4: Genero password temporanea...");
+    // 4) Temporary password generation
 
     const temporaryPassword = generateTemporaryPassword();
     console.log(

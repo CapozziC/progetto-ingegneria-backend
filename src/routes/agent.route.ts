@@ -20,7 +20,7 @@ import {
 import { getAppointmentsForAgent } from "../controllers/appointment.controller.js";
 
 router.post(
-  "/createAgent",
+  "/create_agent",
   authenticationMiddlewareAgent,
   validateBody(createAgentSchema),
   createNewAgent,
@@ -39,7 +39,7 @@ router.patch(
   updatePhoneNumberAgent,
 );
 router.get(
-  "/myAppointments",
+  "/my_appointments",
   authenticationMiddlewareAgent,
   getAppointmentsForAgent,
 );
