@@ -14,6 +14,7 @@ import type { Agent } from "./agent.js";
 @Check(`length(trim("phone_number")) > 0`)
 @Check(`"phone_number" ~ '^\\+[1-9][0-9]{7,14}$'`)
 @Check(`"email" ~ '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$'`)
+@Unique("UQ_agency_phone_number", ["phoneNumber"])
 @Unique("UQ_agency_name", ["name"])
 @Unique("UQ_agency_email", ["email"])
 export class Agency {
