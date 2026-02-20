@@ -43,13 +43,7 @@ export const createNewAgencyWithFirstAgent = async (
   req: Request,
   res: Response,
 ) => {
-  
-// Log dettagli body e file per debug
-  const body = (req.body ?? {}) as any;
-  console.log("content-type:", req.headers["content-type"]);
-  console.log("body keys:", req.body ? Object.keys(req.body) : null);
-  console.log("file:", req.file?.originalname);
-
+  // Log dettagli body e file per debu
   const {
     name,
     email,
@@ -57,7 +51,7 @@ export const createNewAgencyWithFirstAgent = async (
     firstName,
     lastName,
     agentPhoneNumber,
-  } = body;
+  } = req.body;
 
   if (!req.body) {
     return res.status(400).json({

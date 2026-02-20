@@ -11,3 +11,8 @@ export const changePasswordAgentSchema = joi.object({
   newPassword: joi.string().trim().min(8).max(255).required(),
   confirmPassword: joi.string().trim().min(8).max(255).required(),
 });
+
+export const loginAccountSchema = joi.object({
+  email: joi.string().email().trim().required(),
+  password: joi.string().trim().min(8).max(255).required(),
+});
