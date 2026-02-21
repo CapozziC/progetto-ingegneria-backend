@@ -4,7 +4,7 @@ import tseslint from "typescript-eslint";
 
 export default defineConfig([
   {
-    ignores: ["migration/**"],
+    ignores: ["src/migrations/**"],
   },
   eslint.configs.recommended,
   tseslint.configs.recommended,
