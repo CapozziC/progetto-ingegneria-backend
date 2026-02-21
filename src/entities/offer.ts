@@ -62,15 +62,23 @@ export class Offer {
   @ManyToOne(() => Advertisement, (advertisement) => advertisement.offers, {
     onDelete: "CASCADE",
   })
-  @JoinColumn({ name: "advertisement_id", foreignKeyConstraintName: "FK_offer_advertisement" })
+  @JoinColumn({
+    name: "advertisement_id",
+    foreignKeyConstraintName: "FK_offer_advertisement",
+  })
   advertisement!: Advertisement;
 
   /**
    * User who made this offer
    * If the account is deleted, the offer is deleted as well.
    */
-  @ManyToOne(() => Account, (account) => account.offers, { onDelete: "CASCADE" })
-  @JoinColumn({ name: "user_id", foreignKeyConstraintName: "FK_offer_account" })
+  @ManyToOne(() => Account, (account) => account.offers, {
+    onDelete: "CASCADE",
+  })
+  @JoinColumn({
+    name: "account_id",
+    foreignKeyConstraintName: "FK_offer_account",
+  })
   account!: Account;
 
   /**
