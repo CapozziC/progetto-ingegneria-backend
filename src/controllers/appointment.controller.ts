@@ -1,10 +1,10 @@
 import { Response } from "express";
+import { DateTime } from "luxon";
 import {
   parseISODate,
-  startOfDay,
-  endOfDay,
-  dayKey,
-  toHoursByDay,
+  todayRome,
+  toHoursByDayRome,
+  dayKeyRome,
 } from "../utils/date.utils.js";
 import { getAvailableSlotsForAdvertisement } from "../utils/slots.utils.js";
 import { RequestAccount, RequestAgent } from "../types/express.js";
@@ -17,10 +17,75 @@ import {
 } from "../repositories/appointment.repository.js";
 import { Appointment, Status } from "../entities/appointment.js";
 import { findAdvertisementOwnerId } from "../repositories/advertisement.repository.js";
-import { isValidHourlySlot } from "../utils/slots.utils.js";
+import { isValidHourlySlotRome } from "../utils/slots.utils.js";
 import { QueryFailedError } from "typeorm";
 import { requireAccount, requireAgent } from "../utils/require.utils.js";
 import { parsePositiveInt, parseStatus } from "../utils/objectParse.utils.js";
+
+export const getAvailableDays = async (req: RequestAccount, res: Response) => {
+  try {
+    const account = requireAccount(req, res);
+    if (!account) return;
+
+    const advertisementId = parsePositiveInt(req.params.id);
+    if (!advertisementId) {
+      return res.status(400).json({ error: "Invalid advertisement id" });
+    }
+
+    // OGGI Europe/Rome
+    const startRome = todayRome();
+    const endRome = startRome.plus({ days: 14 });
+
+    // Convertiamo in UTC per la query DB
+    const fromUTC = startRome.toUTC().toJSDate();
+    const toUTC = endRome.toUTC().toJSDate();
+
+    const allSlots = await getAvailableSlotsForAdvertisement(
+      advertisementId,
+      fromUTC,
+      toUTC,
+    );
+
+    const days = toHoursByDayRome(allSlots);
+
+    // Se l'utente ha cliccato un giorno
+    const dayParam = typeof req.query.day === "string" ? req.query.day : null;
+
+    if (!dayParam) {
+      return res.json({
+        advertisementId,
+        from: startRome.toFormat("yyyy-LL-dd"),
+        to: endRome.toFormat("yyyy-LL-dd"),
+        days,
+      });
+    }
+
+    const selected = DateTime.fromISO(dayParam, { zone: "Europe/Rome" });
+    if (!selected.isValid) {
+      return res.status(400).json({ error: "Invalid day format (YYYY-MM-DD)" });
+    }
+
+    const selectedKey = selected.toFormat("yyyy-LL-dd");
+
+    const slotsForDay = allSlots
+      .filter((s) => dayKeyRome(s) === selectedKey)
+      .map((s) =>
+        DateTime.fromJSDate(s, { zone: "utc" }).setZone("Europe/Rome").toISO(),
+      );
+
+    return res.json({
+      advertisementId,
+      from: startRome.toFormat("yyyy-LL-dd"),
+      to: endRome.toFormat("yyyy-LL-dd"),
+      days,
+      day: selectedKey,
+      slots: slotsForDay,
+    });
+  } catch (e) {
+    console.error("getAvailability error:", e);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+};
 
 /**
  * Control if the error is a Postgres unique violation error (code 23505), which indicates that the appointment slot is already taken
@@ -37,98 +102,6 @@ function isPgUniqueViolation(err: unknown): boolean {
 }
 
 /**
- * Get the available days for appointments for a given advertisement and date range
- * The query parameters 'from' and 'to' must be ISO strings (e.g. 2024-07-01T00:00:00.000Z)
- * Returns a list of days with their available hours
- * @param req  RequestAccount with authenticated account in req.account and advertisement id in req.params.id
- * @param res Response with list of available days and hours for the specified advertisement and date range or error message
- * @returns  JSON with list of available days and hours for the specified advertisement and date range or error message
- */
-export const getAvailableDays = async (req: RequestAccount, res: Response) => {
-  try {
-    const account = requireAccount(req, res);
-    if (!account) return;
-    const advertisementId = parsePositiveInt(req.params.id);
-    if (!advertisementId) {
-      return res.status(400).json({ error: "Invalid advertisement id" });
-    }
-
-    const from = parseISODate(req.query.from) ?? new Date();
-    const to =
-      parseISODate(req.query.to) ??
-      new Date(Date.now() + 14 * 24 * 60 * 60 * 1000);
-
-    if (from >= to) {
-      return res.status(400).json({ error: "Invalid date range" });
-    }
-
-    const slots = await getAvailableSlotsForAdvertisement(
-      advertisementId,
-      from,
-      to,
-    );
-
-    return res.json({
-      advertisementId,
-      from: from.toISOString(),
-      to: to.toISOString(),
-      days: toHoursByDay(slots),
-    });
-  } catch (e) {
-    console.error("getAvailableDays error:", e);
-    return res.status(500).json({ error: "Internal server error" });
-  }
-};
-
-/**
- * Get the available slots for the specified advertisement and day
- * The query parameter 'day' must be an ISO string (e.g. 2024-07-01)
- * Returns a list of available slots in ISO format (e.g. 2024-07-01T14:00:00.000Z)
- * @param req RequestAccount with authenticated account in req.account, advertisement id in req.params.id and day in req.query.day
- * @param res Response with list of available slots for the specified advertisement and day or error message
- * @returns JSON with list of available slots for the specified advertisement and day or error message
- */
-
-export const getAvailableSlotsByDay = async (
-  req: RequestAccount,
-  res: Response,
-) => {
-  try {
-    const account = requireAccount(req, res);
-    if (!account) return;
-
-    const advertisementId = parsePositiveInt(req.params.id);
-    if (!advertisementId) {
-      return res.status(400).json({ error: "Invalid advertisement id" });
-    }
-
-    const day = typeof req.query.day === "string" ? req.query.day : null;
-
-    const d = parseISODate(day);
-    if (!d)
-      return res.status(400).json({ error: "Invalid day format (use ISO)" });
-
-    const from = startOfDay(d);
-    const to = endOfDay(d);
-
-    const slots = await getAvailableSlotsForAdvertisement(
-      advertisementId,
-      from,
-      to,
-    );
-
-    return res.json({
-      advertisementId,
-      day: dayKey(d),
-      slots: slots.map((x) => x.toISOString()),
-    });
-  } catch (e) {
-    console.error("getAvailableSlotsByDay error:", e);
-    return res.status(500).json({ error: "Internal server error" });
-  }
-};
-
-/**
  * The account creates an appointment for the specified advertisement and slot
  * The slot must be a whole hour (e.g. 14:00) and must be available (not already booked by others)
  * If the slot is already booked, returns a 409 (Conflict) error
@@ -138,7 +111,6 @@ export const getAvailableSlotsByDay = async (
  * @param res Response with success message and appointment details or error message
  * @returns JSON with success message and appointment details or error message
  */
-
 export const createAppointment = async (req: RequestAccount, res: Response) => {
   try {
     const account = requireAccount(req, res);
@@ -155,14 +127,17 @@ export const createAppointment = async (req: RequestAccount, res: Response) => {
         error: "appointmentAt must be a valid ISO date string",
       });
     }
-
-    if (!isValidHourlySlot(appointmentAt)) {
+    if (!isValidHourlySlotRome(appointmentAt)) {
       return res.status(400).json({
-        error: "Invalid slot (must be a valid working-hour hourly slot)",
+        error:
+          "Invalid slot (must be a valid working-hour hourly slot in Europe/Rome)",
       });
     }
 
-    if (appointmentAt.getTime() <= Date.now()) {
+
+    const nowUtc = DateTime.utc();
+    const apptUtc = DateTime.fromJSDate(appointmentAt, { zone: "utc" });
+    if (apptUtc <= nowUtc) {
       return res.status(400).json({
         error: "appointmentAt must be in the future",
       });
@@ -175,19 +150,18 @@ export const createAppointment = async (req: RequestAccount, res: Response) => {
 
     const appointment = new Appointment();
     appointment.status = Status.REQUESTED;
-    appointment.appointmentAt = appointmentAt;
+    appointment.appointmentAt = appointmentAt; 
     appointment.agentId = agentId;
     appointment.accountId = account.id;
     appointment.advertisementId = advertisementId;
 
-    // Salvataggio: se lo slot è già preso scatta il vincolo
     const saved = await saveAppointment(appointment);
 
     return res.status(201).json({
       message: "Appointment requested successfully",
       appointmentId: saved.id,
       status: saved.status,
-      appointmentAt: saved.appointmentAt.toISOString(),
+      appointmentAt: saved.appointmentAt.toISOString(), // UTC in risposta (ok)
       advertisementId,
       agentId,
       accountId: account.id,

@@ -1,3 +1,5 @@
+import { DateTime } from "luxon";
+const TZ = "Europe/Rome";
 /**
  * Parses a string into a Date object if it's a valid ISO date string, otherwise returns null.
  * @param value The value to parse as a date, expected to be an ISO date string
@@ -29,43 +31,43 @@ export function isValidISODateString(value: unknown): boolean {
 }
 
 /**
- *  Returns a new Date object representing the start of the day (00:00:00) for the given date.
- * @param d The date for which to calculate the start of the day
- * @returns A new Date object representing the start of the day for the given date
+ * Ritorna oggi in Europe/Rome alle 00:00
  */
-export function startOfDay(d: Date): Date {
-  const x = new Date(d);
-  x.setHours(0, 0, 0, 0);
-  return x;
+export function todayRome(): DateTime {
+  return DateTime.now().setZone(TZ).startOf("day");
 }
 
-/** Returns a new Date object representing the end of the day (23:59:59.999) for the given date.
- * @param d The date for which to calculate the end of the day
- * @returns A new Date object representing the end of the day for the given date
+/**
+ * Converte Date (UTC dal DB) in chiave YYYY-MM-DD Europe/Rome
  */
-export function endOfDay(d: Date): Date {
-  const x = new Date(d);
-  x.setHours(23, 59, 59, 999);
-  return x;
-}
-/**  Returns a string in the format YYYY-MM-DD representing the day of the given date
- * @param d The date for which to calculate the day key
- * @returns A string in the format YYYY-MM-DD representing the day of the given date
- */
-
-export function dayKey(d: Date): string {
-  return d.toISOString().slice(0, 10); // YYYY-MM-DD
+export function dayKeyRome(d: Date): string {
+  return DateTime.fromJSDate(d, { zone: "utc" })
+    .setZone(TZ)
+    .toFormat("yyyy-LL-dd");
 }
 
-export function toHoursByDay(
+/**
+ * Converte Date in HH:mm Europe/Rome
+ */
+export function hhmmRome(d: Date): string {
+  return DateTime.fromJSDate(d, { zone: "utc" }).setZone(TZ).toFormat("HH:mm");
+}
+
+export function toHoursByDayRome(
   slots: Date[],
 ): Array<{ day: string; hours: string[] }> {
   const map = new Map<string, string[]>();
+
   for (const s of slots) {
-    const key = dayKey(s);
-    const hhmm = s.toISOString().slice(11, 16); // UTC
-    const prev = map.get(key) ?? [];
-    map.set(key, [...prev, hhmm]);
+    const day = dayKeyRome(s);
+    const hour = hhmmRome(s);
+
+    const prev = map.get(day) ?? [];
+    map.set(day, [...prev, hour]);
   }
-  return Array.from(map.entries()).map(([day, hours]) => ({ day, hours }));
+
+  return Array.from(map.entries()).map(([day, hours]) => ({
+    day,
+    hours,
+  }));
 }

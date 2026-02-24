@@ -11,7 +11,6 @@ import {
 } from "../controllers/advertisment.controller.js";
 import {
   getAvailableDays,
-  getAvailableSlotsByDay,
   createAppointment,
 } from "../controllers/appointment.controller.js";
 import { authenticationMiddlewareAccount } from "../middleware/auth.account.middleware.js";
@@ -33,13 +32,8 @@ router.delete(
 
 router.get(
   "/available_days/:id",
-  authenticationMiddlewareAccount,
+  authenticationMiddlewareAgent,
   getAvailableDays,
-);
-router.get(
-  "/available_slots/:id",
-  authenticationMiddlewareAccount,
-  getAvailableSlotsByDay,
 );
 router.post(
   "/create_appointments/:id",
