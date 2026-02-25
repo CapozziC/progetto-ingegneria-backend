@@ -7,6 +7,8 @@ import agentRoutes from "./routes/agent.route.js";
 import advertisementRoutes from "./routes/advertisement.route.js";
 import appointmentRoutes from "./routes/appointment.route.js";
 import accountRoutes from "./routes/account.route.js";
+import uploadRoutes from "./routes/upload.route.js";
+import  offerRoutes  from "./routes/offer.route.js";
 
 try {
   // Initialize database connection
@@ -29,6 +31,9 @@ try {
   app.use("/advertisement", advertisementRoutes);
   app.use("/appointment", appointmentRoutes);
   app.use("/account", accountRoutes);
+  app.use("/upload", uploadRoutes);
+  app.use("/offer", offerRoutes);
+  
 
   // Define a route handler for the default home page
   app.get("/", (req, res) => {

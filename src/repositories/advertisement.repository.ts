@@ -1,3 +1,4 @@
+import { EntityManager } from "typeorm";
 import { AppDataSource } from "../data-source.js";
 import { Advertisement } from "../entities/advertisement.js";
 import { RealEstate } from "../entities/realEstate.js";
@@ -82,4 +83,21 @@ export const deleteAdvertisementById = async (advertisementId: number) => {
   });
 };
 
+//Query for transaction to advertisement
+export function advRepo(manager?: EntityManager) {
+  return manager ? manager.getRepository(Advertisement) : AdvertisementRepository;
+}
+
+
+export const findAdvertisementStatusById = async (
+  advertisementId: number,
+  manager?: EntityManager,
+): Promise<string | null> => {
+  const adv = await advRepo(manager).findOne({
+    where: { id: advertisementId },
+    select: { id: true, status: true } , 
+  });
+
+  return adv?.status ?? null;
+};
 

@@ -4,7 +4,7 @@ import { authenticationMiddlewareAccount } from "../middleware/auth.account.midd
 import { getAppointmentsForAccount } from "../controllers/appointment.controller.js";
 
 router.get(
-  "/my_appointments",
+  "/me/appointments",
   authenticationMiddlewareAccount,
   getAppointmentsForAccount,
 );

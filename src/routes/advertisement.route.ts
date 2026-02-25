@@ -14,6 +14,7 @@ import {
   createAppointment,
 } from "../controllers/appointment.controller.js";
 import { authenticationMiddlewareAccount } from "../middleware/auth.account.middleware.js";
+import { createOfferByAccount } from "../controllers/offer.controller.js";
 
 router.post(
   "/create",
@@ -30,6 +31,7 @@ router.delete(
   deleteAgentAdvertisement,
 );
 
+// Routes for appointments
 router.get(
   "/available_days/:id",
   authenticationMiddlewareAccount,
@@ -40,4 +42,11 @@ router.post(
   authenticationMiddlewareAccount,
   createAppointment,
 );
+//Routes for offers
+router .post(
+  "/create_offer/:id",
+  authenticationMiddlewareAccount,
+  createOfferByAccount,
+);
+
 export default router;

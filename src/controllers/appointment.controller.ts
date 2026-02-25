@@ -145,7 +145,7 @@ export const createAppointment = async (req: RequestAccount, res: Response) => {
 
     const agentId = await findAdvertisementOwnerId(advertisementId);
     if (!agentId) {
-      return res.status(404).json({ error: "Advertisement not found" });
+      return res.status(404).json({ error: "Advertisement owner  not found" });
     }
     const existingAppointment = await existingRequestedAppointment(
       advertisementId,

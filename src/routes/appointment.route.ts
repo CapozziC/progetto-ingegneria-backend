@@ -10,19 +10,19 @@ import {
 import { authenticationMiddlewareAccount } from "../middleware/auth.account.middleware.js";
 
 router.patch(
-  "/:id/confirm",
+  "/agents/:id/confirm",
   authenticationMiddlewareAgent,
   agentConfirmAppointment,
 );
 
 router.patch(
-  "/:id/reject",
+  "/agents/:id/reject",
   authenticationMiddlewareAgent,
   agentRejectAppointment,
 );
 
 router.patch(
-  "/:id/cancel",
+  "/agents/:id/cancel",
   authenticationMiddlewareAccount,
   accountCancelAppointment,
 );

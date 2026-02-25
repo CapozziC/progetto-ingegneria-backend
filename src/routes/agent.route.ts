@@ -18,6 +18,10 @@ import {
 } from "../controllers/agent.controller.js";
 
 import { getAppointmentsForAgent } from "../controllers/appointment.controller.js";
+import {
+  getOffersForAccountAsAgent,
+  getOffersForAdvertisementAsAgent,
+} from "../controllers/offer.controller.js";
 
 router.post(
   "/create_agent",
@@ -31,17 +35,31 @@ router.delete(
   validateParams(deleteAgentParamsSchema),
   deleteAgent,
 );
-router.get("/myAdv", authenticationMiddlewareAgent, getAgentAdvByAgentId);
+router.get("/me/advertisement", authenticationMiddlewareAgent, getAgentAdvByAgentId);
 router.patch(
-  "/update/phoneNumber",
+  "/me/phoneNumber",
   authenticationMiddlewareAgent,
   validateBody(updatePhoneNumberSchema),
   updatePhoneNumberAgent,
 );
+// Route to get appointments for the authenticated agent
 router.get(
-  "/my_appointments",
+  "/me/appointments",
   authenticationMiddlewareAgent,
   getAppointmentsForAgent,
 );
+// Route to get offers for the authenticated agent
+router.get(
+  "/offers/advertisement/:id",
+  authenticationMiddlewareAgent,
+  getOffersForAdvertisementAsAgent,
+);
+router.get(
+  "/offers/account/:id",
+  authenticationMiddlewareAgent,
+  getOffersForAccountAsAgent,
+);
+
+
 
 export default router;
