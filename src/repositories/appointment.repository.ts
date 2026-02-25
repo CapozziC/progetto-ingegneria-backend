@@ -140,3 +140,16 @@ export const findAppointmentByIdForAccount = async (
     },
   });
 };
+
+export const existingRequestedAppointment = async (
+  advertisementId: number,
+  accountId: number,
+): Promise<Appointment | null> => {
+  return AppointmentRepository.findOne({
+    where: {
+      advertisementId,
+      accountId,
+      status: Status.REQUESTED,
+    },
+  });
+};

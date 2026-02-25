@@ -14,6 +14,7 @@ import {
   saveAppointment,
   findAppointmentsByAccount,
   findAppointmentByIdForAccount,
+  existingRequestedAppointment,
 } from "../repositories/appointment.repository.js";
 import { Appointment, Status } from "../entities/appointment.js";
 import { findAdvertisementOwnerId } from "../repositories/advertisement.repository.js";
@@ -134,7 +135,6 @@ export const createAppointment = async (req: RequestAccount, res: Response) => {
       });
     }
 
-
     const nowUtc = DateTime.utc();
     const apptUtc = DateTime.fromJSDate(appointmentAt, { zone: "utc" });
     if (apptUtc <= nowUtc) {
@@ -147,10 +147,22 @@ export const createAppointment = async (req: RequestAccount, res: Response) => {
     if (!agentId) {
       return res.status(404).json({ error: "Advertisement not found" });
     }
+    const existingAppointment = await existingRequestedAppointment(
+      advertisementId,
+      account.id,
+    );
+    if (existingAppointment) {
+      return res
+        .status(409)
+        .json({
+          error:
+            "You already have a pending appointment request for this advertisement",
+        });
+    }
 
     const appointment = new Appointment();
     appointment.status = Status.REQUESTED;
-    appointment.appointmentAt = appointmentAt; 
+    appointment.appointmentAt = appointmentAt;
     appointment.agentId = agentId;
     appointment.accountId = account.id;
     appointment.advertisementId = advertisementId;
