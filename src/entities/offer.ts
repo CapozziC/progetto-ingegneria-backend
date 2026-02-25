@@ -18,6 +18,10 @@ export enum Status {
   ACCEPTED = "accepted",
   REJECTED = "rejected",
 }
+export enum OfferMadeBy {
+  ACCOUNT = "account",
+  AGENT = "agent",
+}
 
 @Entity("offer")
 @Check(`"price" > 0`)
@@ -45,6 +49,14 @@ export class Offer {
     default: Status.PENDING,
   })
   status!: Status;
+
+  @Column({
+    type: "enum",
+    enum: OfferMadeBy,
+    name: "made_by",
+    default: OfferMadeBy.ACCOUNT,
+  })
+  madeBy!: OfferMadeBy;
 
   @Column({ type: "int", name: "advertisement_id" })
   advertisementId!: number;
