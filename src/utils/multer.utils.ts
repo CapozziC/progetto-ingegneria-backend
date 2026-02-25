@@ -13,17 +13,11 @@ const ensureDir = (dir: string) => {
   if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
 };
 
-const photosDir = path.join(uploadDir, "photos");
+const tmpPhotosDir = path.join(uploadDir, "tmp", "photos");
 const logosDir = path.join(uploadDir, "logos");
 
-ensureDir(photosDir);
+ensureDir(tmpPhotosDir);
 ensureDir(logosDir);
-
-console.log("[multer] UPLOAD_DIR =", uploadDir);
-console.log("[multer] photosDir =", photosDir);
-console.log("[multer] logosDir  =", logosDir);
-console.log("[multer] photos exists?", fs.existsSync(photosDir));
-console.log("[multer] logos exists?", fs.existsSync(logosDir));
 
 const fileFilter: multer.Options["fileFilter"] = (_req, file, cb) => {
   const allowed = ["image/jpeg", "image/png", "image/heic"];
@@ -33,7 +27,7 @@ const fileFilter: multer.Options["fileFilter"] = (_req, file, cb) => {
 };
 
 const photosStorage = multer.diskStorage({
-  destination: (_req, _file, cb) => cb(null, photosDir),
+  destination: (_req, _file, cb) => cb(null, tmpPhotosDir),
   filename: (_req, file, cb) => {
     const ext = path.extname(file.originalname).toLowerCase();
     const name = crypto.randomBytes(16).toString("hex");

@@ -1,6 +1,7 @@
 import type { Response } from "express";
 import path from "path";
 import type { Point } from "geojson";
+import fs from "fs/promises";
 import { deleteUploadedFilesSafe } from "../controllers/upload.controller.js";
 import {
   findAdvertisementOwnerId,
@@ -110,15 +111,44 @@ export const createAdvertisementWithRealEstateAndPhotosTx = async (
     /**
      * PHOTOS
      */
-    const photoEntities = files.map((f, idx) =>
-      Object.assign(new Photo(), {
-        advertisementId: savedAdv.id,
-        // Assuming photos are served from /uploads/photos/ directory
-        url: `${baseUrl}/uploads/photos/${f.filename}`,
-        format: extToPhotoFormatEnum(path.extname(f.originalname)),
-        position: idx,
-      }),
-    );
+    const uploadDir = process.env.UPLOAD_DIR;
+    if (!uploadDir)
+      throw new Error("UPLOAD_DIR environment variable is not defined");
+
+    const advPhotosDir = path.join(uploadDir, "photos", String(savedAdv.id));
+    await fs.mkdir(advPhotosDir, { recursive: true });
+
+    const photoEntities: Photo[] = [];
+
+    for (let idx = 0; idx < files.length; idx++) {
+      const f = files[idx];
+
+      if (!f) continue;
+
+      const ext =
+        path.extname(f.originalname).toLowerCase() ||
+        path.extname(f.filename).toLowerCase() ||
+        ".jpg";
+
+      const newFilename = `${idx}${ext}`;
+      const targetPath = path.join(advPhotosDir, newFilename);
+
+      // sposta file da tmp alla cartella dell'adv
+      await fs.rename(f.path, targetPath);
+
+      // IMPORTANTISSIMO: aggiorna il path sul file in memoria
+      // così deleteUploadedFilesSafe(files) funziona anche dopo lo spostamento
+      f.path = targetPath;
+
+      photoEntities.push(
+        Object.assign(new Photo(), {
+          advertisementId: savedAdv.id,
+          url: `${baseUrl}/uploads/photos/${savedAdv.id}/${newFilename}`,
+          format: extToPhotoFormatEnum(ext),
+          position: idx,
+        }),
+      );
+    }
 
     const savedPhotos =
       photoEntities.length > 0

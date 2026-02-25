@@ -17,7 +17,13 @@ import {
   saveOffer,
 } from "../repositories/offer.repository.js";
 import { OfferMadeBy, Status } from "../entities/offer.js";
+import { Status as AdvStatus } from "../entities/advertisement.js";
+import { Status as AppStatus } from "../entities/appointment.js";
+import { Advertisement } from "../entities/advertisement.js";
+import { Appointment } from "../entities/appointment.js";
+import { Offer } from "../entities/offer.js";
 import { AppDataSource } from "../data-source.js";
+import { In, Not } from "typeorm";
 
 export const createOfferByAccount = async (
   req: RequestAccount,
@@ -137,29 +143,101 @@ export const getOffersForAccountAsAgent = async (
 };
 //completare
 export const agentAcceptOffer = async (req: RequestAgent, res: Response) => {
+  const agent = requireAgent(req, res);
+  if (!agent) return;
+  const offerId = parsePositiveInt(req.params.id);
+  if (!offerId) {
+    return res.status(400).json({ error: "Invalid offer id" });
+  }
+  const queryRunner = AppDataSource.createQueryRunner();
+  await queryRunner.connect();
   try {
-    const agent = requireAgent(req, res);
-    if (!agent) return;
-    const offerId = parsePositiveInt(req.params.id);
-    if (!offerId) {
-      return res.status(400).json({ error: "Invalid offer id" });
-    }
-    const offer = await findOfferByIdForAgent(offerId, agent.id);
+    await queryRunner.startTransaction();
+    const offerRepo = queryRunner.manager.getRepository(Offer);
+    const advRepo = queryRunner.manager.getRepository(Advertisement);
+    const appointmentRepo = queryRunner.manager.getRepository(Appointment);
+
+    // Lock the offer row for update to prevent concurrent modifications
+    const offer = await offerRepo.findOne({
+      where: { id: offerId, agentId: agent.id },
+      relations: ["advertisement"],
+      lock: { mode: "pessimistic_write" },
+    });
+
     if (!offer) {
+      await queryRunner.rollbackTransaction();
       return res.status(404).json({ error: "Offer not found" });
     }
+    //Verify owner of the offer
     if (offer.agentId !== agent.id) {
+      await queryRunner.rollbackTransaction();
       return res
         .status(403)
         .json({ error: "You are not the owner of this offer" });
     }
+    //Verify offer is pending
+    if (offer.status !== Status.PENDING) {
+      await queryRunner.rollbackTransaction();
+      return res
+        .status(400)
+        .json({ error: "Only pending offers can be accepted" });
+    }
+    //lock the advertisement row for update to prevent concurrent modifications
+    const advertisement = await advRepo.findOne({
+      where: { id: offer.advertisementId },
+      lock: { mode: "pessimistic_write" },
+    });
+    if (!advertisement) {
+      await queryRunner.rollbackTransaction();
+      return res
+        .status(404)
+        .json({ error: "Associated advertisement not found" });
+    }
+    //Verify advertisement is active
+    if (advertisement.status !== "active") {
+      await queryRunner.rollbackTransaction();
+      return res.status(409).json({
+        error: "Only offers for active advertisements can be accepted",
+      });
+    }
+    advertisement.status = AdvStatus.SOLD;
+    await advRepo.save(advertisement);
+
     offer.status = Status.ACCEPTED;
-    await saveOffer(offer);
-    return res.status(200).json({ message: "Offer accepted successfully" });
+    await offerRepo.save(offer);
+
+    await offerRepo.update(
+      {
+        advertisementId: offer.advertisementId,
+        id: Not(offer.id),
+        status: Status.PENDING,
+      },
+      { status: Status.REJECTED },
+    );
+    await appointmentRepo.update(
+      {
+        advertisementId: offer.advertisementId,
+        status: In([AppStatus.REQUESTED, AppStatus.CONFIRMED]),
+      },
+      { status: AppStatus.REJECTED },
+    );
+    return res.status(200).json({
+      ok: true,
+      acceptedOfferId: offer.id,
+      advertisementId: offer.advertisementId,
+      advertisementStatus: AdvStatus.SOLD,
+    });
+
+    await queryRunner.commitTransaction();
   } catch (error) {
+    await queryRunner.rollbackTransaction();
     console.error("Error accepting offer:", error);
     return res.status(500).json({ error: "Failed to accept offer" });
+  } finally {
+    await queryRunner.release();
   }
+
+  return res.status(200).json({ message: "Offer accepted successfully" });
 };
 
 export const agentRejectOffer = async (req: RequestAgent, res: Response) => {
