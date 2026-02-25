@@ -32,7 +32,7 @@ router.delete(
 
 router.get(
   "/available_days/:id",
-  authenticationMiddlewareAgent,
+  authenticationMiddlewareAccount,
   getAvailableDays,
 );
 router.post(
