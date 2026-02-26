@@ -221,14 +221,14 @@ export const agentAcceptOffer = async (req: RequestAgent, res: Response) => {
       },
       { status: AppStatus.REJECTED },
     );
+
+    await queryRunner.commitTransaction();
     return res.status(200).json({
       ok: true,
       acceptedOfferId: offer.id,
       advertisementId: offer.advertisementId,
       advertisementStatus: AdvStatus.SOLD,
     });
-
-    await queryRunner.commitTransaction();
   } catch (error) {
     await queryRunner.rollbackTransaction();
     console.error("Error accepting offer:", error);
@@ -236,8 +236,6 @@ export const agentAcceptOffer = async (req: RequestAgent, res: Response) => {
   } finally {
     await queryRunner.release();
   }
-
-  return res.status(200).json({ message: "Offer accepted successfully" });
 };
 
 export const agentRejectOffer = async (req: RequestAgent, res: Response) => {
