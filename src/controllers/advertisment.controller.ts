@@ -104,8 +104,8 @@ export const createAdvertisementWithRealEstateAndPhotosTx = async (
         await deleteUploadedFilesSafe(files);
         return res.status(400).json({ error: "Address not found / invalid" });
       }
-      re.addressFormatted = geo.formatted ?? null;
-      re.placeId = geo.placeId ?? null;
+      re.addressFormatted = geo.formatted || addressText;
+      re.placeId = geo.placeId;
       re.location = makePoint4326(geo.lng, geo.lat);
     } else if (reDto.location?.lng != null && reDto.location?.lat != null) {
       re.location = makePoint4326(reDto.location.lng, reDto.location.lat);

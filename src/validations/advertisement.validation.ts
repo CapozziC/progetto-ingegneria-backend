@@ -35,19 +35,26 @@ export const createAdvertisementSchema = Joi.object({
     energyClass: Joi.string()
       .valid(...Object.values(EnergyClass))
       .required(),
+
     housingType: Joi.string()
       .valid(...Object.values(HousingType))
       .required(),
 
+    // 👇 nuovo
     addressInput: Joi.string().trim().min(3).max(300),
+
     addressFormatted: Joi.string().trim().min(3).max(400),
     placeId: Joi.string().trim().min(3).max(200),
 
+    // 👇 NON più required
     location: Joi.object({
       lat: Joi.number().min(-90).max(90).required(),
       lng: Joi.number().min(-180).max(180).required(),
     }),
   })
+    // 👇 deve esserci almeno uno dei due
     .or("addressInput", "location")
+    .with("addressFormatted", "addressInput")
+    .with("placeId", "addressInput")
     .required(),
 });

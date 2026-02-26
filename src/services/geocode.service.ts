@@ -21,7 +21,7 @@ export type GeocodeResult = {
   lat: number;
   lng: number;
   formatted: string;
-  placeId: string | null;
+  placeId: string;
 };
 
 export async function forwardGeocodeAddress(
@@ -42,17 +42,23 @@ export async function forwardGeocodeAddress(
     headers: { Accept: "application/json" },
   });
 
-  if (!resp.ok) return null;
+  if (!resp.ok) {
+    const text = await resp.text().catch(() => "");
+    console.error("Geoapify geocode failed:", resp.status, text);
+    return null;
+  }
 
   const data = (await resp.json()) as GeoapifyResponse;
   const f = data.features?.[0];
   if (!f) return null;
 
   const { lat, lon, formatted, place_id } = f.properties;
+  if (!place_id) return null;
+
   return {
     lat,
     lng: lon,
     formatted: formatted ?? address,
-    placeId: place_id ?? null,
+    placeId: place_id,
   };
 }
