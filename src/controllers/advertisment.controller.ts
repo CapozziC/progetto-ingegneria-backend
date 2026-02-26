@@ -1,6 +1,7 @@
 import type { Response } from "express";
 import path from "path";
 import type { Point } from "geojson";
+import { forwardGeocodeAddress } from "../services/geocode.service.js";
 import fs from "fs/promises";
 import { deleteUploadedFilesSafe } from "../controllers/upload.controller.js";
 import {
@@ -88,10 +89,31 @@ export const createAdvertisementWithRealEstateAndPhotosTx = async (
       garden: reDto.garden,
       energyClass: reDto.energyClass,
       housingType: reDto.housingType,
+      addressInput: reDto.addressInput,
     });
 
-    re.location = makePoint4326(reDto.location.lng, reDto.location.lat);
+    // 1) Se mi dai address → geocode (consigliato)
+    if (typeof reDto.address === "string" && reDto.address.trim().length > 0) {
+      const geo = await forwardGeocodeAddress(reDto.address.trim());
+      if (!geo) {
+        await deleteUploadedFilesSafe(files);
+        return res.status(400).json({ error: "Address not found / invalid" });
+      }
 
+      re.addressFormatted = geo.formatted ?? null;
+      re.placeId = geo.placeId ?? null;
+      re.location = makePoint4326(geo.lng, geo.lat);
+    }
+    // 2) Altrimenti fallback: se mi dai già location → uso quella (opzionale)
+    else if (reDto.location?.lng != null && reDto.location?.lat != null) {
+      re.location = makePoint4326(reDto.location.lng, reDto.location.lat);
+    } else {
+      await deleteUploadedFilesSafe(files);
+      return res.status(400).json({
+        error:
+          "Provide either realEstate.address or realEstate.location {lat,lng}",
+      });
+    }
     const savedRealEstate = await queryRunner.manager.save(RealEstate, re);
 
     /**
