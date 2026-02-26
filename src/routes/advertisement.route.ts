@@ -37,11 +37,13 @@ router.get(
   authenticationMiddlewareAccount,
   getAvailableDays,
 );
+
 router.post(
   "/create_appointments/:id",
   authenticationMiddlewareAccount,
   createAppointment,
 );
+
 //Routes for offers
 router .post(
   "/create_offer/:id",

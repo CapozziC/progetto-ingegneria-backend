@@ -25,6 +25,12 @@ import { Offer } from "../entities/offer.js";
 import { AppDataSource } from "../data-source.js";
 import { In, Not } from "typeorm";
 
+/**
+ *  Create a new offer for an advertisement by an account
+ * @param req RequestAccount with body containing price and params containing advertisement id
+ * @param res  Response with created offer or error message
+ * @returns  JSON with created offer or error message
+ */
 export const createOfferByAccount = async (
   req: RequestAccount,
   res: Response,
@@ -67,6 +73,12 @@ export const createOfferByAccount = async (
   }
 };
 
+/**
+ *  Get all offers for a specific advertisement if the authenticated agent is the owner of the advertisement
+ * @param req RequestAgent with params containing advertisement id
+ * @param res Response with offers or error message
+ * @returns JSON with offers or error message
+ */
 export const getOffersForAdvertisementAsAgent = async (
   req: RequestAgent,
   res: Response,
@@ -108,6 +120,12 @@ export const getOffersForAdvertisementAsAgent = async (
   }
 };
 
+/**
+ *  Get all offers made to the authenticated agent for a specific account
+ * @param req RequestAgent with params containing account id
+ * @param res Response with offers or error message
+ * @returns JSON with offers or error message
+ */
 export const getOffersForAccountAsAgent = async (
   req: RequestAgent,
   res: Response,
@@ -141,7 +159,12 @@ export const getOffersForAccountAsAgent = async (
       .json({ error: "Failed to get offers for account as agent" });
   }
 };
-//completare
+/**
+ * Accept an offer as an agent, changing the offer status to accepted, the related advertisement status to sold, rejecting all other pending offers for the same advertisement and cancelling all appointments related to the same advertisement, in a single transaction
+ * @param req RequestAgent with params containing offer id
+ * @param res Response with success message or error message
+ * @returns JSON with success message or error message
+ */
 export const agentAcceptOffer = async (req: RequestAgent, res: Response) => {
   const agent = requireAgent(req, res);
   if (!agent) return;
@@ -219,7 +242,7 @@ export const agentAcceptOffer = async (req: RequestAgent, res: Response) => {
         advertisementId: offer.advertisementId,
         status: In([AppStatus.REQUESTED, AppStatus.CONFIRMED]),
       },
-      { status: AppStatus.REJECTED },
+      { status: AppStatus.CANCELLED },
     );
 
     await queryRunner.commitTransaction();
@@ -237,7 +260,12 @@ export const agentAcceptOffer = async (req: RequestAgent, res: Response) => {
     await queryRunner.release();
   }
 };
-
+/**
+ * Reject an offer as an agent, changing the offer status to rejected
+ * @param req RequestAgent with params containing offer id
+ * @param res Response with success message or error message
+ * @returns JSON with success message or error message
+ */
 export const agentRejectOffer = async (req: RequestAgent, res: Response) => {
   try {
     const agent = requireAgent(req, res);
@@ -263,7 +291,12 @@ export const agentRejectOffer = async (req: RequestAgent, res: Response) => {
     return res.status(500).json({ error: "Failed to reject offer" });
   }
 };
-
+/**
+ * Reject an offer and create a counteroffer as an agent
+ * @param req RequestAgent with params containing offer id and body containing price
+ * @param res Response with success message or error message
+ * @returns JSON with success message or error message
+ */
 export const rejectOfferAndCreateCounterOfferAsAgent = async (
   req: RequestAgent,
   res: Response,
