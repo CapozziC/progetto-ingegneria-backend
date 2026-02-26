@@ -51,16 +51,15 @@ export const createAdvertisementWithRealEstateAndPhotosTx = async (
   res: Response,
 ) => {
   const files = (req.files as Express.Multer.File[]) ?? [];
-  //Controllo autenticazione
+
   if (!req.agent) {
     await deleteUploadedFilesSafe(files);
     return res.status(401).json({ error: "Unauthorized" });
   }
 
   const agentId = req.agent.id;
-
   const baseUrl = `${req.protocol}://${req.get("host")}`;
-  const body = req.body; // già validato da Joi
+  const body = req.body;
 
   const queryRunner = AppDataSource.createQueryRunner();
   await queryRunner.connect();
@@ -68,10 +67,8 @@ export const createAdvertisementWithRealEstateAndPhotosTx = async (
   try {
     await queryRunner.startTransaction();
 
-    /**
-     * REAL ESTATE
-     */
     const reDto = body.realEstate;
+
     const re = Object.assign(new RealEstate(), {
       size: reDto.size,
       rooms: reDto.rooms,
@@ -92,33 +89,37 @@ export const createAdvertisementWithRealEstateAndPhotosTx = async (
       addressInput: reDto.addressInput,
     });
 
-    // 1) Se mi dai address → geocode (consigliato)
-    if (typeof reDto.address === "string" && reDto.address.trim().length > 0) {
-      const geo = await forwardGeocodeAddress(reDto.address.trim());
+    // usa addressInput come sorgente primaria se è quella che mandi dal FE
+    const addressText =
+      typeof reDto.address === "string" && reDto.address.trim()
+        ? reDto.address.trim()
+        : typeof reDto.addressInput === "string" && reDto.addressInput.trim()
+          ? reDto.addressInput.trim()
+          : "";
+
+    if (addressText) {
+      const geo = await forwardGeocodeAddress(addressText);
       if (!geo) {
+        await queryRunner.rollbackTransaction();
         await deleteUploadedFilesSafe(files);
         return res.status(400).json({ error: "Address not found / invalid" });
       }
-
       re.addressFormatted = geo.formatted ?? null;
       re.placeId = geo.placeId ?? null;
       re.location = makePoint4326(geo.lng, geo.lat);
-    }
-    // 2) Altrimenti fallback: se mi dai già location → uso quella (opzionale)
-    else if (reDto.location?.lng != null && reDto.location?.lat != null) {
+    } else if (reDto.location?.lng != null && reDto.location?.lat != null) {
       re.location = makePoint4326(reDto.location.lng, reDto.location.lat);
     } else {
+      await queryRunner.rollbackTransaction();
       await deleteUploadedFilesSafe(files);
       return res.status(400).json({
         error:
-          "Provide either realEstate.address or realEstate.location {lat,lng}",
+          "Provide either realEstate.address/addressInput or realEstate.location {lat,lng}",
       });
     }
+
     const savedRealEstate = await queryRunner.manager.save(RealEstate, re);
 
-    /**
-     * ADVERTISEMENT
-     */
     const adv = Object.assign(new Advertisement(), {
       description: body.description,
       price: body.price,
@@ -130,9 +131,6 @@ export const createAdvertisementWithRealEstateAndPhotosTx = async (
 
     const savedAdv = await queryRunner.manager.save(Advertisement, adv);
 
-    /**
-     * PHOTOS
-     */
     const uploadDir = process.env.UPLOAD_DIR;
     if (!uploadDir)
       throw new Error("UPLOAD_DIR environment variable is not defined");
@@ -144,7 +142,6 @@ export const createAdvertisementWithRealEstateAndPhotosTx = async (
 
     for (let idx = 0; idx < files.length; idx++) {
       const f = files[idx];
-
       if (!f) continue;
 
       const ext =
@@ -155,11 +152,7 @@ export const createAdvertisementWithRealEstateAndPhotosTx = async (
       const newFilename = `${idx}${ext}`;
       const targetPath = path.join(advPhotosDir, newFilename);
 
-      // sposta file da tmp alla cartella dell'adv
       await fs.rename(f.path, targetPath);
-
-      // IMPORTANTISSIMO: aggiorna il path sul file in memoria
-      // così deleteUploadedFilesSafe(files) funziona anche dopo lo spostamento
       f.path = targetPath;
 
       photoEntities.push(
@@ -192,17 +185,21 @@ export const createAdvertisementWithRealEstateAndPhotosTx = async (
       realEstate: savedRealEstate,
       photos: savedPhotos,
     });
-  } catch {
+  } catch (err) {
     try {
       await queryRunner.rollbackTransaction();
-    } catch {
-      await deleteUploadedFilesSafe(files);
+    } catch (rollbackErr) {
+      console.error("Error rolling back transaction:", rollbackErr);
+    }
+    await deleteUploadedFilesSafe(files);
 
-      return res.status(500).json({
-        error: "Failed to create advertisement",
-      });
-    } finally {
+    console.error("createAdvertisement error:", err);
+    return res.status(500).json({ error: "Failed to create advertisement" });
+  } finally {
+    try {
       await queryRunner.release();
+    } catch (err) {
+      console.error("Error releasing queryRunner:", err);
     }
   }
 };

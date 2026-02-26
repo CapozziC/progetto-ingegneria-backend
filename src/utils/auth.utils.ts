@@ -101,7 +101,7 @@ export const revokeRefreshToken = async (
       `Failed to revoke refresh token for subject ${subjectId}  ${type} `,
       error,
     );
-    throw new Error("Failed to revoke refresh token");
+    throw new Error("Failed to revoke refresh token", { cause: error });
   }
 };
 
