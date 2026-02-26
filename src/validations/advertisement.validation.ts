@@ -39,7 +39,7 @@ export const createAdvertisementSchema = Joi.object({
       .valid(...Object.values(HousingType))
       .required(),
 
-    address: Joi.string().trim().min(3).max(300),
+    addressInput: Joi.string().trim().min(3).max(300),
     addressFormatted: Joi.string().trim().min(3).max(400),
     placeId: Joi.string().trim().min(3).max(200),
 
