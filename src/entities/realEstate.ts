@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, Check } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, Check, Index } from "typeorm";
 import type { Point } from "geojson";
 
 export enum EnergyClass {
@@ -70,6 +70,16 @@ export class RealEstate {
 
   @Column({ name: "housing_type", type: "enum", enum: Type })
   housingType!: Type;
+
+  @Column({ name: "address_input", type: "text", nullable: true })
+  addressInput?: string | null;
+
+  @Column({ name: "address_formatted", type: "text", nullable: true })
+  addressFormatted?: string | null;
+
+  @Index("IDX_real_estate_place_id")
+  @Column({ name: "place_id", type: "text", nullable: true })
+  placeId?: string | null;
 
   @Column("geometry", {
     spatialFeatureType: "Point",
