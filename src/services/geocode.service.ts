@@ -34,7 +34,7 @@ export async function forwardGeocodeAddress(
   url.searchParams.set("text", address);
   url.searchParams.set("limit", "1");
   url.searchParams.set("lang", "it");
-  // opzionale: se lavori solo in Italia
+  //lavori solo in Italia
   url.searchParams.set("filter", "countrycode:it");
   url.searchParams.set("apiKey", apiKey);
 
