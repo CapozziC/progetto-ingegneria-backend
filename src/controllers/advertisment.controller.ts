@@ -14,6 +14,8 @@ import { RealEstate } from "../entities/realEstate.js";
 import { Photo, Format as PhotoFormat } from "../entities/photo.js";
 import { RequestAgent } from "../types/express.js";
 import { Agent } from "../entities/agent.js";
+import { fetchNearbyPois } from "../services/places.service.js";
+import { Poi } from "../entities/poi.js";
 
 /**
  *  Create a GeoJSON Point with SRID 4326 from longitude and latitude
@@ -130,6 +132,61 @@ export const createAdvertisementWithRealEstateAndPhotosTx = async (
     });
 
     const savedAdv = await queryRunner.manager.save(Advertisement, adv);
+
+    // -------------------------
+    // POI: fetch + upsert + link
+    // -------------------------
+    try {
+      const radiusMeters = 1500;
+
+      const nearby = await fetchNearbyPois({
+        center: savedRealEstate.location,
+        radiusMeters,
+        limit: 10,
+        lang: "it",
+      });
+
+      if (nearby.length > 0) {
+        // upsert su geoapifyPlaceId (richiede unique index)
+        await queryRunner.manager.upsert(
+          Poi,
+          nearby.map((p) => ({
+            geoapifyPlaceId: p.geoapifyPlaceId,
+            name: p.name,
+            type: p.type,
+            location: p.location,
+          })),
+          {
+            conflictPaths: ["geoapifyPlaceId"],
+            skipUpdateIfNoValuesChanged: true,
+          },
+        );
+
+        // ricarico i Poi dal DB e li collego all'annuncio
+        const placeIds = nearby
+          .map((p) => p.geoapifyPlaceId)
+          .filter(
+            (id): id is string => typeof id === "string" && id.length > 0,
+          );
+
+        if (placeIds.length > 0) {
+          const pois = await queryRunner.manager.find(Poi, {
+            where: placeIds.map((id) => ({ geoapifyPlaceId: id })),
+          });
+
+          if (pois.length > 0) {
+            savedAdv.pois = pois;
+            await queryRunner.manager.save(Advertisement, savedAdv);
+          }
+        }
+      }
+    } catch (poiErr) {
+      console.error("Geoapify POI fetch/save failed:", poiErr);
+      // continua senza POI
+    }
+    // -------------------------
+    //PHOTOS
+    // -------------------------
 
     const uploadDir = process.env.UPLOAD_DIR;
     if (!uploadDir)
