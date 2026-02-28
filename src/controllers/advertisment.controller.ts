@@ -134,17 +134,36 @@ export const createAdvertisementWithRealEstateAndPhotosTx = async (
     const savedAdv = await queryRunner.manager.save(Advertisement, adv);
 
     // -------------------------
-    // POI: fetch + upsert + link
+    // POI: fetch + upsert
     // -------------------------
     try {
-      const radiusMeters = 1500;
+      const center = savedRealEstate.location;
 
-      const nearby = await fetchNearbyPois({
-        center: savedRealEstate.location,
-        radiusMeters,
-        limit: 10,
-        lang: "it",
-      });
+      const [schools, parks, transport] = await Promise.all([
+        fetchNearbyPois({
+          center,
+          radiusMeters: 1500,
+          categories: "education.school",
+          limit: 5,
+          lang: "it",
+        }),
+        fetchNearbyPois({
+          center,
+          radiusMeters: 2000,
+          categories: "leisure.park",
+          limit: 5,
+          lang: "it",
+        }),
+        fetchNearbyPois({
+          center,
+          radiusMeters: 600,
+          categories: "public_transport",
+          limit: 5,
+          lang: "it",
+        }),
+      ]);
+
+      const nearby = [...schools, ...parks, ...transport];
 
       if (nearby.length > 0) {
         // upsert su geoapifyPlaceId (richiede unique index)

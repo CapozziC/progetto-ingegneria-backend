@@ -30,6 +30,7 @@ function mapCategoriesToType(categories?: string[]): PoiType | null {
 export async function fetchNearbyPois(params: {
   center: Point;
   radiusMeters: number;
+  categories?: string;
   limit?: number;
   lang?: string;
 }) {
@@ -39,15 +40,10 @@ export async function fetchNearbyPois(params: {
 
   const [lon, lat] = params.center.coordinates as [number, number];
 
-  const categories = [
-    "education.school",
-    "leisure.park",
-    "public_transport",
-  ].join(",");
-
   const searchParams = new URLSearchParams({
     apiKey: GEOAPIFY_KEY,
-    categories,
+    categories:
+      params.categories ?? "education.school,leisure.park,public_transport",
     filter: `circle:${lon},${lat},${params.radiusMeters}`,
     bias: `proximity:${lon},${lat}`,
     limit: String(params.limit ?? 50),
