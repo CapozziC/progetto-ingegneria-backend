@@ -96,3 +96,6 @@ export async function fetchNearbyPois(params: {
       } => Boolean(p),
     );
 }
+
+
+

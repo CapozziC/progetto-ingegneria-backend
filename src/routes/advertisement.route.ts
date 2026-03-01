@@ -8,7 +8,7 @@ import { createAdvertisementSchema } from "../validations/advertisement.validati
 import {
   createAdvertisementWithRealEstateAndPhotosTx,
   deleteAgentAdvertisement,
-} from "../controllers/advertisment.controller.js";
+} from "../controllers/advertisement.controller.js";
 import {
   getAvailableDays,
   createAppointment,
@@ -45,7 +45,7 @@ router.post(
 );
 
 //Routes for offers
-router .post(
+router.post(
   "/create_offer/:id",
   authenticationMiddlewareAccount,
   createOfferByAccount,

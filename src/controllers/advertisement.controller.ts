@@ -3,7 +3,7 @@ import path from "path";
 import type { Point } from "geojson";
 import { forwardGeocodeAddress } from "../services/geocode.service.js";
 import fs from "fs/promises";
-import { deleteUploadedFilesSafe } from "../controllers/upload.controller.js";
+import { deleteUploadedFilesSafe } from "./upload.controller.js";
 import {
   findAdvertisementOwnerId,
   deleteAdvertisementById,
@@ -151,7 +151,7 @@ export const createAdvertisementWithRealEstateAndPhotosTx = async (
           center,
           radiusMeters: 2000,
           categories: "leisure.park",
-          limit: 5,
+          limit: 2,
           lang: "it",
         }),
         fetchNearbyPois({

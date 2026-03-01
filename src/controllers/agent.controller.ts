@@ -151,22 +151,34 @@ export const deleteAgent = async (req: RequestAgent, res: Response) => {
  * @param res Response with list of advertisements of the authenticated agent or error message
  * @returns   JSON with list of advertisements of the authenticated agent or error message
  */
-export const getAgentAdvByAgentId = async (
+export const getAgentAdvertisements = async (
   req: RequestAgent,
   res: Response,
 ) => {
   try {
     //Controllo autenticazione
     const agent = requireAgent(req, res);
-    if (!agent) return;
+    if (!agent) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
 
     const advertisements = await findAdvertisementsByAgentId(agent.id);
     return res.status(200).json({
+      items: advertisements.map((a) => ({
+        id: a.id,
+        description: a.description,
+        price: a.price,
+        type: a.type,
+        status: a.status,
+        agentId: a.agent?.id ?? agent.id,
+        realEstate: a.realEstate,
+        photos: (a.photos ?? []).sort((x, y) => x.position - y.position),
+        pois: a.pois ?? [],
+      })),
       count: advertisements.length,
-      advertisements,
     });
   } catch (err) {
-    console.error(" getAgentAdvByAgentId error:", err);
+    console.error(" getAgentAdvertisements error:", err);
     return res.status(500).json({ error: "Internal server error" });
   }
 };

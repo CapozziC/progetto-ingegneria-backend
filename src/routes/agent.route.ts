@@ -13,7 +13,7 @@ import {
 import {
   createNewAgent,
   deleteAgent,
-  getAgentAdvByAgentId,
+  getAgentAdvertisements,
   updatePhoneNumberAgent,
 } from "../controllers/agent.controller.js";
 
@@ -35,7 +35,11 @@ router.delete(
   validateParams(deleteAgentParamsSchema),
   deleteAgent,
 );
-router.get("/me/advertisement", authenticationMiddlewareAgent, getAgentAdvByAgentId);
+router.get(
+  "/me/advertisement",
+  authenticationMiddlewareAgent,
+  getAgentAdvertisements,
+);
 router.patch(
   "/me/phoneNumber",
   authenticationMiddlewareAgent,
@@ -59,7 +63,5 @@ router.get(
   authenticationMiddlewareAgent,
   getOffersForAccountAsAgent,
 );
-
-
 
 export default router;

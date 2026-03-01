@@ -5,14 +5,6 @@ import { RealEstate } from "../entities/realEstate.js";
 export const AdvertisementRepository =
   AppDataSource.getRepository(Advertisement);
 
-const advertisementRelations = {
-  realEstate: true,
-  photos: true,
-  offers: true,
-  appointments: true,
-  pois: true,
-} as const;
-
 /**
  * Helper function to build the where clause for finding advertisements by agent ID. This function constructs a where clause that filters advertisements based on the associated agent's ID. It is used in the findAdvertisementsByAgentId function to retrieve advertisements created by a specific agent.
  * @param agentId The unique identifier of the agent whose advertisements to filter by
@@ -21,20 +13,28 @@ const advertisementRelations = {
 function withAgent(agentId: number) {
   return { agent: { id: agentId } };
 }
-
 /**
- * Find all advertisements created by a specific agent, including their related real estate, photos, offers, appointments, and points of interest. The results are ordered by creation date in descending order.
- * @param agentId The unique identifier of the agent whose advertisements to find
- * @returns A Promise that resolves to an array of Advertisement objects with their related entities
+ *
+ * Find all advertisements created by a specific agent.
+ * This function queries the database for advertisements that are associated with the given agent ID.
+ * It retrieves the advertisements along with their related real estate, photos, and points of interest (POIs), and orders them by ID in descending order and photos by their position in ascending order.
+ * @param agentId
+ * @returns
  */
-export const findAdvertisementsByAgentId = async (agentId: number) => {
+export async function findAdvertisementsByAgentId(agentId: number) {
   return AdvertisementRepository.find({
     where: withAgent(agentId),
-    relations: advertisementRelations,
-    order: { createdAt: "DESC" },
+    relations: {
+      realEstate: true,
+      photos: true,
+      pois: true,
+    },
+    order: {
+      id: "DESC",
+      photos: { position: "ASC" },
+    },
   });
-};
-
+}
 /**
  * Find the owner (agent) ID of a specific advertisement. This function queries the database for the advertisement with the given ID and retrieves the ID of the agent who created it. If the advertisement is not found or does not have an associated agent, it returns null.
  * @param advertisementId  The unique identifier of the advertisement whose owner ID to find
@@ -57,8 +57,8 @@ export const findAdvertisementOwnerId = async (
   return adv?.agent?.id ?? null;
 };
 
-/**              
- * Delete an advertisement by its ID, along with its related real estate. This function performs a database transaction to ensure that both the advertisement and its associated real estate are deleted atomically. If the advertisement is not found, the function simply returns without performing any deletion.   
+/**
+ * Delete an advertisement by its ID, along with its related real estate. This function performs a database transaction to ensure that both the advertisement and its associated real estate are deleted atomically. If the advertisement is not found, the function simply returns without performing any deletion.
  * @param advertisementId The unique identifier of the advertisement to delete
  * @returns A Promise that resolves when the deletion is complete
  */
@@ -85,9 +85,10 @@ export const deleteAdvertisementById = async (advertisementId: number) => {
 
 //Query for transaction to advertisement
 export function advRepo(manager?: EntityManager) {
-  return manager ? manager.getRepository(Advertisement) : AdvertisementRepository;
+  return manager
+    ? manager.getRepository(Advertisement)
+    : AdvertisementRepository;
 }
-
 
 export const findAdvertisementStatusById = async (
   advertisementId: number,
@@ -95,9 +96,35 @@ export const findAdvertisementStatusById = async (
 ): Promise<string | null> => {
   const adv = await advRepo(manager).findOne({
     where: { id: advertisementId },
-    select: { id: true, status: true } , 
+    select: { id: true, status: true },
   });
 
   return adv?.status ?? null;
 };
 
+export async function findAllAdvertisements(params?: {
+  take?: number;
+  skip?: number;
+  status?: string;
+  type?: string;
+}) {
+  const take = Math.min(Math.max(params?.take ?? 20, 1), 100);
+  const skip = Math.max(params?.skip ?? 0, 0);
+
+  const qb = AdvertisementRepository.createQueryBuilder("adv")
+    .leftJoinAndSelect("adv.realEstate", "re")
+    .leftJoinAndSelect("adv.photos", "ph")
+    .leftJoinAndSelect("adv.pois", "poi")
+    .leftJoinAndSelect("adv.agent", "ag")
+    .orderBy("adv.id", "DESC")
+    .addOrderBy("ph.position", "ASC")
+    .take(take)
+    .skip(skip);
+
+  if (params?.status)
+    qb.andWhere("adv.status = :status", { status: params.status });
+  if (params?.type) qb.andWhere("adv.type = :type", { type: params.type });
+
+  const [items, count] = await qb.getManyAndCount();
+  return { items, count, take, skip };
+}
