@@ -140,39 +140,87 @@ export const createAdvertisementWithRealEstateAndPhotosTx = async (
     try {
       const center = savedRealEstate.location;
 
+      console.log("[POI] center =", center);
+
+      console.time("[POI] fetchNearbyPois total");
       const [schools, parks, transport] = await Promise.all([
         fetchNearbyPois({
           center,
           radiusMeters: 1500,
           categories: "education.school",
-          limit: 5,
+          limit: 3,
           lang: "it",
         }),
         fetchNearbyPois({
           center,
           radiusMeters: 2000,
           categories: "leisure.park",
-          limit: 2,
+          limit: 1,
           lang: "it",
         }),
         fetchNearbyPois({
           center,
           radiusMeters: 600,
           categories: "public_transport",
-          limit: 5,
+          limit: 3,
           lang: "it",
         }),
       ]);
+      console.timeEnd("[POI] fetchNearbyPois total");
+
+      console.log("[POI] schools =", schools);
+      console.log("[POI] parks =", parks);
+      console.log("[POI] transport =", transport);
 
       const nearby = [...schools, ...parks, ...transport];
+      console.log("[POI] nearby.length =", nearby.length);
+      console.log(
+        "[POI] nearby sample =",
+        nearby.slice(0, 3).map((p) => ({
+          geoapifyPlaceId: p.geoapifyPlaceId,
+          name: p.name,
+          type: p.type,
+          location: p.location,
+        })),
+      );
+
       const nearbyValid = nearby.filter(
         (p) =>
           typeof p.geoapifyPlaceId === "string" && p.geoapifyPlaceId.length > 0,
       );
 
+      console.log("[POI] nearbyValid.length =", nearbyValid.length);
+      if (nearbyValid.length === 0) {
+        console.warn(
+          "[POI] Nothing to upsert: all POIs missing geoapifyPlaceId. Check mapper from Geoapify response -> {geoapifyPlaceId}.",
+        );
+      }
+
       if (nearbyValid.length > 0) {
+        // 🔥 controlla duplicati placeId (può confondere debug)
+        const ids = nearbyValid.map((p) => p.geoapifyPlaceId as string);
+        const uniqueIds = new Set(ids);
+        console.log(
+          "[POI] placeIds total/unique =",
+          ids.length,
+          uniqueIds.size,
+        );
+
         // upsert su geoapifyPlaceId (richiede unique index)
-        await queryRunner.manager.upsert(
+        console.log("[POI] About to upsert Poi rows...");
+        console.log(
+          "[POI] upsert payload preview =",
+          nearbyValid
+            .map((p) => ({
+              geoapifyPlaceId: p.geoapifyPlaceId,
+              name: p.name,
+              type: p.type,
+              location: p.location,
+            }))
+            .slice(0, 3),
+        );
+
+        const upsertResult = await queryRunner.manager.upsert(
           Poi,
           nearbyValid.map((p) => ({
             geoapifyPlaceId: p.geoapifyPlaceId,
@@ -186,18 +234,57 @@ export const createAdvertisementWithRealEstateAndPhotosTx = async (
           },
         );
 
-        // ricarico i Poi dal DB e li collego all'annuncio
-        const placeIds = nearbyValid.map((p) => p.geoapifyPlaceId as string);
+        // TypeORM: il result varia per driver, ma stampiamolo comunque
+        console.log("[POI] upsertResult =", upsertResult);
 
-        if (placeIds.length > 0) {
-          const pois = await queryRunner.manager.find(Poi, {
-            where: placeIds.map((id) => ({ geoapifyPlaceId: id })),
+        const placeIds = Array.from(uniqueIds);
+        console.log("[POI] About to reload pois from DB, placeIds =", placeIds);
+
+        // ⚠️ find con OR conditions
+        const pois = await queryRunner.manager.find(Poi, {
+          where: placeIds.map((id) => ({ geoapifyPlaceId: id })),
+        });
+
+        console.log("[POI] pois loaded from DB:", pois.length);
+        console.log(
+          "[POI] pois sample =",
+          pois.slice(0, 3).map((p) => ({
+            id: p.id,
+            geoapifyPlaceId: p.geoapifyPlaceId,
+            name: p.name,
+            type: p.type,
+          })),
+        );
+
+        if (pois.length > 0) {
+          console.log("[POI] Attaching pois to advertisement", savedAdv.id);
+
+          savedAdv.pois = pois;
+
+          const advSaved = await queryRunner.manager.save(
+            Advertisement,
+            savedAdv,
+          );
+
+          console.log(
+            "[POI] Advertisement saved with pois. advSaved.id =",
+            advSaved.id,
+          );
+
+          // 🔥 verifica join: ricarica l'advertisement con relation
+          const advCheck = await queryRunner.manager.findOne(Advertisement, {
+            where: { id: savedAdv.id },
+            relations: { pois: true },
           });
 
-          if (pois.length > 0) {
-            savedAdv.pois = pois;
-            await queryRunner.manager.save(Advertisement, savedAdv);
-          }
+          console.log(
+            "[POI] Post-save check: advCheck.pois.length =",
+            advCheck?.pois?.length,
+          );
+        } else {
+          console.warn(
+            "[POI] After upsert, find returned 0 pois. Problem is in upsert or find(where).",
+          );
         }
       }
     } catch (poiErr) {
