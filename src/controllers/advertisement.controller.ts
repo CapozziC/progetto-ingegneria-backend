@@ -8,6 +8,7 @@ import {
   findAdvertisementOwnerId,
   deleteAdvertisementById,
 } from "../repositories/advertisement.repository.js";
+import { requireAgent } from "../utils/require.utils.js";
 import { AppDataSource } from "../data-source.js";
 import { Advertisement } from "../entities/advertisement.js";
 import { RealEstate } from "../entities/realEstate.js";
@@ -164,12 +165,16 @@ export const createAdvertisementWithRealEstateAndPhotosTx = async (
       ]);
 
       const nearby = [...schools, ...parks, ...transport];
+      const nearbyValid = nearby.filter(
+        (p) =>
+          typeof p.geoapifyPlaceId === "string" && p.geoapifyPlaceId.length > 0,
+      );
 
-      if (nearby.length > 0) {
+      if (nearbyValid.length > 0) {
         // upsert su geoapifyPlaceId (richiede unique index)
         await queryRunner.manager.upsert(
           Poi,
-          nearby.map((p) => ({
+          nearbyValid.map((p) => ({
             geoapifyPlaceId: p.geoapifyPlaceId,
             name: p.name,
             type: p.type,
@@ -182,11 +187,7 @@ export const createAdvertisementWithRealEstateAndPhotosTx = async (
         );
 
         // ricarico i Poi dal DB e li collego all'annuncio
-        const placeIds = nearby
-          .map((p) => p.geoapifyPlaceId)
-          .filter(
-            (id): id is string => typeof id === "string" && id.length > 0,
-          );
+        const placeIds = nearbyValid.map((p) => p.geoapifyPlaceId as string);
 
         if (placeIds.length > 0) {
           const pois = await queryRunner.manager.find(Poi, {
@@ -292,7 +293,7 @@ export const deleteAgentAdvertisement = async (
 ) => {
   try {
     //Controllo autenticazione
-    const agent = req.agent;
+    const agent = requireAgent(req, res);
     if (!agent) {
       return res
         .status(401)
