@@ -1,4 +1,5 @@
-// src/services/geoapify.ts
+import { fetchJsonWithTimeout, HttpTimeoutError } from "../utils/http.utils.js";
+
 type GeoapifyFeature = {
   properties: {
     lat: number;
@@ -38,27 +39,35 @@ export async function forwardGeocodeAddress(
   url.searchParams.set("filter", "countrycode:it");
   url.searchParams.set("apiKey", apiKey);
 
-  const resp = await fetch(url.toString(), {
-    headers: { Accept: "application/json" },
-  });
+  try {
+    const r = await fetchJsonWithTimeout<GeoapifyResponse>(url.toString(), {
+      headers: { Accept: "application/json" },
+      timeoutMs: 8_000,
+    });
 
-  if (!resp.ok) {
-    const text = await resp.text().catch(() => "");
-    console.error("Geoapify geocode failed:", resp.status, text);
+    if (!r.ok) {
+      console.warn("[geocode] failed:", r.status, r.text ?? "");
+      return null;
+    }
+
+    const f = r.json?.features?.[0];
+    if (!f) return null;
+
+    const { lat, lon, formatted, place_id } = f.properties;
+    if (!place_id) return null;
+
+    return {
+      lat,
+      lng: lon,
+      formatted: formatted ?? address,
+      placeId: place_id,
+    };
+  } catch (e) {
+    if (e instanceof HttpTimeoutError) {
+      console.warn("[geocode] timeout");
+      return null;
+    }
+    console.warn("[geocode] error:", e);
     return null;
   }
-
-  const data = (await resp.json()) as GeoapifyResponse;
-  const f = data.features?.[0];
-  if (!f) return null;
-
-  const { lat, lon, formatted, place_id } = f.properties;
-  if (!place_id) return null;
-
-  return {
-    lat,
-    lng: lon,
-    formatted: formatted ?? address,
-    placeId: place_id,
-  };
 }
