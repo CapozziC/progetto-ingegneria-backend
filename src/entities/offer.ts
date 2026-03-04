@@ -19,8 +19,8 @@ export enum Status {
   REJECTED = "rejected",
 }
 export enum OfferMadeBy {
-  ACCOUNT = "account",
-  AGENT = "agent",
+  ACCOUNT = "ACCOUNT",
+  AGENT = "AGENT",
 }
 
 @Entity("offer")
