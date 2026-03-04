@@ -72,7 +72,7 @@ export class Appointment {
    * The user cannot be deleted if appointments exist.
    */
   @ManyToOne(() => Account, (account) => account.appointments, {
-    onDelete: "RESTRICT",
+    onDelete: "CASCADE",
   })
   @JoinColumn({
     name: "account_id",
