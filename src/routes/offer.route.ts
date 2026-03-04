@@ -40,7 +40,7 @@ router.post(
   accountRejectAgentOffer,
 );
 
-router.get(
+router.post(
   "/account/advertisements/:advertisementId/offers/agent/counter",
   authenticationMiddlewareAccount,
   accountRejectAgentOfferAndCreateCounter,
