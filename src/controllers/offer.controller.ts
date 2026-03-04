@@ -15,10 +15,12 @@ import {
   findOfferByIdForAgent,
   rejectOfferById,
   saveOffer,
+  findLatestPendingAccountOfferForAdvertisement,
 } from "../repositories/offer.repository.js";
-import { OfferMadeBy, Status } from "../entities/offer.js";
+
 import { Status as AdvStatus } from "../entities/advertisement.js";
 import { Status as AppStatus } from "../entities/appointment.js";
+import { Status } from "../entities/offer.js";
 import { Advertisement } from "../entities/advertisement.js";
 import { Appointment } from "../entities/appointment.js";
 import { Offer } from "../entities/offer.js";
@@ -292,12 +294,13 @@ export const agentRejectOffer = async (req: RequestAgent, res: Response) => {
   }
 };
 /**
- * Reject an offer and create a counteroffer as an agent
- * @param req RequestAgent with params containing offer id and body containing price
- * @param res Response with success message or error message
- * @returns JSON with success message or error message
+ * Reject the latest pending offer made by an account for an advertisement
+ * and create a counteroffer as an agent.
+ *
+ * Route example: POST /agent/advertisements/:advertisementId/offers/counter
+ * Body: { "price": 123456 }
  */
-export const rejectOfferAndCreateCounterOfferAsAgent = async (
+export const rejectLatestAccountOfferAndCreateCounterOfferAsAgent = async (
   req: RequestAgent,
   res: Response,
 ) => {
@@ -308,40 +311,21 @@ export const rejectOfferAndCreateCounterOfferAsAgent = async (
     const agent = requireAgent(req, res);
     if (!agent) return;
 
-    const offerId = parsePositiveInt(req.params.id);
-    if (!offerId) {
-      return res.status(400).json({ error: "Invalid offer id" });
+    const advertisementId = parsePositiveInt(req.params.advertisementId);
+    if (!advertisementId) {
+      return res.status(400).json({ error: "Invalid advertisement id" });
     }
 
     const { price } = req.body;
-    if (!price || typeof price !== "number" || price <= 0) {
+    if (typeof price !== "number" || !Number.isFinite(price) || price <= 0) {
       return res.status(400).json({ error: "Invalid price" });
     }
 
     await queryRunner.startTransaction();
 
-    const offer = await findOfferByIdForAgent(offerId, agent.id);
-    if (!offer) {
-      await queryRunner.rollbackTransaction();
-      return res.status(404).json({ error: "Offer not found" });
-    }
-
-    if (offer.status !== Status.PENDING) {
-      await queryRunner.rollbackTransaction();
-      return res
-        .status(400)
-        .json({ error: "Only pending offers can be rejected" });
-    }
-
-    if (offer.madeBy !== OfferMadeBy.ACCOUNT) {
-      await queryRunner.rollbackTransaction();
-      return res.status(400).json({
-        error: "Counteroffer can only be made for offers made by accounts",
-      });
-    }
-
+    // 1) check adv exists + is active (and belongs to agent if that’s your rule)
     const advStatus = await findAdvertisementStatusById(
-      offer.advertisementId,
+      advertisementId,
       queryRunner.manager,
     );
 
@@ -359,13 +343,34 @@ export const rejectOfferAndCreateCounterOfferAsAgent = async (
       });
     }
 
-    await rejectOfferById(offer.id, queryRunner.manager);
+    // 2) find latest pending offer made by ACCOUNT for this advertisement
+    const lastAccountOffer =
+      await findLatestPendingAccountOfferForAdvertisement(
+        {
+          advertisementId,
+          agentId: agent.id,
+        },
+        queryRunner.manager,
+      );
+
+    if (!lastAccountOffer) {
+      await queryRunner.rollbackTransaction();
+      return res.status(409).json({
+        error:
+          "No pending account offer found to counter (agent can only counter account offers)",
+      });
+    }
+
+    // 3) reject that offer
+    await rejectOfferById(lastAccountOffer.id, queryRunner.manager);
+
+    // 4) create counteroffer
     const counterOffer = await createCounterOffer(
       {
         price,
-        advertisementId: offer.advertisementId,
-        accountId: offer.accountId,
-        agentId: offer.agentId,
+        advertisementId: lastAccountOffer.advertisementId,
+        accountId: lastAccountOffer.accountId,
+        agentId: agent.id, // meglio agent.id esplicito
       },
       queryRunner.manager,
     );
@@ -374,9 +379,9 @@ export const rejectOfferAndCreateCounterOfferAsAgent = async (
 
     return res.status(201).json({
       agentId: agent.id,
-      advertisementId: offer.advertisementId,
-      accountId: offer.accountId,
-      rejectedOfferId: offer.id,
+      advertisementId: lastAccountOffer.advertisementId,
+      accountId: lastAccountOffer.accountId,
+      rejectedOfferId: lastAccountOffer.id,
       counterOffer: {
         offerId: counterOffer.id,
         price: counterOffer.price,
@@ -386,8 +391,17 @@ export const rejectOfferAndCreateCounterOfferAsAgent = async (
       },
     });
   } catch (error) {
-    await queryRunner.rollbackTransaction();
-    console.error("Error rejecting offer and creating counteroffer:", error);
+    try {
+      await queryRunner.rollbackTransaction();
+    } catch (rollbackError) {
+      console.error("Rollback failed:", rollbackError);
+    }
+
+    console.error(
+      "Error rejecting latest account offer and creating counteroffer:",
+      error,
+    );
+
     return res
       .status(500)
       .json({ error: "Failed to reject offer and create counteroffer" });

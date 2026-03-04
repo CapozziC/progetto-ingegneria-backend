@@ -3,7 +3,7 @@ import { authenticationMiddlewareAgent } from "../middleware/auth.agent.middlewa
 import {
   agentAcceptOffer,
   agentRejectOffer,
-  rejectOfferAndCreateCounterOfferAsAgent,
+  rejectLatestAccountOfferAndCreateCounterOfferAsAgent,
 } from "../controllers/offer.controller.js";
 
 const router = express.Router();
@@ -21,7 +21,7 @@ router.post(
 router.post(
   "/agents/:id/counter",
   authenticationMiddlewareAgent,
-  rejectOfferAndCreateCounterOfferAsAgent,
+  rejectLatestAccountOfferAndCreateCounterOfferAsAgent,
 );
 
 export default router;

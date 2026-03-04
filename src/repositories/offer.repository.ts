@@ -89,3 +89,20 @@ export const createCounterOffer = async (
 
   return repo.save(counterOffer);
 };
+
+export async function findLatestPendingAccountOfferForAdvertisement(
+  params: { advertisementId: number; agentId: number },
+  manager: EntityManager,
+): Promise<Offer | null> {
+  const { advertisementId, agentId } = params;
+
+  return manager.getRepository(Offer).findOne({
+    where: {
+      advertisementId,
+      agentId,
+      status: Status.PENDING,
+      madeBy: OfferMadeBy.ACCOUNT,
+    },
+    order: { createdAt: "DESC" },
+  });
+}
