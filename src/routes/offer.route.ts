@@ -1,10 +1,14 @@
 import express from "express";
 import { authenticationMiddlewareAgent } from "../middleware/auth.agent.middleware.js";
 import {
+  accountAcceptAgentOffer,
+  accountRejectAgentOffer,
+  accountRejectAgentOfferAndCreateCounter,
   agentAcceptOffer,
   agentRejectOffer,
   rejectLatestAccountOfferAndCreateCounterOfferAsAgent,
 } from "../controllers/offer.controller.js";
+import { authenticationMiddlewareAccount } from "../middleware/auth.account.middleware.js";
 
 const router = express.Router();
 
@@ -19,10 +23,27 @@ router.post(
   agentRejectOffer,
 );
 router.post(
-  "/offer/agents/:advertisementId/:accountId/offer/counter",
+  "/agents/:advertisementId/:accountId/offer/counter",
   authenticationMiddlewareAgent,
   rejectLatestAccountOfferAndCreateCounterOfferAsAgent,
 );
+// Routes for accounts to accept/reject agent offers
+router.post(
+  "/account/advertisements/:advertisementId/offers/agent/accept",
+  authenticationMiddlewareAccount,
+  accountAcceptAgentOffer,
+);
 
+router.post(
+  "/account/advertisements/:advertisementId/offers/agent/reject",
+  authenticationMiddlewareAccount,
+  accountRejectAgentOffer,
+);
+
+router.get(
+  "/account/advertisements/:advertisementId/offers/agent/counter",
+  authenticationMiddlewareAccount,
+  accountRejectAgentOfferAndCreateCounter,
+);
 
 export default router;
