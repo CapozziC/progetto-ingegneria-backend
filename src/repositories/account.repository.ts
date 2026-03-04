@@ -37,3 +37,7 @@ export const saveAccount = async (account: Account): Promise<Account> => {
 export const findAccountById = async (id: number): Promise<Account | null> => {
   return AccountRepository.findOne({ where: { id } });
 };
+
+export const deleteAccountById = async (id: number): Promise<void> => {
+  await AccountRepository.delete(id);
+}

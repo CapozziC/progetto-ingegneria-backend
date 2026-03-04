@@ -161,8 +161,9 @@ export const getOffersForAccountAsAgent = async (
       .json({ error: "Failed to get offers for account as agent" });
   }
 };
-/**
- * Accept an offer as an agent, changing the offer status to accepted, the related advertisement status to sold, rejecting all other pending offers for the same advertisement and cancelling all appointments related to the same advertisement, in a single transaction
+//Agent accept/reject offer and counteroffer 
+/**  
+* Accept an offer as an agent, changing the offer status to accepted, the related advertisement status to sold, rejecting all other pending offers for the same advertisement and cancelling all appointments related to the same advertisement, in a single transaction
  * @param req RequestAgent with params containing offer id
  * @param res Response with success message or error message
  * @returns JSON with success message or error message
