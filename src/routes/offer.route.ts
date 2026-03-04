@@ -19,7 +19,7 @@ router.post(
   agentRejectOffer,
 );
 router.post(
-  "/agents/:id/counter",
+  "/agents/:id_adv/:id_account/offer/counter",
   authenticationMiddlewareAgent,
   rejectLatestAccountOfferAndCreateCounterOfferAsAgent,
 );

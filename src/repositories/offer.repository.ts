@@ -55,7 +55,7 @@ export const findOfferByIdForAgent = async (
   });
 };
 
-// Query for transaction to offer 
+// Query for transaction to offer
 function offerRepo(manager?: EntityManager) {
   return manager ? manager.getRepository(Offer) : OfferRepository;
 }
@@ -90,19 +90,20 @@ export const createCounterOffer = async (
   return repo.save(counterOffer);
 };
 
-export async function findLatestPendingAccountOfferForAdvertisement(
-  params: { advertisementId: number; agentId: number },
+export async function findLatestPendingAccountOfferForAdvertisementAndAccount(
+  params: { advertisementId: number; agentId: number; accountId: number },
   manager: EntityManager,
 ): Promise<Offer | null> {
-  const { advertisementId, agentId } = params;
+  const { advertisementId, agentId, accountId } = params;
 
   return manager.getRepository(Offer).findOne({
     where: {
       advertisementId,
       agentId,
+      accountId,
       status: Status.PENDING,
       madeBy: OfferMadeBy.ACCOUNT,
     },
-    order: { createdAt: "DESC" },
+    order: { createdAt: "DESC" }, 
   });
 }

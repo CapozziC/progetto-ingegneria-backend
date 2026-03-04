@@ -15,7 +15,7 @@ import {
   findOfferByIdForAgent,
   rejectOfferById,
   saveOffer,
-  findLatestPendingAccountOfferForAdvertisement,
+  findLatestPendingAccountOfferForAdvertisementAndAccount,
 } from "../repositories/offer.repository.js";
 
 import { Status as AdvStatus } from "../entities/advertisement.js";
@@ -316,6 +316,11 @@ export const rejectLatestAccountOfferAndCreateCounterOfferAsAgent = async (
       return res.status(400).json({ error: "Invalid advertisement id" });
     }
 
+    const accountId = parsePositiveInt(req.params.accountId);
+    if (!accountId) {
+      return res.status(400).json({ error: "Invalid account id" });
+    }
+
     const { price } = req.body;
     if (typeof price !== "number" || !Number.isFinite(price) || price <= 0) {
       return res.status(400).json({ error: "Invalid price" });
@@ -323,19 +328,16 @@ export const rejectLatestAccountOfferAndCreateCounterOfferAsAgent = async (
 
     await queryRunner.startTransaction();
 
-    // 1) check adv exists + is active (and belongs to agent if that’s your rule)
     const advStatus = await findAdvertisementStatusById(
       advertisementId,
       queryRunner.manager,
     );
-
     if (!advStatus) {
       await queryRunner.rollbackTransaction();
       return res
         .status(404)
         .json({ error: "Associated advertisement not found" });
     }
-
     if (advStatus !== "active") {
       await queryRunner.rollbackTransaction();
       return res.status(409).json({
@@ -343,13 +345,9 @@ export const rejectLatestAccountOfferAndCreateCounterOfferAsAgent = async (
       });
     }
 
-    // 2) find latest pending offer made by ACCOUNT for this advertisement
     const lastAccountOffer =
-      await findLatestPendingAccountOfferForAdvertisement(
-        {
-          advertisementId,
-          agentId: agent.id,
-        },
+      await findLatestPendingAccountOfferForAdvertisementAndAccount(
+        { advertisementId, agentId: agent.id, accountId },
         queryRunner.manager,
       );
 
@@ -357,20 +355,18 @@ export const rejectLatestAccountOfferAndCreateCounterOfferAsAgent = async (
       await queryRunner.rollbackTransaction();
       return res.status(409).json({
         error:
-          "No pending account offer found to counter (agent can only counter account offers)",
+          "No pending account offer found for this account to counter (agent can only counter account offers)",
       });
     }
 
-    // 3) reject that offer
     await rejectOfferById(lastAccountOffer.id, queryRunner.manager);
 
-    // 4) create counteroffer
     const counterOffer = await createCounterOffer(
       {
         price,
-        advertisementId: lastAccountOffer.advertisementId,
-        accountId: lastAccountOffer.accountId,
-        agentId: agent.id, // meglio agent.id esplicito
+        advertisementId,
+        accountId,
+        agentId: agent.id,
       },
       queryRunner.manager,
     );
@@ -379,8 +375,8 @@ export const rejectLatestAccountOfferAndCreateCounterOfferAsAgent = async (
 
     return res.status(201).json({
       agentId: agent.id,
-      advertisementId: lastAccountOffer.advertisementId,
-      accountId: lastAccountOffer.accountId,
+      advertisementId,
+      accountId,
       rejectedOfferId: lastAccountOffer.id,
       counterOffer: {
         offerId: counterOffer.id,
@@ -392,19 +388,15 @@ export const rejectLatestAccountOfferAndCreateCounterOfferAsAgent = async (
     });
   } catch (error) {
     try {
-      await queryRunner.rollbackTransaction();
+      if (queryRunner.isTransactionActive) {
+        await queryRunner.rollbackTransaction();
+      }
     } catch (rollbackError) {
-      console.error("Rollback failed:", rollbackError);
+      console.error("Rollback error:", rollbackError);
     }
 
-    console.error(
-      "Error rejecting latest account offer and creating counteroffer:",
-      error,
-    );
-
-    return res
-      .status(500)
-      .json({ error: "Failed to reject offer and create counteroffer" });
+    console.error("Error creating counteroffer:", error);
+    return res.status(500).json({ error: "Failed to create counteroffer" });
   } finally {
     await queryRunner.release();
   }
