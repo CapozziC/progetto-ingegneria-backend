@@ -24,4 +24,5 @@ router.post(
   rejectLatestAccountOfferAndCreateCounterOfferAsAgent,
 );
 
+
 export default router;

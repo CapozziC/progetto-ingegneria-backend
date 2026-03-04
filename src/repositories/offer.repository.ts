@@ -104,6 +104,24 @@ export async function findLatestPendingAccountOfferForAdvertisementAndAccount(
       status: Status.PENDING,
       madeBy: OfferMadeBy.ACCOUNT,
     },
-    order: { createdAt: "DESC" }, 
+    order: { createdAt: "DESC" },
+  });
+}
+
+export async function findLatestPendingAgentOfferForNegotiation(
+  params: { advertisementId: number; agentId: number; accountId: number },
+  manager: EntityManager,
+): Promise<Offer | null> {
+  const { advertisementId, agentId, accountId } = params;
+
+  return manager.getRepository(Offer).findOne({
+    where: {
+      advertisementId,
+      agentId,
+      accountId,
+      status: Status.PENDING,
+      madeBy: OfferMadeBy.AGENT,
+    },
+    order: { createdAt: "DESC" },
   });
 }

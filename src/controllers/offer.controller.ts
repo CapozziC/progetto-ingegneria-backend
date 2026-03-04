@@ -20,7 +20,7 @@ import {
 
 import { Status as AdvStatus } from "../entities/advertisement.js";
 import { Status as AppStatus } from "../entities/appointment.js";
-import { Status } from "../entities/offer.js";
+import { Status, OfferMadeBy } from "../entities/offer.js";
 import { Advertisement } from "../entities/advertisement.js";
 import { Appointment } from "../entities/appointment.js";
 import { Offer } from "../entities/offer.js";
@@ -294,11 +294,10 @@ export const agentRejectOffer = async (req: RequestAgent, res: Response) => {
   }
 };
 /**
- * Reject the latest pending offer made by an account for an advertisement
- * and create a counteroffer as an agent.
- *
- * Route example: POST /agent/advertisements/:advertisementId/offers/counter
- * Body: { "price": 123456 }
+ *  Reject the latest pending offer made by an account for a specific advertisement and create a counteroffer as an agent in a single transaction, only if the authenticated agent is the owner of the advertisement and the offer to reject is made by an account (agent can only counter account offers)
+ * @param req RequestAgent with params containing advertisement id and account id and body containing price for the counteroffer
+ * @param res Response with created counteroffer or error message
+ * @returns JSON with created counteroffer or error message
  */
 export const rejectLatestAccountOfferAndCreateCounterOfferAsAgent = async (
   req: RequestAgent,
@@ -398,6 +397,253 @@ export const rejectLatestAccountOfferAndCreateCounterOfferAsAgent = async (
 
     console.error("Error creating counteroffer:", error);
     return res.status(500).json({ error: "Failed to create counteroffer" });
+  } finally {
+    await queryRunner.release();
+  }
+};
+
+//----------------
+//ACCOUNT
+//----------------
+
+/**
+ *  Accept an offer made by an agent, changing the offer status to accepted and the related advertisement status to sold, only if the authenticated account is the recipient of the offer and the offer is made by an agent (account can only accept agent offers)
+ * @param req RequestAccount with params containing advertisement id
+ * @param res Response with success or error message
+ * @returns JSON with success or error message
+ */
+export const accountAcceptAgentOffer = async (
+  req: RequestAccount,
+  res: Response,
+) => {
+  const queryRunner = AppDataSource.createQueryRunner();
+  await queryRunner.connect();
+
+  try {
+    const account = requireAccount(req, res);
+    if (!account) return;
+
+    const advertisementId = parsePositiveInt(req.params.advertisementId);
+    if (!advertisementId) {
+      return res.status(400).json({ error: "Invalid advertisement id" });
+    }
+
+    await queryRunner.startTransaction();
+
+    // opzionale: verifica annuncio esiste/active
+    const advStatus = await findAdvertisementStatusById(
+      advertisementId,
+      queryRunner.manager,
+    );
+    if (!advStatus) {
+      await queryRunner.rollbackTransaction();
+      return res
+        .status(404)
+        .json({ error: "Associated advertisement not found" });
+    }
+    if (advStatus !== "active") {
+      await queryRunner.rollbackTransaction();
+      return res.status(409).json({
+        error: "Only offers for active advertisements can be accepted",
+      });
+    }
+
+    // trova ultima PENDING fatta dall’agente per questa trattativa
+    const lastAgentOffer = await queryRunner.manager
+      .getRepository(Offer)
+      .findOne({
+        where: {
+          advertisementId,
+          accountId: account.id,
+          status: Status.PENDING,
+          madeBy: OfferMadeBy.AGENT,
+        },
+        order: { createdAt: "DESC" },
+        lock: { mode: "pessimistic_write" },
+      });
+
+    if (!lastAgentOffer) {
+      await queryRunner.rollbackTransaction();
+      return res.status(409).json({
+        error: "No pending agent offer found to accept",
+      });
+    }
+
+    lastAgentOffer.status = Status.ACCEPTED;
+    await queryRunner.manager.getRepository(Offer).save(lastAgentOffer);
+
+    await queryRunner.commitTransaction();
+
+    return res.status(200).json({
+      ok: true,
+      acceptedOfferId: lastAgentOffer.id,
+      advertisementId,
+      accountId: account.id,
+    });
+  } catch (error) {
+    try {
+      if (queryRunner.isTransactionActive)
+        await queryRunner.rollbackTransaction();
+    } catch (rollbackError) {
+      console.error("Error during rollback:", rollbackError);
+    }
+    console.error("Error accepting agent offer as account:", error);
+    return res.status(500).json({ error: "Failed to accept agent offer" });
+  } finally {
+    await queryRunner.release();
+  }
+};
+
+/**
+ *  Reject the latest pending offer made by an agent for an advertisement, only if the authenticated account is the recipient of the offer and the offer is made by an agent (account can only reject agent offers)
+ * @param req RequestAccount with params containing advertisement id
+ * @param res Response with success or error message
+ * @returns JSON with success or error message
+ */
+export const accountRejectAgentOffer = async (
+  req: RequestAccount,
+  res: Response,
+) => {
+  const queryRunner = AppDataSource.createQueryRunner();
+  await queryRunner.connect();
+
+  try {
+    const account = requireAccount(req, res);
+    if (!account) return;
+
+    const advertisementId = parsePositiveInt(req.params.advertisementId);
+    if (!advertisementId) {
+      return res.status(400).json({ error: "Invalid advertisement id" });
+    }
+
+    await queryRunner.startTransaction();
+
+    const lastAgentOffer = await queryRunner.manager
+      .getRepository(Offer)
+      .findOne({
+        where: {
+          advertisementId,
+          accountId: account.id,
+          status: Status.PENDING,
+          madeBy: OfferMadeBy.AGENT,
+        },
+        order: { createdAt: "DESC" },
+        lock: { mode: "pessimistic_write" },
+      });
+
+    if (!lastAgentOffer) {
+      await queryRunner.rollbackTransaction();
+      return res
+        .status(409)
+        .json({ error: "No pending agent offer found to reject" });
+    }
+
+    lastAgentOffer.status = Status.REJECTED;
+    await queryRunner.manager.getRepository(Offer).save(lastAgentOffer);
+
+    await queryRunner.commitTransaction();
+    return res
+      .status(200)
+      .json({ ok: true, rejectedOfferId: lastAgentOffer.id });
+  } catch (error) {
+    try {
+      if (queryRunner.isTransactionActive)
+        await queryRunner.rollbackTransaction();
+    } catch (rollbackError) {
+      console.error("Error during rollback:", rollbackError);
+    }
+    console.error("Error accepting agent offer as account:", error);
+    return res.status(500).json({ error: "Failed to accept agent offer" });
+  } finally {
+    await queryRunner.release();
+  }
+};
+/**
+ *  Reject the latest pending offer made by an agent for an advertisement and create a counteroffer, only if the authenticated account is the recipient of the offer and the offer is made by an agent (account can only counter agent offers)
+ * @param req RequestAccount with params containing advertisement id and body containing price for the counteroffer
+ * @param res Response with created counteroffer or error message
+ * @returns JSON with created counteroffer or error message
+ */
+export const accountRejectAgentOfferAndCreateCounter = async (
+  req: RequestAccount,
+  res: Response,
+) => {
+  const queryRunner = AppDataSource.createQueryRunner();
+  await queryRunner.connect();
+
+  try {
+    const account = requireAccount(req, res);
+    if (!account) return;
+
+    const advertisementId = parsePositiveInt(req.params.advertisementId);
+    if (!advertisementId) {
+      return res.status(400).json({ error: "Invalid advertisement id" });
+    }
+
+    const { price } = req.body;
+    if (typeof price !== "number" || !Number.isFinite(price) || price <= 0) {
+      return res.status(400).json({ error: "Invalid price" });
+    }
+
+    await queryRunner.startTransaction();
+
+    // trova ultima offer pending dell’agente nella trattativa
+    const lastAgentOffer = await queryRunner.manager
+      .getRepository(Offer)
+      .findOne({
+        where: {
+          advertisementId,
+          accountId: account.id,
+          status: Status.PENDING,
+          madeBy: OfferMadeBy.AGENT,
+        },
+        order: { createdAt: "DESC" },
+        lock: { mode: "pessimistic_write" },
+      });
+
+    if (!lastAgentOffer) {
+      await queryRunner.rollbackTransaction();
+      return res.status(409).json({
+        error:
+          "No pending agent offer found to counter (account can only counter agent offers)",
+      });
+    }
+
+    // rifiuta la offer agente
+    lastAgentOffer.status = Status.REJECTED;
+    await queryRunner.manager.getRepository(Offer).save(lastAgentOffer);
+
+    // crea nuova offer account (controproposta)
+    const repo = queryRunner.manager.getRepository(Offer);
+    const newAccountOffer = repo.create({
+      advertisementId,
+      accountId: account.id,
+      agentId: lastAgentOffer.agentId, // importante: prendi l’agente della trattativa
+      price,
+      madeBy: OfferMadeBy.ACCOUNT,
+      status: Status.PENDING,
+    });
+    await repo.save(newAccountOffer);
+
+    await queryRunner.commitTransaction();
+
+    return res.status(201).json({
+      ok: true,
+      rejectedOfferId: lastAgentOffer.id,
+      counterOfferId: newAccountOffer.id,
+      advertisementId,
+      accountId: account.id,
+      agentId: newAccountOffer.agentId,
+    });
+  } catch (error) {
+    try {
+      if (queryRunner.isTransactionActive)
+        await queryRunner.rollbackTransaction();
+    } catch (rollbackError) {
+      console.error("Error during rollback:", rollbackError);
+    }
+    console.error("Error countering agent offer as account:", error);
+    return res.status(500).json({ error: "Failed to counter agent offer" });
   } finally {
     await queryRunner.release();
   }
