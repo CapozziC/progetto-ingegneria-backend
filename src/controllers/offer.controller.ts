@@ -320,6 +320,7 @@ export const rejectLatestAccountOfferAndCreateCounterOfferAsAgent = async (
     if (!accountId) {
       return res.status(400).json({ error: "Invalid account id" });
     }
+    console.log("PARAMS:", req.params);
 
     const { price } = req.body;
     if (typeof price !== "number" || !Number.isFinite(price) || price <= 0) {
