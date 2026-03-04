@@ -430,37 +430,41 @@ export const accountAcceptAgentOffer = async (
 
     await queryRunner.startTransaction();
 
-    // opzionale: verifica annuncio esiste/active
-    const advStatus = await findAdvertisementStatusById(
-      advertisementId,
-      queryRunner.manager,
-    );
-    if (!advStatus) {
+    const offerRepo = queryRunner.manager.getRepository(Offer);
+    const advRepo = queryRunner.manager.getRepository(Advertisement);
+    const appointmentRepo = queryRunner.manager.getRepository(Appointment);
+
+    // Lock advertisement
+    const advertisement = await advRepo.findOne({
+      where: { id: advertisementId },
+      lock: { mode: "pessimistic_write" },
+    });
+
+    if (!advertisement) {
       await queryRunner.rollbackTransaction();
       return res
         .status(404)
         .json({ error: "Associated advertisement not found" });
     }
-    if (advStatus !== "active") {
+
+    if (advertisement.status !== AdvStatus.ACTIVE) {
       await queryRunner.rollbackTransaction();
       return res.status(409).json({
         error: "Only offers for active advertisements can be accepted",
       });
     }
 
-    // trova ultima PENDING fatta dall’agente per questa trattativa
-    const lastAgentOffer = await queryRunner.manager
-      .getRepository(Offer)
-      .findOne({
-        where: {
-          advertisementId,
-          accountId: account.id,
-          status: Status.PENDING,
-          madeBy: OfferMadeBy.AGENT,
-        },
-        order: { createdAt: "DESC" },
-        lock: { mode: "pessimistic_write" },
-      });
+    // Lock ultima controproposta agente
+    const lastAgentOffer = await offerRepo.findOne({
+      where: {
+        advertisementId,
+        accountId: account.id,
+        status: Status.PENDING,
+        madeBy: OfferMadeBy.AGENT,
+      },
+      order: { createdAt: "DESC" },
+      lock: { mode: "pessimistic_write" },
+    });
 
     if (!lastAgentOffer) {
       await queryRunner.rollbackTransaction();
@@ -469,8 +473,32 @@ export const accountAcceptAgentOffer = async (
       });
     }
 
+    //  accetta la controproposta
     lastAgentOffer.status = Status.ACCEPTED;
-    await queryRunner.manager.getRepository(Offer).save(lastAgentOffer);
+    await offerRepo.save(lastAgentOffer);
+
+    // metti annuncio SOLD
+    advertisement.status = AdvStatus.SOLD;
+    await advRepo.save(advertisement);
+
+    // rifiuta tutte le altre pending dello stesso annuncio
+    await offerRepo.update(
+      {
+        advertisementId,
+        id: Not(lastAgentOffer.id),
+        status: Status.PENDING,
+      },
+      { status: Status.REJECTED },
+    );
+
+    // cancella appuntamenti attivi
+    await appointmentRepo.update(
+      {
+        advertisementId,
+        status: In([AppStatus.REQUESTED, AppStatus.CONFIRMED]),
+      },
+      { status: AppStatus.CANCELLED },
+    );
 
     await queryRunner.commitTransaction();
 
@@ -478,15 +506,16 @@ export const accountAcceptAgentOffer = async (
       ok: true,
       acceptedOfferId: lastAgentOffer.id,
       advertisementId,
-      accountId: account.id,
+      advertisementStatus: AdvStatus.SOLD,
     });
   } catch (error) {
     try {
       if (queryRunner.isTransactionActive)
         await queryRunner.rollbackTransaction();
     } catch (rollbackError) {
-      console.error("Error during rollback:", rollbackError);
+      console.error("Rollback error:", rollbackError);
     }
+
     console.error("Error accepting agent offer as account:", error);
     return res.status(500).json({ error: "Failed to accept agent offer" });
   } finally {
