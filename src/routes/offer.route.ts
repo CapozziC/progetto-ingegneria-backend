@@ -27,7 +27,7 @@ router.post(
   authenticationMiddlewareAgent,
   rejectLatestAccountOfferAndCreateCounterOfferAsAgent,
 );
-// Routes for accounts to accept/reject agent offers
+// Routes for accounts to accept/reject/counter agent offers
 router.post(
   "/account/advertisements/:advertisementId/offers/agent/accept",
   authenticationMiddlewareAccount,

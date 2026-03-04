@@ -185,7 +185,6 @@ export const agentAcceptOffer = async (req: RequestAgent, res: Response) => {
     // Lock the offer row for update to prevent concurrent modifications
     const offer = await offerRepo.findOne({
       where: { id: offerId, agentId: agent.id },
-      relations: ["advertisement"],
       lock: { mode: "pessimistic_write" },
     });
 
