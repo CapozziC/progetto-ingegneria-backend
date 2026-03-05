@@ -61,17 +61,22 @@ export const getAllAdvertisements = async (
   else {
     const ip = getClientIp(req);
     if (ip) {
-      const geo = await ipGeolocate(ip);
-      if (geo.latitude != null && geo.longitude != null) {
-        lat = geo.latitude;
-        lon = geo.longitude;
-        mode = "ip";
-        locationInfo = { ip, city: geo.city, country: geo.country, lat, lon };
+      try {
+        const geo = await ipGeolocate(ip);
+        if (geo.latitude != null && geo.longitude != null) {
+          lat = geo.latitude;
+          lon = geo.longitude;
+          mode = "ip";
+        }
+      } catch (e) {
+        console.error("IP GEO ERROR:", e);
       }
     }
   }
 
-  console.log(`getAllAdvertisements: mode=${mode}, locationInfo=${JSON.stringify(locationInfo)}`);
+  console.log(
+    `getAllAdvertisements: mode=${mode}, locationInfo=${JSON.stringify(locationInfo)}`,
+  );
   const result = await findAdvertisements({
     take,
     skip,
