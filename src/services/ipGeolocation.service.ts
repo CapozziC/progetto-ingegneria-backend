@@ -55,10 +55,11 @@ export async function ipGeolocate(ipRaw: string) {
     "IPGEOLOCATION_API_KEY len:",
     process.env.IPGEOLOCATION_API_KEY?.length,
   );
- 
+
   if (!apiKey) throw new Error("Missing IPGEOLOCATION_API_KEY");
 
   const ip = normalizeIp(ipRaw);
+  console.log("Normalized IP:", ip);
 
   // evita chiamate inutili in locale
   if (ip === "127.0.0.1" || ip === "::1") {
