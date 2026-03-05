@@ -71,6 +71,7 @@ export const getAllAdvertisements = async (
     }
   }
 
+  console.log(`getAllAdvertisements: mode=${mode}, locationInfo=${JSON.stringify(locationInfo)}`);
   const result = await findAdvertisements({
     take,
     skip,
