@@ -161,9 +161,9 @@ export const getOffersForAccountAsAgent = async (
       .json({ error: "Failed to get offers for account as agent" });
   }
 };
-//Agent accept/reject offer and counteroffer 
-/**  
-* Accept an offer as an agent, changing the offer status to accepted, the related advertisement status to sold, rejecting all other pending offers for the same advertisement and cancelling all appointments related to the same advertisement, in a single transaction
+//Agent accept/reject offer and counteroffer
+/**
+ * Accept an offer as an agent, changing the offer status to accepted, the related advertisement status to sold, rejecting all other pending offers for the same advertisement and cancelling all appointments related to the same advertisement, in a single transaction
  * @param req RequestAgent with params containing offer id
  * @param res Response with success message or error message
  * @returns JSON with success message or error message
@@ -171,19 +171,23 @@ export const getOffersForAccountAsAgent = async (
 export const agentAcceptOffer = async (req: RequestAgent, res: Response) => {
   const agent = requireAgent(req, res);
   if (!agent) return;
+
   const offerId = parsePositiveInt(req.params.id);
   if (!offerId) {
     return res.status(400).json({ error: "Invalid offer id" });
   }
+
   const queryRunner = AppDataSource.createQueryRunner();
   await queryRunner.connect();
+
   try {
     await queryRunner.startTransaction();
+
     const offerRepo = queryRunner.manager.getRepository(Offer);
     const advRepo = queryRunner.manager.getRepository(Advertisement);
     const appointmentRepo = queryRunner.manager.getRepository(Appointment);
 
-    // Lock the offer row for update to prevent concurrent modifications
+    // Lock offer row
     const offer = await offerRepo.findOne({
       where: { id: offerId, agentId: agent.id },
       lock: { mode: "pessimistic_write" },
@@ -200,37 +204,59 @@ export const agentAcceptOffer = async (req: RequestAgent, res: Response) => {
         .status(403)
         .json({ error: "You are not the owner of this offer" });
     }
-    //Verify offer is pending
+
     if (offer.status !== Status.PENDING) {
       await queryRunner.rollbackTransaction();
       return res
         .status(400)
         .json({ error: "Only pending offers can be accepted" });
     }
-    //lock the advertisement row for update to prevent concurrent modifications
+
+    if (!offer.price || Number(offer.price) <= 0) {
+      await queryRunner.rollbackTransaction();
+      return res.status(400).json({ error: "Invalid offer price" });
+    }
+
+    // Lock advertisement row
     const advertisement = await advRepo.findOne({
       where: { id: offer.advertisementId },
       lock: { mode: "pessimistic_write" },
     });
+
     if (!advertisement) {
       await queryRunner.rollbackTransaction();
       return res
         .status(404)
         .json({ error: "Associated advertisement not found" });
     }
-    //Verify advertisement is active
+
     if (advertisement.status !== "active") {
       await queryRunner.rollbackTransaction();
       return res.status(409).json({
         error: "Only offers for active advertisements can be accepted",
       });
     }
+
+    // ✅ Set SOLD + sale metadata
     advertisement.status = AdvStatus.SOLD;
+    advertisement.soldPrice = offer.price;
+    advertisement.soldPrice = Number(offer.price);
+    if (
+      !Number.isFinite(advertisement.soldPrice) ||
+      advertisement.soldPrice <= 0
+    ) {
+      await queryRunner.rollbackTransaction();
+      return res.status(400).json({ error: "Invalid offer price" });
+    } // prezzo di vendita
+    advertisement.soldAt = new Date(); // data di vendita
+
     await advRepo.save(advertisement);
 
+    // Accept this offer
     offer.status = Status.ACCEPTED;
     await offerRepo.save(offer);
 
+    // Reject all other pending offers for same adv
     await offerRepo.update(
       {
         advertisementId: offer.advertisementId,
@@ -239,6 +265,8 @@ export const agentAcceptOffer = async (req: RequestAgent, res: Response) => {
       },
       { status: Status.REJECTED },
     );
+
+    // Cancel requested/confirmed appointments for the adv
     await appointmentRepo.update(
       {
         advertisementId: offer.advertisementId,
@@ -248,11 +276,14 @@ export const agentAcceptOffer = async (req: RequestAgent, res: Response) => {
     );
 
     await queryRunner.commitTransaction();
+
     return res.status(200).json({
       ok: true,
       acceptedOfferId: offer.id,
       advertisementId: offer.advertisementId,
       advertisementStatus: AdvStatus.SOLD,
+      soldPrice: offer.price,
+      soldAt: advertisement.soldAt,
     });
   } catch (error) {
     await queryRunner.rollbackTransaction();
@@ -479,6 +510,15 @@ export const accountAcceptAgentOffer = async (
 
     // metti annuncio SOLD
     advertisement.status = AdvStatus.SOLD;
+    advertisement.soldPrice = lastAgentOffer.price;
+    if (
+      !Number.isFinite(advertisement.soldPrice) ||
+      advertisement.soldPrice <= 0
+    ) {
+      await queryRunner.rollbackTransaction();
+      return res.status(400).json({ error: "Invalid offer price" });
+    }
+    advertisement.soldAt = new Date(); // data di vendita
     await advRepo.save(advertisement);
 
     // rifiuta tutte le altre pending dello stesso annuncio

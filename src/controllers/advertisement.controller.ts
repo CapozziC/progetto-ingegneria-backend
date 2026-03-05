@@ -222,12 +222,14 @@ export const createAdvertisementWithRealEstateAndPhotosTx = async (
 
         const upsertResult = await queryRunner.manager.upsert(
           Poi,
-          nearbyValid.map((p) => ({
-            geoapifyPlaceId: p.geoapifyPlaceId,
-            name: p.name,
-            type: p.type,
-            location: p.location,
-          })),
+          nearbyValid
+            .filter((p) => p.geoapifyPlaceId != null)
+            .map((p) => ({
+              geoapifyPlaceId: p.geoapifyPlaceId as string,
+              name: p.name,
+              type: p.type,
+              location: p.location,
+            })),
           {
             conflictPaths: ["geoapifyPlaceId"],
             skipUpdateIfNoValuesChanged: true,

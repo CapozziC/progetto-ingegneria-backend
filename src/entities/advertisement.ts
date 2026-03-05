@@ -33,6 +33,13 @@ export enum Type {
 @Entity("advertisement")
 @Check(`length(trim("description")) > 0`)
 @Check(`"price" > 0`)
+@Check(`
+(
+  (status = 'sold' AND sold_price IS NOT NULL AND sold_at IS NOT NULL)
+  OR
+  (status = 'active' AND sold_price IS NULL AND sold_at IS NULL)
+)
+`)
 @Index("IDX_adv_status_price", ["status", "price"])
 export class Advertisement {
   @PrimaryGeneratedColumn()
@@ -44,14 +51,14 @@ export class Advertisement {
   @Column({ type: "decimal", precision: 12, scale: 0 })
   price!: number;
 
- @Column({
+  @Column({
     name: "sold_price",
     type: "decimal",
     precision: 12,
     scale: 2,
     nullable: true,
   })
-  soldPrice!: number | null; 
+  soldPrice!: number | null;
 
   @CreateDateColumn({
     name: "created_at",
@@ -65,7 +72,7 @@ export class Advertisement {
   })
   updatedAt!: Date;
 
-  @CreateDateColumn({
+  @Column({
     name: "sold_at",
     type: "timestamp with time zone",
     nullable: true,
