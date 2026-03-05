@@ -44,6 +44,15 @@ export class Advertisement {
   @Column({ type: "decimal", precision: 12, scale: 0 })
   price!: number;
 
+ @Column({
+    name: "sold_price",
+    type: "decimal",
+    precision: 12,
+    scale: 2,
+    nullable: true,
+  })
+  soldPrice!: number | null; 
+
   @CreateDateColumn({
     name: "created_at",
     type: "timestamp with time zone",
@@ -55,6 +64,13 @@ export class Advertisement {
     type: "timestamp with time zone",
   })
   updatedAt!: Date;
+
+  @CreateDateColumn({
+    name: "sold_at",
+    type: "timestamp with time zone",
+    nullable: true,
+  })
+  soldAt!: Date | null;
 
   @Column({
     type: "enum",
