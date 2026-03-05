@@ -14,7 +14,7 @@ export class Poi {
 
   @Index("UQ_poi_geoapify_place_id", { unique: true })
   @Column({ name: "geoapify_place_id", type: "text"})
-  geoapifyPlaceId?: string;
+  geoapifyPlaceId!: string;
 
   @Column({ type: "varchar", length: 255 })
   name!: string;
