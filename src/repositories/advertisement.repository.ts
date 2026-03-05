@@ -102,11 +102,16 @@ export const findAdvertisementStatusById = async (
   return adv?.status ?? null;
 };
 
-export async function findAllAdvertisements(params?: {
+export async function findAdvertisements(params?: {
   take?: number;
   skip?: number;
   status?: string;
   type?: string;
+
+  // opzionale: se presenti → nearby
+  lat?: number;
+  lon?: number;
+  radiusMeters?: number;
 }) {
   const take = Math.min(Math.max(params?.take ?? 20, 1), 100);
   const skip = Math.max(params?.skip ?? 0, 0);
@@ -116,7 +121,7 @@ export async function findAllAdvertisements(params?: {
     .leftJoinAndSelect("adv.photos", "ph")
     .leftJoinAndSelect("adv.pois", "poi")
     .leftJoinAndSelect("adv.agent", "ag")
-    .orderBy("adv.id", "DESC")
+    .where("1=1")
     .addOrderBy("ph.position", "ASC")
     .take(take)
     .skip(skip);
@@ -124,6 +129,42 @@ export async function findAllAdvertisements(params?: {
   if (params?.status)
     qb.andWhere("adv.status = :status", { status: params.status });
   if (params?.type) qb.andWhere("adv.type = :type", { type: params.type });
+
+  const hasCoords =
+    Number.isFinite(params?.lat) && Number.isFinite(params?.lon);
+
+  if (hasCoords) {
+    const radius = params?.radiusMeters ?? 10_000;
+
+    qb.andWhere("re.location IS NOT NULL");
+
+    qb.andWhere(
+      `
+      ST_DWithin(
+        re.location::geography,
+        ST_SetSRID(ST_Point(:lon, :lat), 4326)::geography,
+        :radius
+      )
+      `,
+      { lat: params!.lat, lon: params!.lon, radius },
+    );
+
+    // distanza per ordinare
+    qb.addSelect(
+      `
+      ST_Distance(
+        re.location::geography,
+        ST_SetSRID(ST_Point(:lon, :lat), 4326)::geography
+      )
+      `,
+      "distance_m",
+    );
+
+    qb.orderBy("distance_m", "ASC");
+  } else {
+    // fallback classico
+    qb.orderBy("adv.id", "DESC");
+  }
 
   const [items, count] = await qb.getManyAndCount();
   return { items, count, take, skip };

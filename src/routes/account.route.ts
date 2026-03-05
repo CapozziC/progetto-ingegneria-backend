@@ -12,12 +12,16 @@ router.get(
   authenticationMiddlewareAccount,
   getAppointmentsForAccount,
 );
-
+//GET /api/advertisements(ip)
+//GET /api/advertisements?city=Milano
+//GET /api/advertisements?lat=..&lon=.. 
+//GET /api/advertisements?status=..&type=..&city=..&lat=..&lon=..&take=..&skip=..
 router.get(
   "/advertisements",
   authenticationMiddlewareAccount,
   getAllAdvertisements,
 );
+
 export default router;
 
 router.delete("/delete/:id", authenticationMiddlewareAccount, deleteAccount);
