@@ -76,6 +76,10 @@ export const getAllAdvertisements = async (
   else {
     const ipRaw = getClientIp(req);
     const ip = ipRaw ? normalizeIp(ipRaw) : null;
+    console.log("cf-connecting-ip:", req.headers["cf-connecting-ip"]);
+    console.log("x-forwarded-for:", req.headers["x-forwarded-for"]);
+    console.log("req.ip:", req.ip);
+    console.log("socket.remoteAddress:", req.socket.remoteAddress);
 
     if (ip && ip !== "127.0.0.1" && ip !== "::1") {
       try {

@@ -12,6 +12,8 @@ function normalizeIp(ip: string): string {
 
 export async function ipGeolocate(ipRaw?: string) {
   const apiKey = process.env.IPGEOLOCATION_API_KEY; // usa la tua key Geoapify
+  console.log("IPGEOLOCATION_API_KEY present?", Boolean(process.env.IPGEOLOCATION_API_KEY));
+
   if (!apiKey) throw new Error("Missing IPGEOLOCATION_API_KEY");
 
   const url = new URL("https://api.geoapify.com/v1/ipinfo");
