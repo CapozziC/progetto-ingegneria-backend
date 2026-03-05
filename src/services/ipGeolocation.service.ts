@@ -51,6 +51,11 @@ function normalizeIp(ip: string): string {
 
 export async function ipGeolocate(ipRaw: string) {
   const apiKey = process.env.IPGEOLOCATION_API_KEY;
+  console.log(
+    "IPGEOLOCATION_API_KEY len:",
+    process.env.IPGEOLOCATION_API_KEY?.length,
+  );
+ 
   if (!apiKey) throw new Error("Missing IPGEOLOCATION_API_KEY");
 
   const ip = normalizeIp(ipRaw);
@@ -74,9 +79,12 @@ export async function ipGeolocate(ipRaw: string) {
   try {
     res = await fetch(url.toString());
   } catch (e: unknown) {
-    throw new Error(`IPGeolocation network error: ${e instanceof Error ? e.message : String(e)}`, {
-      cause: e,
-    });
+    throw new Error(
+      `IPGeolocation network error: ${e instanceof Error ? e.message : String(e)}`,
+      {
+        cause: e,
+      },
+    );
   }
 
   const text = await res.text(); // leggi body SEMPRE, poi parse
