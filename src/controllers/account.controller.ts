@@ -122,6 +122,9 @@ export const deleteAccount = async (req: RequestAccount, res: Response) => {
     return res.status(401).json({ error: "Unauthorized" });
   }
   const accountId = Number(req.params.id);
+  if (!Number.isInteger(accountId)) {
+    return res.status(400).json({ error: "Invalid account ID" });
+  }
   try {
     if (account.id !== accountId) {
       return res.status(403).json({
