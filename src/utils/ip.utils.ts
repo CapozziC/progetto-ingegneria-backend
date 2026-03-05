@@ -1,7 +1,6 @@
 import type { Request } from "express";
 
 export function getClientIp(req: Request): string | null {
-
   const cfIp = req.headers["cf-connecting-ip"];
   if (typeof cfIp === "string") {
     return cfIp;
@@ -21,4 +20,8 @@ export function getClientIp(req: Request): string | null {
   }
 
   return null;
+}
+
+export function normalizeIp(ip: string): string {
+  return ip.startsWith("::ffff:") ? ip.slice(7) : ip;
 }

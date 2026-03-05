@@ -1,7 +1,7 @@
 import type { Response } from "express";
 import { RequestAccount } from "../types/express.js";
 import { findAdvertisements } from "../repositories/advertisement.repository.js";
-import { getClientIp } from "../utils/ip.utils.js";
+import { getClientIp, normalizeIp } from "../utils/ip.utils.js";
 import { requireAccount } from "../utils/require.utils.js";
 import { deleteAccountById } from "../repositories/account.repository.js";
 import { ipGeolocate } from "../services/ipGeolocation.service.js";
@@ -20,53 +20,77 @@ export const getAllAdvertisements = async (
     typeof req.query.status === "string" ? req.query.status : undefined;
   const type = typeof req.query.type === "string" ? req.query.type : undefined;
 
-  // filtri “posizione”
   const city =
     typeof req.query.city === "string" ? req.query.city.trim() : undefined;
 
   const qLat = typeof req.query.lat === "string" ? Number(req.query.lat) : NaN;
   const qLon = typeof req.query.lon === "string" ? Number(req.query.lon) : NaN;
 
+  const radiusMeters =
+    typeof req.query.radiusMeters === "string"
+      ? Number(req.query.radiusMeters)
+      : 10_000;
+
   let lat: number | undefined;
   let lon: number | undefined;
   let mode: "coords" | "city" | "ip" | "none" = "none";
   let locationInfo:
     | { lat: number; lon: number }
-    | { city: string; lat: number; lon: number }
+    | {
+        query: string;
+        formatted: string;
+        placeId: string;
+        lat: number;
+        lon: number;
+      }
     | { ip: string; city?: string; country?: string; lat: number; lon: number }
     | null = null;
 
-  // 1) coords esplicite (mappa/GPS)
+  // 1) coords esplicite (GPS/mappa)
   if (Number.isFinite(qLat) && Number.isFinite(qLon)) {
     lat = qLat;
     lon = qLon;
     mode = "coords";
     locationInfo = { lat, lon };
   }
-  // 2) città cercata
+  // 2) città cercata (Geoapify geocode)
   else if (city) {
     const g = await forwardGeocodeAddress(city);
-    // qui sotto adatta ai nomi reali che ritorna la tua funzione:
-    lat = g?.lat;
-    lon = g?.lng;
-
-    if (!Number.isFinite(lat) || !Number.isFinite(lon)) {
+    if (!g) {
       return res.status(400).json({ error: "Could not geocode city" });
     }
 
+    lat = g.lat;
+    lon = g.lng; // attenzione: lng = lon
+
     mode = "city";
-    locationInfo = { city, lat: lat as number, lon: lon as number };
+    locationInfo = {
+      query: city,
+      formatted: g.formatted,
+      placeId: g.placeId,
+      lat,
+      lon,
+    };
   }
-  // 3) fallback IP
+  // 3) fallback IP (Geoapify ipinfo)
   else {
-    const ip = getClientIp(req);
-    if (ip) {
+    const ipRaw = getClientIp(req);
+    const ip = ipRaw ? normalizeIp(ipRaw) : null;
+
+    if (ip && ip !== "127.0.0.1" && ip !== "::1") {
       try {
         const geo = await ipGeolocate(ip);
         if (geo.latitude != null && geo.longitude != null) {
           lat = geo.latitude;
           lon = geo.longitude;
           mode = "ip";
+          locationInfo = {
+            ip,
+            city: geo.city ?? undefined,
+            country: geo.country ?? undefined,
+            lat,
+            lon,
+          };
         }
       } catch (e) {
         console.error("IP GEO ERROR:", e);
@@ -74,18 +98,15 @@ export const getAllAdvertisements = async (
     }
   }
 
-  console.log(
-    `getAllAdvertisements: mode=${mode}, locationInfo=${JSON.stringify(locationInfo)}`,
-  );
+  // Query DB: se lat/lon non ci sono → fallback in repo (adv.id DESC)
   const result = await findAdvertisements({
     take,
     skip,
     status,
     type,
-    // se lat/lon sono undefined → niente “nearby”, torna l’ordinamento classico
     lat,
     lon,
-    radiusMeters: 10_000,
+    radiusMeters: Number.isFinite(radiusMeters) ? radiusMeters : 10_000,
   });
 
   return res.json({
