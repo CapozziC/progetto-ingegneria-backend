@@ -9,14 +9,19 @@ import advertisementRoutes from "./routes/advertisement.route.js";
 import appointmentRoutes from "./routes/appointment.route.js";
 import accountRoutes from "./routes/account.route.js";
 import uploadRoutes from "./routes/upload.route.js";
-import  offerRoutes  from "./routes/offer.route.js";
+import offerRoutes from "./routes/offer.route.js";
 
 try {
   // Initialize database connection
   await AppDataSource.initialize();
   const port = 3000;
   const app = express();
-  app.use(cors({ origin: "https://dietiestates.cloud", credentials: true }));
+  app.use(
+    cors({
+      origin: ["http://localhost:5173", "https://dietiestates.cloud"],
+      credentials: true,
+    }),
+  );
   app.set("trust proxy", true);
   app.use(express.json({ limit: "10mb" }));
   app.use(express.urlencoded({ extended: true }));
@@ -27,7 +32,7 @@ try {
     throw new Error("UPLOAD_DIR environment variable is not defined");
   }
   app.use("/uploads", express.static(uploadDir));
- 
+
   // Use auth routes
   app.use("/auth", authRoutes);
   app.use("/agent", agentRoutes);
@@ -36,7 +41,6 @@ try {
   app.use("/account", accountRoutes);
   app.use("/upload", uploadRoutes);
   app.use("/offer", offerRoutes);
-  
 
   // Define a route handler for the default home page
   app.get("/", (req, res) => {
