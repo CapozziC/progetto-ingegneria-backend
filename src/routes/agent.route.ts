@@ -51,7 +51,7 @@ router.get(
 );
 //ROUTE FOR GETTING OFFER NEGOTIATIONS
 router.get(
-  "/negotiations/:advertisementId/:agentId",
+  "/negotiations/:advertisementId/:accountId",
   authenticationMiddlewareAgent,
   getAgentNegotiationByAdvertisementAndAccount,
 );

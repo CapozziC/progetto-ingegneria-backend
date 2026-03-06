@@ -19,7 +19,7 @@ router.get(
 //GET /api/advertisements?city=Milano
 //GET /api/advertisements?lat=..&lon=..
 //GET /api/advertisements?status=..&type=..&city=..&lat=..&lon=..&take=..&skip=..
-//ROUTE FOR GETTING ADVERTISEMENT
+//ROUTE FOR GETTING ADVERTISEMENTS
 router.get(
   "/advertisements",
   authenticationMiddlewareAccount,
