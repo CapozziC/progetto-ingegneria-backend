@@ -2,13 +2,11 @@ import express from "express";
 const router = express.Router();
 import { authenticationMiddlewareAccount } from "../middleware/auth.account.middleware.js";
 import { getAppointmentsForAccount } from "../controllers/appointment.controller.js";
-import {
-  deleteAccount,
-  getAllAdvertisements,
-} from "../controllers/account.controller.js";
+import { deleteAccount } from "../controllers/account.controller.js";
+
 
 router.get(
-  "/me/appointments",
+  "/me/appointments", 
   authenticationMiddlewareAccount,
   getAppointmentsForAccount,
 );
@@ -16,11 +14,7 @@ router.get(
 //GET /api/advertisements?city=Milano
 //GET /api/advertisements?lat=..&lon=.. 
 //GET /api/advertisements?status=..&type=..&city=..&lat=..&lon=..&take=..&skip=..
-router.get(
-  "/advertisements",
-  authenticationMiddlewareAccount,
-  getAllAdvertisements,
-);
+
 
 export default router;
 
