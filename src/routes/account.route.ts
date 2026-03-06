@@ -4,6 +4,7 @@ import { authenticationMiddlewareAccount } from "../middleware/auth.account.midd
 import { getAppointmentsForAccount } from "../controllers/appointment.controller.js";
 import {
   deleteAccount,
+  getAdvertisementById,
   getAllAdvertisements,
 } from "../controllers/account.controller.js";
 
@@ -22,6 +23,12 @@ router.get(
   getAllAdvertisements,
 );
 
-export default router;
+router.get(
+  "/advertisements/:advertisementId",
+  authenticationMiddlewareAccount,
+  getAdvertisementById,
+);
 
 router.delete("/delete/:id", authenticationMiddlewareAccount, deleteAccount);
+
+export default router;

@@ -26,26 +26,44 @@ export const existPendingOfferByAdvertisementIdAndAccountId = async (
   });
 };
 
-export const findAllOffersForAdvertisementByAgent = async (
-  advertisementId: number,
-  agentId: number,
-): Promise<Offer[]> => {
-  return OfferRepository.find({
-    where: { advertisementId, agentId },
-    order: { createdAt: "DESC" },
-    relations: ["account"],
-  });
+type FindOffersByAccountIdParams = {
+  accountId: number;
+  take: number;
+  skip: number;
+  status?: string;
 };
 
-export const findAllOffersByAccountIdByAgentId = async (
-  accountId: number,
-  agentId: number,
-): Promise<Offer[]> => {
-  return OfferRepository.find({
-    where: { accountId, agentId },
-    order: { createdAt: "DESC" },
-  });
-};
+export async function findOffersByAccountId({
+  accountId,
+  take,
+  skip,
+  status,
+}: FindOffersByAccountIdParams) {
+  const qb = AppDataSource.getRepository(Offer)
+    .createQueryBuilder("offer")
+    .leftJoinAndSelect("offer.advertisement", "adv")
+    .leftJoinAndSelect("adv.realEstate", "re")
+    .leftJoinAndSelect("adv.photos", "photos")
+    .leftJoin("adv.agent", "agent")
+    .addSelect(["agent.id", "agent.name", "agent.phoneNumber", "agent.email"])
+    .where("offer.accountId = :accountId", { accountId });
+
+  if (status) {
+    qb.andWhere("offer.status = :status", { status });
+  }
+
+  qb.orderBy("offer.createdAt", "DESC").take(take).skip(skip);
+
+  const [items, total] = await qb.getManyAndCount();
+
+  return {
+    total,
+    take,
+    skip,
+    items,
+  };
+}
+
 export const findOfferByIdForAgent = async (
   offerId: number,
   agentId: number,

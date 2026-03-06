@@ -10,8 +10,6 @@ import {
   createCounterOffer,
   createOffer,
   existPendingOfferByAdvertisementIdAndAccountId,
-  findAllOffersByAccountIdByAgentId,
-  findAllOffersForAdvertisementByAgent,
   findOfferByIdForAgent,
   rejectOfferById,
   saveOffer,
@@ -75,92 +73,7 @@ export const createOfferByAccount = async (
   }
 };
 
-/**
- *  Get all offers for a specific advertisement if the authenticated agent is the owner of the advertisement
- * @param req RequestAgent with params containing advertisement id
- * @param res Response with offers or error message
- * @returns JSON with offers or error message
- */
-export const getOffersForAdvertisementAsAgent = async (
-  req: RequestAgent,
-  res: Response,
-) => {
-  try {
-    const agent = requireAgent(req, res);
-    if (!agent) return;
-    const agentId = agent.id;
-    const advertisementId = parsePositiveInt(req.params.id);
-    if (!advertisementId) {
-      return res.status(400).json({ error: "Invalid advertisement id" });
-    }
-    const ownerId = await findAdvertisementOwnerId(advertisementId);
-    if (ownerId !== agentId) {
-      return res
-        .status(403)
-        .json({ error: "You are not the owner of this advertisement" });
-    }
-    const offers = await findAllOffersForAdvertisementByAgent(
-      advertisementId,
-      ownerId,
-    );
 
-    return res.status(200).json({
-      agentId: agent.id,
-      advertisementId,
-      offers: offers.map((o) => ({
-        offerId: o.id,
-        price: o.price,
-        status: o.status,
-        madeBy: o.madeBy,
-        createdAt: o.createdAt.toISOString(),
-        accountId: o.accountId,
-      })),
-    });
-  } catch (error) {
-    console.error("Error getting offers for agent:", error);
-    return res.status(500).json({ error: "Failed to get offers for agent" });
-  }
-};
-
-/**
- *  Get all offers made to the authenticated agent for a specific account
- * @param req RequestAgent with params containing account id
- * @param res Response with offers or error message
- * @returns JSON with offers or error message
- */
-export const getOffersForAccountAsAgent = async (
-  req: RequestAgent,
-  res: Response,
-) => {
-  try {
-    const agent = requireAgent(req, res);
-    if (!agent) return;
-    const agentId = agent.id;
-    const accountId = parsePositiveInt(req.params.id);
-    if (!accountId) {
-      return res.status(400).json({ error: "Invalid account id" });
-    }
-
-    const offers = await findAllOffersByAccountIdByAgentId(accountId, agentId);
-    return res.status(200).json({
-      agentId,
-      accountId,
-      offers: offers.map((o) => ({
-        offerId: o.id,
-        price: o.price,
-        status: o.status,
-        madeBy: o.madeBy,
-        createdAt: o.createdAt.toISOString(),
-        advertisementId: o.advertisementId,
-      })),
-    });
-  } catch (error) {
-    console.error("Error getting offers for account as agent:", error);
-    return res
-      .status(500)
-      .json({ error: "Failed to get offers for account as agent" });
-  }
-};
 //Agent accept/reject offer and counteroffer
 /**
  * Accept an offer as an agent, changing the offer status to accepted, the related advertisement status to sold, rejecting all other pending offers for the same advertisement and cancelling all appointments related to the same advertisement, in a single transaction

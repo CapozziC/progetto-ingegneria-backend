@@ -1,11 +1,15 @@
 import type { Response } from "express";
 import { RequestAccount } from "../types/express.js";
 import { requireAccount } from "../utils/require.utils.js";
-import { findAdvertisements } from "../repositories/advertisement.repository.js";
+import {
+  findAdvertisementById,
+  findAdvertisements,
+} from "../repositories/advertisement.repository.js";
 import { getClientIp, normalizeIp } from "../utils/ip.utils.js";
 import { geopifyIpGeolocate } from "../services/ip.service.js";
 import { forwardGeocodeAddress } from "../services/geocode.service.js";
 import { deleteAccountById } from "../repositories/account.repository.js";
+import { findOffersByAccountId } from "../repositories/offer.repository.js";
 
 export const getAllAdvertisements = async (
   req: RequestAccount,
@@ -22,11 +26,11 @@ export const getAllAdvertisements = async (
 
   const type =
     typeof req.query.type === "string" ? req.query.type.trim() : undefined;
-  
+
   const housingType =
-  typeof req.query.housingType === "string"
-    ? req.query.housingType.trim()
-    : undefined;
+    typeof req.query.housingType === "string"
+      ? req.query.housingType.trim()
+      : undefined;
 
   const city =
     typeof req.query.city === "string" ? req.query.city.trim() : undefined;
@@ -184,6 +188,53 @@ export const getAllAdvertisements = async (
     location: locationInfo,
     ...result,
   });
+};
+
+export const getAccountOffers = async (req: RequestAccount, res: Response) => {
+  const account = requireAccount(req, res);
+  if (!account) return res.status(401).json({ error: "Unauthorized" });
+
+  const take = Number(req.query.take ?? 20);
+  const skip = Number(req.query.skip ?? 0);
+
+  const status =
+    typeof req.query.status === "string" ? req.query.status.trim() : undefined;
+
+  try {
+    const result = await findOffersByAccountId({
+      accountId: account.id,
+      take: Number.isFinite(take) && take > 0 ? take : 20,
+      skip: Number.isFinite(skip) && skip >= 0 ? skip : 0,
+      status,
+    });
+
+    return res.json(result);
+  } catch (error) {
+    console.error("Error fetching account offers:", error);
+    return res.status(500).json({ error: "Failed to fetch account offers" });
+  }
+};
+
+export const getAdvertisementById = async (
+  req: RequestAccount,
+  res: Response,
+) => {
+  const account = requireAccount(req, res);
+  if (!account) return res.status(401).json({ error: "Unauthorized" });
+  const advertisementId = Number(req.params.id);
+  if (!Number.isInteger(advertisementId)) {
+    return res.status(400).json({ error: "Invalid advertisement ID" });
+  }
+  try {
+    const advertisement = await findAdvertisementById(advertisementId);
+    if (!advertisement) {
+      return res.status(404).json({ error: "Advertisement not found" });
+    }
+    return res.json(advertisement);
+  } catch (err) {
+    console.error("getAdvertisementById error:", err);
+    return res.status(500).json({ error: "Failed to retrieve advertisement" });
+  }
 };
 
 export const deleteAccount = async (req: RequestAccount, res: Response) => {

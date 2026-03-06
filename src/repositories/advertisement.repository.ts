@@ -56,6 +56,23 @@ export const findAdvertisementOwnerId = async (
 
   return adv?.agent?.id ?? null;
 };
+/**
+ * Find an advertisement by its ID, along with its related real estate, photos, and points of interest (POIs).
+ * @param advertisementId The unique identifier of the advertisement to find
+ * @returns A Promise that resolves to the advertisement object or null if not found
+ */
+export async function findAdvertisementById(advertisementId: number) {
+  const qb = AppDataSource.getRepository(Advertisement)
+    .createQueryBuilder("adv")
+    .leftJoinAndSelect("adv.realEstate", "re")
+    .leftJoinAndSelect("adv.photos", "photos")
+    .leftJoinAndSelect("adv.pois", "pois")
+    .leftJoin("adv.agent", "agent")
+    .addSelect(["agent.id", "agent.name", "agent.phoneNumber", "agent.email"])
+    .where("adv.id = :id", { id: advertisementId });
+
+  return qb.getOne();
+}
 
 /**
  * Delete an advertisement by its ID, along with its related real estate. This function performs a database transaction to ensure that both the advertisement and its associated real estate are deleted atomically. If the advertisement is not found, the function simply returns without performing any deletion.
