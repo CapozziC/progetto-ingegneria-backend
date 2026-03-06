@@ -49,7 +49,7 @@ export async function findAccountNegotiations({
     .leftJoinAndSelect("adv.realEstate", "re")
     .leftJoinAndSelect("adv.photos", "photos")
     .leftJoin("adv.agent", "agent")
-    .addSelect(["agent.name", "agent.phoneNumber", "agent.email"])
+    .addSelect(["agent.firstName", "agent.lastName", "agent.phoneNumber"])
     .where("offer.accountId = :accountId", { accountId })
     .orderBy("offer.createdAt", "DESC")
     .addOrderBy("offer.id", "DESC")
@@ -86,7 +86,6 @@ export async function findAccountNegotiations({
         firstName: string | null;
         lastName: string | null;
         phoneNumber: string | null;
-        username: string | null;
       } | null;
       updatedAt: string;
     }
@@ -128,7 +127,6 @@ export async function findAccountNegotiations({
               firstName: offer.advertisement.agent.firstName ?? null,
               lastName: offer.advertisement.agent.lastName ?? null,
               phoneNumber: offer.advertisement.agent.phoneNumber ?? null,
-              username: offer.advertisement.agent.username ?? null,
             }
           : null,
         updatedAt: offer.createdAt.toISOString(),
@@ -165,7 +163,7 @@ export async function findAccountNegotiationDetail({
     .leftJoinAndSelect("adv.realEstate", "re")
     .leftJoinAndSelect("adv.photos", "photos")
     .leftJoin("adv.agent", "agent")
-    .addSelect(["agent.name", "agent.phoneNumber", "agent.email"])
+    .addSelect(["agent.firstName", "agent.lastName", "agent.phoneNumber"])
     .where("offer.accountId = :accountId", { accountId })
     .andWhere("offer.advertisementId = :advertisementId", { advertisementId })
     .andWhere("offer.agentId = :agentId", { agentId })
@@ -215,7 +213,6 @@ export async function findAccountNegotiationDetail({
           firstName: advertisement.agent.firstName ?? null,
           lastName: advertisement.agent.lastName ?? null,
           phoneNumber: advertisement.agent.phoneNumber ?? null,
-          username: advertisement.agent.username ?? null,
         }
       : null,
     offers: offers.map((offer) => ({
