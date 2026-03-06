@@ -263,7 +263,7 @@ export const getAdvertisementById = async (
 ) => {
   const account = requireAccount(req, res);
   if (!account) return res.status(401).json({ error: "Unauthorized" });
-  const advertisementId = Number(req.params.id);
+  const advertisementId = Number(req.params.advertisementId);
   if (!Number.isInteger(advertisementId)) {
     return res.status(400).json({ error: "Invalid advertisement ID" });
   }
