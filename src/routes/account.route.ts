@@ -4,6 +4,8 @@ import { authenticationMiddlewareAccount } from "../middleware/auth.account.midd
 import { getAppointmentsForAccount } from "../controllers/appointment.controller.js";
 import {
   deleteAccount,
+  getAccountNegotiationByAdvertisementAndAgent,
+  getAccountNegotiations,
   getAdvertisementById,
   getAllAdvertisements,
 } from "../controllers/account.controller.js";
@@ -27,6 +29,17 @@ router.get(
   "/advertisements/:advertisementId",
   authenticationMiddlewareAccount,
   getAdvertisementById,
+);
+
+router.get(
+  "/negotiations",
+  authenticationMiddlewareAccount,
+  getAccountNegotiations,
+);
+router.get(
+  "/negotiations/:advertisementId/:agentId",
+  authenticationMiddlewareAccount,
+  getAccountNegotiationByAdvertisementAndAgent,
 );
 
 router.delete("/delete/:id", authenticationMiddlewareAccount, deleteAccount);

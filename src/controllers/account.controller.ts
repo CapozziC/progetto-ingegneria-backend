@@ -9,7 +9,11 @@ import { getClientIp, normalizeIp } from "../utils/ip.utils.js";
 import { geopifyIpGeolocate } from "../services/ip.service.js";
 import { forwardGeocodeAddress } from "../services/geocode.service.js";
 import { deleteAccountById } from "../repositories/account.repository.js";
-import { findOffersByAccountId } from "../repositories/offer.repository.js";
+import {
+  findAccountNegotiations,
+  findAccountNegotiationDetail,
+} from "../repositories/offer.repository.js";
+import { parsePositiveInt } from "../utils/objectParse.utils.js";
 
 export const getAllAdvertisements = async (
   req: RequestAccount,
@@ -190,28 +194,66 @@ export const getAllAdvertisements = async (
   });
 };
 
-export const getAccountOffers = async (req: RequestAccount, res: Response) => {
+export const getAccountNegotiations = async (
+  req: RequestAccount,
+  res: Response,
+) => {
   const account = requireAccount(req, res);
   if (!account) return res.status(401).json({ error: "Unauthorized" });
 
   const take = Number(req.query.take ?? 20);
   const skip = Number(req.query.skip ?? 0);
 
-  const status =
-    typeof req.query.status === "string" ? req.query.status.trim() : undefined;
-
   try {
-    const result = await findOffersByAccountId({
+    const result = await findAccountNegotiations({
       accountId: account.id,
       take: Number.isFinite(take) && take > 0 ? take : 20,
       skip: Number.isFinite(skip) && skip >= 0 ? skip : 0,
-      status,
     });
 
     return res.json(result);
   } catch (error) {
-    console.error("Error fetching account offers:", error);
-    return res.status(500).json({ error: "Failed to fetch account offers" });
+    console.error("Error fetching account negotiations:", error);
+    return res
+      .status(500)
+      .json({ error: "Failed to fetch account negotiations" });
+  }
+};
+
+export const getAccountNegotiationByAdvertisementAndAgent = async (
+  req: RequestAccount,
+  res: Response,
+) => {
+  const account = requireAccount(req, res);
+  if (!account) return res.status(401).json({ error: "Unauthorized" });
+
+  const advertisementId = parsePositiveInt(req.params.advertisementId);
+  if (!advertisementId) {
+    return res.status(400).json({ error: "Invalid advertisement id" });
+  }
+
+  const agentId = parsePositiveInt(req.params.agentId);
+  if (!agentId) {
+    return res.status(400).json({ error: "Invalid agent id" });
+  }
+
+  try {
+    const negotiation = await findAccountNegotiationDetail({
+      accountId: account.id,
+      advertisementId,
+      agentId,
+    });
+
+    if (!negotiation) {
+      return res.status(404).json({ error: "Negotiation not found" });
+    }
+
+    return res.json(negotiation);
+  } catch (error) {
+    console.error("Error fetching account negotiation detail:", error);
+    return res
+      .status(500)
+      .json({ error: "Failed to fetch account negotiation detail" });
   }
 };
 
