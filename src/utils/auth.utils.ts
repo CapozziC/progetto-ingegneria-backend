@@ -128,14 +128,16 @@ export const setAuthCookies = (
   res.cookie("accessToken", accessToken, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
-    sameSite: "strict",
+    sameSite: "none",
+    domain: ".dietiestates.cloud",
     maxAge: 15 * 60 * 1000, // 15 minutes
   });
 
   res.cookie("refreshToken", refreshToken, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
-    sameSite: "strict",
+    sameSite: "none",
+    domain: ".dietiestates.cloud",
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
   });
 };
@@ -147,12 +149,14 @@ export const setAuthCookies = (
 export const clearAuthCookies = (res: Response) => {
   res.clearCookie("accessToken", {
     httpOnly: true,
-    sameSite: "strict",
+    sameSite: "none",
     secure: process.env.NODE_ENV === "production",
+    domain: ".dietiestates.cloud",
   });
   res.clearCookie("refreshToken", {
     httpOnly: true,
-    sameSite: "strict",
+    sameSite: "none",
     secure: process.env.NODE_ENV === "production",
+    domain: ".dietiestates.cloud",
   });
 };
