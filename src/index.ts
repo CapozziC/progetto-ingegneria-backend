@@ -18,7 +18,7 @@ try {
   const app = express();
   app.use(
     cors({
-      origin: ["http://localhost:5173", "https://dietiestates.cloud"],
+      origin: ["http://localhost:5173", "https://www.dietiestates.cloud"],
       credentials: true,
     }),
   );
