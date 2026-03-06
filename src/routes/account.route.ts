@@ -19,6 +19,7 @@ router.get(
 //GET /api/advertisements?city=Milano
 //GET /api/advertisements?lat=..&lon=..
 //GET /api/advertisements?status=..&type=..&city=..&lat=..&lon=..&take=..&skip=..
+//ROUTE FOR GETTING ADVERTISEMENT
 router.get(
   "/advertisements",
   authenticationMiddlewareAccount,
@@ -30,7 +31,7 @@ router.get(
   authenticationMiddlewareAccount,
   getAdvertisementById,
 );
-
+//ROUTE FOR OFFER NEGOTIATIONS
 router.get(
   "/negotiations",
   authenticationMiddlewareAccount,

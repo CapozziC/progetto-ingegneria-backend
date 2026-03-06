@@ -14,10 +14,12 @@ import {
   createNewAgent,
   deleteAgent,
   getAgentAdvertisements,
+  getAgentNegotiations,
   updatePhoneNumberAgent,
 } from "../controllers/agent.controller.js";
 
 import { getAppointmentsForAgent } from "../controllers/appointment.controller.js";
+import { getAccountNegotiationByAdvertisementAndAgent } from "../controllers/account.controller.js";
 
 
 router.post(
@@ -49,6 +51,14 @@ router.get(
   authenticationMiddlewareAgent,
   getAppointmentsForAgent,
 );
+//ROUTE FOR GETTING OFFER NEGOTIATIONS
+router.get(
+  "/negotiations/:advertisementId/:agentId",
+  authenticationMiddlewareAgent,
+  getAccountNegotiationByAdvertisementAndAgent,
+);
+
+router.get("/negotiations", authenticationMiddlewareAgent, getAgentNegotiations);
 
 
 export default router;

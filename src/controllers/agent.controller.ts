@@ -19,6 +19,10 @@ import { Advertisement } from "../entities/advertisement.js";
 import { Agent } from "../entities/agent.js";
 import { findAdvertisementsByAgentId } from "../repositories/advertisement.repository.js";
 import { parsePositiveInt } from "../utils/objectParse.utils.js";
+import {
+  findAgentNegotiations,
+  findAgentNegotiationDetail,
+} from "../repositories/offer.repository.js";
 
 /**
  * Create a new agent under the same agency of the admin creating it, with a generated username and temporary password.
@@ -75,6 +79,41 @@ export const createNewAgent = async (req: RequestAgent, res: Response) => {
   } catch (error) {
     console.error("Error creating agent:", error);
     return res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+/**
+ * Update the phone number of the authenticated agent
+ * @param req RequestAgent with authenticated agent in req.agent and phone number in req.body.phoneNumber
+ * @param res Response with success message or error message
+ * @returns JSON with success message or error message
+ */
+
+export const updatePhoneNumberAgent = async (
+  req: RequestAgent,
+  res: Response,
+) => {
+  try {
+    const { phoneNumber } = req.body;
+    const agent = requireAgent(req, res);
+    if (!agent) return;
+
+    if (!phoneNumber) {
+      return res.status(400).json({
+        error: "Phone number is required",
+      });
+    }
+
+    await updateAgentPhoneNumber(agent.id, phoneNumber);
+
+    return res.status(200).json({
+      message: "Phone number updated successfully",
+    });
+  } catch (err) {
+    console.error("updateMyPhoneNumber error:", err);
+    return res.status(500).json({
+      error: "Internal server error",
+    });
   }
 };
 
@@ -183,37 +222,65 @@ export const getAgentAdvertisements = async (
   }
 };
 
-/**
- * Update the phone number of the authenticated agent
- * @param req RequestAgent with authenticated agent in req.agent and phone number in req.body.phoneNumber
- * @param res Response with success message or error message
- * @returns JSON with success message or error message
- */
-
-export const updatePhoneNumberAgent = async (
+export const getAgentNegotiations = async (
   req: RequestAgent,
   res: Response,
 ) => {
-  try {
-    const { phoneNumber } = req.body;
-    const agent = requireAgent(req, res);
-    if (!agent) return;
+  const agent = requireAgent(req, res);
+  if (!agent) return res.status(401).json({ error: "Unauthorized" });
 
-    if (!phoneNumber) {
-      return res.status(400).json({
-        error: "Phone number is required",
-      });
+  const take = Number(req.query.take ?? 20);
+  const skip = Number(req.query.skip ?? 0);
+
+  try {
+    const result = await findAgentNegotiations({
+      agentId: agent.id,
+      take: Number.isFinite(take) && take > 0 ? take : 20,
+      skip: Number.isFinite(skip) && skip >= 0 ? skip : 0,
+    });
+
+    return res.json(result);
+  } catch (error) {
+    console.error("Error fetching agent negotiations:", error);
+    return res
+      .status(500)
+      .json({ error: "Failed to fetch agent negotiations" });
+  }
+};
+
+export const getAgentNegotiationByAdvertisementAndAccount = async (
+  req: RequestAgent,
+  res: Response,
+) => {
+  const agent = requireAgent(req, res);
+  if (!agent) return res.status(401).json({ error: "Unauthorized" });
+
+  const advertisementId = parsePositiveInt(req.params.advertisementId);
+  if (!advertisementId) {
+    return res.status(400).json({ error: "Invalid advertisement id" });
+  }
+
+  const accountId = parsePositiveInt(req.params.accountId);
+  if (!accountId) {
+    return res.status(400).json({ error: "Invalid account id" });
+  }
+
+  try {
+    const negotiation = await findAgentNegotiationDetail({
+      agentId: agent.id,
+      advertisementId,
+      accountId,
+    });
+
+    if (!negotiation) {
+      return res.status(404).json({ error: "Negotiation not found" });
     }
 
-    await updateAgentPhoneNumber(agent.id, phoneNumber);
-
-    return res.status(200).json({
-      message: "Phone number updated successfully",
-    });
-  } catch (err) {
-    console.error("updateMyPhoneNumber error:", err);
-    return res.status(500).json({
-      error: "Internal server error",
-    });
+    return res.json(negotiation);
+  } catch (error) {
+    console.error("Error fetching agent negotiation detail:", error);
+    return res
+      .status(500)
+      .json({ error: "Failed to fetch agent negotiation detail" });
   }
 };
