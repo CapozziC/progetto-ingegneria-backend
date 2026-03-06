@@ -89,3 +89,18 @@ export function advRepo(manager?: EntityManager) {
     ? manager.getRepository(Advertisement)
     : AdvertisementRepository;
 }
+
+export async function findAdvertisementStatusById(
+  advertisementId: number,
+  manager: EntityManager,
+): Promise<string | null> {
+  const advertisement = await manager.findOne(Advertisement, {
+    where: { id: advertisementId },
+    select: {
+      id: true,
+      status: true,
+    },
+  });
+
+  return advertisement?.status ?? null;
+}
