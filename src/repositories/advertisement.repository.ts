@@ -68,7 +68,12 @@ export async function findAdvertisementById(advertisementId: number) {
     .leftJoinAndSelect("adv.photos", "photos")
     .leftJoinAndSelect("adv.pois", "pois")
     .leftJoin("adv.agent", "agent")
-    .addSelect(["agent.id", "agent.name", "agent.phoneNumber", "agent.email"])
+    .addSelect([
+      "agent.id",
+      "agent.firstName",
+      "agent.lastName",
+      "agent.phoneNumber",
+    ])
     .where("adv.id = :id", { id: advertisementId });
 
   return qb.getOne();
