@@ -6,12 +6,14 @@ import { InvalidTokenError, ExpiredTokenError } from "./error.utils.js";
 import { Type } from "../entities/refreshToken.js";
 import { Response } from "express";
 
+const isProd = process.env.NODE_ENV === "production";
+
 /**
- * Generate a JWT access token with the given payload, secret and expiration time. The payload should contain the necessary information to identify the subject of the token (e.g. agent ID or account ID) and the type of subject (e.g. agent or account). The secret is used to sign the token and should be kept secure. The expiresIn parameter specifies how long the token is valid for (e.g. "10m" for 10 minutes).
- * @param payload The payload to include in the token, containing the subject ID and type
- * @param secret The secret key used to sign the token
- * @param expiresIn The expiration time for the token (e.g. "10m" for 10 minutes)
- * @returns A signed JWT access token as a string
+ * Generates a JWT access token
+ * @param payload The payload for the access token
+ * @param secret The secret for signing the token
+ * @param expiresIn The expiration time for the token
+ * @returns JWT access token
  */
 export const generateAccessToken = (
   payload: Payload,
@@ -22,11 +24,11 @@ export const generateAccessToken = (
 };
 
 /**
- * Generate a JWT refresh token with the given payload, secret and expiration time. The payload should contain the necessary information to identify the subject of the token (e.g. agent ID or account ID) and the type of subject (e.g. agent or account). The secret is used to sign the token and should be kept secure. The expiresIn parameter specifies how long the token is valid for (e.g. "7d" for 7 days).
- * @param payload The payload to include in the token, containing the subject ID and type
- * @param secret The secret key used to sign the token
- * @param expiresIn The expiration time for the token (e.g. "7d" for 7 days)
- * @returns A signed JWT refresh token as a string
+ * Generates a JWT refresh token
+ * @param payload The payload for the refresh token
+ * @param secret The secret for signing the token
+ * @param expiresIn The expiration time for the token
+ * @returns JWT refresh token
  */
 export const generateRefreshToken = (
   payload: Payload,
@@ -36,127 +38,135 @@ export const generateRefreshToken = (
   return jwt.sign(payload, secret, { expiresIn });
 };
 
-/** Verify the validity of a JWT access token and return its payload if valid. If the token is missing, invalid or expired, an appropriate error is thrown. The function uses the secret key to verify the token's signature and ensure its integrity.
- * @param accessToken The JWT access token to verify
- * @returns The payload contained in the access token if it is valid
- * @throws InvalidTokenError if the token is missing or invalid, ExpiredTokenError if the token has expired
+/**
+ * Verifies a JWT access token
+ * @param accessToken The access token to verify
+ * @returns The verified payload if the token is valid
+ * @throws InvalidTokenError if the token is invalid
+ * @throws ExpiredTokenError if the token has expired
  */
 export const verifyAccessToken = (accessToken: string): Payload => {
-  if (!accessToken) {
-    throw new InvalidTokenError("access");
-  }
+  if (!accessToken) throw new InvalidTokenError("access");
 
   try {
-    return jwt.verify(
-      accessToken,
-      process.env.ACCESS_TOKEN_SECRET as Secret,
-    ) as Payload;
-  } catch (err) {
-    if (String(err) === "TokenExpiredError") {
-      throw new ExpiredTokenError("access", err);
-    }
+    return jwt.verify(accessToken, process.env.ACCESS_TOKEN_SECRET as Secret) as Payload;
+  } catch (err: any) {
+    if (err.name === "TokenExpiredError") throw new ExpiredTokenError("access", err);
     throw new InvalidTokenError("access", err);
   }
 };
 
 /**
- * Verify the validity of a JWT refresh token and return its payload if valid. If the token is missing, invalid or expired, an appropriate error is thrown. The function uses the secret key to verify the token's signature and ensure its integrity.
- * @param refreshToken The JWT refresh token to verify
- * @returns The payload contained in the refresh token if it is valid
- * @throws InvalidTokenError if the token is missing or invalid, ExpiredTokenError if the token has expired
+ * Verifies a JWT refresh token
+ * @param refreshToken The refresh token to verify
+ * @returns The verified payload if the token is valid
+ * @throws InvalidTokenError if the token is invalid
+ * @throws ExpiredTokenError if the token has expired
  */
 export const verifyRefreshToken = (refreshToken: string): Payload => {
-  if (!refreshToken) {
-    throw new InvalidTokenError("refresh");
-  }
+  if (!refreshToken) throw new InvalidTokenError("refresh");
 
   try {
-    return jwt.verify(
-      refreshToken,
-      process.env.REFRESH_TOKEN_SECRET as Secret,
-    ) as Payload;
-  } catch (err) {
-    if (String(err) === "TokenExpiredError") {
-      throw new ExpiredTokenError("refresh", err);
-    }
+    return jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET as Secret) as Payload;
+  } catch (err: any) {
+    if (err.name === "TokenExpiredError") throw new ExpiredTokenError("refresh", err);
     throw new InvalidTokenError("refresh", err);
   }
 };
 
 /**
- *  Revoke a refresh token for a specific subject (agent or account) by deleting it from the database. This function is typically called during logout to ensure that the refresh token can no longer be used to obtain new access tokens. If the revocation process fails, an error is logged and an exception is thrown.
- * @param subjectId The unique identifier of the subject (agent or account) for whom to revoke the refresh token
- * @param type The type of subject (agent or account) for whom to revoke the refresh token
- * @returns A Promise that resolves when the revocation process is complete
- * @throws An error if the revocation process fails
+ * Revokes a refresh token in the database
+ * @param subjectId The ID of the subject for whom to revoke the token
+ * @param type The type of the token to revoke
  */
-export const revokeRefreshToken = async (
-  subjectId: number,
-  type: Type,
-): Promise<void> => {
+export const revokeRefreshToken = async (subjectId: number, type: Type): Promise<void> => {
   try {
     await deleteRefreshTokenBySubject(subjectId, type);
   } catch (error) {
-    console.error(
-      `Failed to revoke refresh token for subject ${subjectId}  ${type} `,
-      error,
-    );
+    console.error(`Failed to revoke refresh token for subject ${subjectId} ${type}`, error);
     throw new Error("Failed to revoke refresh token", { cause: error });
   }
 };
 
 /**
- *  Hash a refresh token using SHA-256 algorithm. This function takes a refresh token as input and returns its hashed value as a hexadecimal string. Hashing the refresh token adds an extra layer of security by ensuring that the actual token value is not stored in the database, making it more difficult for attackers to misuse stolen tokens.
- * @param token The refresh token to be hashed
- * @returns  A hexadecimal string representing the hashed value of the refresh token
+ * Hashes a refresh token using SHA-256
+ * @param token The refresh token to hash
+ * @returns The hashed token
  */
 export const hashRefreshToken = (token: string): string => {
   return crypto.createHash("sha256").update(token).digest("hex");
 };
 
 /**
- * Set the access token and refresh token as httpOnly cookies in the response. The access token cookie is set to expire in 15 minutes, while the refresh token cookie is set to expire in 7 days. Both cookies are marked as httpOnly to prevent client-side scripts from accessing them, and they are configured to be secure and have a sameSite policy of "strict" to enhance security.
- * @param res The Express response object used to set the cookies
- * @param accessToken The JWT access token to be set as a cookie
- * @param refreshToken The JWT refresh token to be set as a cookie
+ * Sets authentication cookies for the user
+ * @param res The response object
+ * @param accessToken The access token to set
+ * @param refreshToken The refresh token to set
  */
 export const setAuthCookies = (
   res: Response,
   accessToken: string,
   refreshToken: string,
 ) => {
-  res.cookie("accessToken", accessToken, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "none",
-    domain: ".dietiestates.cloud",
-    maxAge: 15 * 60 * 1000, // 15 minutes
-  });
-
-  res.cookie("refreshToken", refreshToken, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "none",
-    domain: ".dietiestates.cloud",
-    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-  });
+  if (isProd) {
+    res.cookie("accessToken", accessToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "none",
+      domain: ".dietiestates.cloud",
+      maxAge: 15 * 60 * 1000,
+    });
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "none",
+      domain: ".dietiestates.cloud",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+  } else {
+    res.cookie("accessToken", accessToken, {
+      httpOnly: true,
+      secure: false,
+      sameSite: "lax",
+      maxAge: 15 * 60 * 1000,
+    });
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      secure: false,
+      sameSite: "lax",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+  }
 };
 
 /**
- * Clear the access token and refresh token cookies from the response.
- * @param res The Express response object from which to clear the cookies
+ * Clears authentication cookies for the user
+ * @param res The response object
  */
 export const clearAuthCookies = (res: Response) => {
-  res.clearCookie("accessToken", {
-    httpOnly: true,
-    sameSite: "none",
-    secure: process.env.NODE_ENV === "production",
-    domain: ".dietiestates.cloud",
-  });
-  res.clearCookie("refreshToken", {
-    httpOnly: true,
-    sameSite: "none",
-    secure: process.env.NODE_ENV === "production",
-    domain: ".dietiestates.cloud",
-  });
+  if (isProd) {
+    res.clearCookie("accessToken", {
+      httpOnly: true,
+      secure: true,
+      sameSite: "none",
+      domain: ".dietiestates.cloud",
+    });
+    res.clearCookie("refreshToken", {
+      httpOnly: true,
+      secure: true,
+      sameSite: "none",
+      domain: ".dietiestates.cloud",
+    });
+  } else {
+    res.clearCookie("accessToken", {
+      httpOnly: true,
+      secure: false,
+      sameSite: "lax",
+    });
+    res.clearCookie("refreshToken", {
+      httpOnly: true,
+      secure: false,
+      sameSite: "lax",
+    });
+  }
 };
