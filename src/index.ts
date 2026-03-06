@@ -1,6 +1,7 @@
 import "reflect-metadata";
 import { AppDataSource } from "./data-source.js";
 import express from "express";
+import cors from "cors";
 import cookieParser from "cookie-parser";
 import authRoutes from "./routes/auth.route.js";
 import agentRoutes from "./routes/agent.route.js";
@@ -15,6 +16,7 @@ try {
   await AppDataSource.initialize();
   const port = 3000;
   const app = express();
+  app.use(cors({ origin: "https://dietiestates.cloud", credentials: true }));
   app.set("trust proxy", true);
   app.use(express.json({ limit: "10mb" }));
   app.use(express.urlencoded({ extended: true }));
