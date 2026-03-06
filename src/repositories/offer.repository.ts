@@ -445,7 +445,7 @@ export async function findAgentNegotiationDetail({
     .leftJoinAndSelect("adv.realEstate", "re")
     .leftJoinAndSelect("adv.photos", "photos")
     .leftJoin("offer.account", "account")
-    .addSelect(["account.firstName", "account.lastName", "account.username"])
+    .addSelect(["account.firstName", "account.lastName", "account.email"])
     .where("offer.agentId = :agentId", { agentId })
     .andWhere("offer.advertisementId = :advertisementId", { advertisementId })
     .andWhere("offer.accountId = :accountId", { accountId })
