@@ -104,72 +104,162 @@ export async function findAdvertisementStatusById(
 
   return advertisement?.status ?? null;
 }
-//repository
-export async function findAdvertisements(params?: {
-  take?: number;
-  skip?: number;
+type FindAdvertisementsParams = {
+  take: number;
+  skip: number;
   status?: string;
   type?: string;
-
-  // opzionale: se presenti → nearby
   lat?: number;
   lon?: number;
-  radiusMeters?: number;
-}) {
-  const take = Math.min(Math.max(params?.take ?? 20, 1), 100);
-  const skip = Math.max(params?.skip ?? 0, 0);
+  radiusMeters: number;
+  minPrice?: number;
+  maxPrice?: number;
+  minSize?: number;
+  maxSize?: number;
+  rooms?: number;
+  floor?: number;
+  elevator?: boolean;
+  airConditioning?: boolean;
+  heating?: boolean;
+  concierge?: boolean;
+  parking?: boolean;
+  garage?: boolean;
+  furnished?: boolean;
+  solarPanels?: boolean;
+  balcony?: boolean;
+  terrace?: boolean;
+  housingType?: string;
+  garden?: boolean;
+};
 
-  const qb = AdvertisementRepository.createQueryBuilder("adv")
+export async function findAdvertisements({
+  take,
+  skip,
+  status,
+  type,
+  lat,
+  lon,
+  radiusMeters,
+  minPrice,
+  maxPrice,
+  minSize,
+  maxSize,
+  rooms,
+  floor,
+  elevator,
+  airConditioning,
+  heating,
+  concierge,
+  parking,
+  garage,
+  furnished,
+  solarPanels,
+  balcony,
+  terrace,
+  garden,
+  housingType,
+}: FindAdvertisementsParams) {
+  const qb = AppDataSource.getRepository(Advertisement)
+    .createQueryBuilder("adv")
     .leftJoinAndSelect("adv.realEstate", "re")
-    .leftJoinAndSelect("adv.photos", "ph")
-    .leftJoinAndSelect("adv.pois", "poi")
-    .leftJoinAndSelect("adv.agent", "ag")
-    .where("1=1")
-    .addOrderBy("ph.position", "ASC")
-    .take(take)
-    .skip(skip);
+    .leftJoinAndSelect("adv.photos", "photos")
+    .leftJoinAndSelect("adv.agent", "agent")
+    .leftJoinAndSelect("adv.pois", "pois");
 
-  if (params?.status)
-    qb.andWhere("adv.status = :status", { status: params.status });
-  if (params?.type) qb.andWhere("adv.type = :type", { type: params.type });
+  if (status) {
+    qb.andWhere("adv.status = :status", { status });
+  }
 
-  const hasCoords =
-    Number.isFinite(params?.lat) && Number.isFinite(params?.lon);
+  if (type) {
+    qb.andWhere("adv.type = :type", { type });
+  }
 
-  if (hasCoords) {
-    const radius = params?.radiusMeters ?? 10_000;
+  if (minPrice !== undefined) {
+    qb.andWhere("adv.price >= :minPrice", { minPrice });
+  }
 
-    qb.andWhere("re.location IS NOT NULL");
+  if (maxPrice !== undefined) {
+    qb.andWhere("adv.price <= :maxPrice", { maxPrice });
+  }
 
+  if (minSize !== undefined) {
+    qb.andWhere("re.size >= :minSize", { minSize });
+  }
+
+  if (maxSize !== undefined) {
+    qb.andWhere("re.size <= :maxSize", { maxSize });
+  }
+
+  if (rooms !== undefined) {
+    qb.andWhere("re.rooms = :rooms", { rooms });
+  }
+  if (housingType) {
+    qb.andWhere("re.housingType = :housingType", { housingType });
+  }
+  if (floor !== undefined) {
+    qb.andWhere("re.floor = :floor", { floor });
+  }
+
+  const booleanFilters = {
+    elevator,
+    airConditioning,
+    heating,
+    concierge,
+    parking,
+    garage,
+    furnished,
+    solarPanels,
+    balcony,
+    terrace,
+    garden,
+  };
+
+  for (const [field, value] of Object.entries(booleanFilters)) {
+    if (value !== undefined) {
+      qb.andWhere(`re.${field} = :${field}`, { [field]: value });
+    }
+  }
+
+  if (
+    lat !== undefined &&
+    lon !== undefined &&
+    Number.isFinite(lat) &&
+    Number.isFinite(lon)
+  ) {
     qb.andWhere(
       `
       ST_DWithin(
         re.location::geography,
-        ST_SetSRID(ST_Point(:lon, :lat), 4326)::geography,
-        :radius
+        ST_SetSRID(ST_MakePoint(:lon, :lat), 4326)::geography,
+        :radiusMeters
       )
       `,
-      { lat: params!.lat, lon: params!.lon, radius },
+      { lat, lon, radiusMeters },
     );
 
-    // distanza per ordinare
     qb.addSelect(
       `
       ST_Distance(
         re.location::geography,
-        ST_SetSRID(ST_Point(:lon, :lat), 4326)::geography
+        ST_SetSRID(ST_MakePoint(:lon, :lat), 4326)::geography
       )
       `,
-      "distance_m",
+      "distance",
     );
 
-    qb.orderBy("distance_m", "ASC");
+    qb.orderBy("distance", "ASC");
   } else {
-    // fallback classico
     qb.orderBy("adv.id", "DESC");
   }
 
-  const [items, count] = await qb.getManyAndCount();
-  return { items, count, take, skip };
-}
+  qb.take(take).skip(skip);
 
+  const [items, total] = await qb.getManyAndCount();
+
+  return {
+    total,
+    take,
+    skip,
+    items,
+  };
+}
