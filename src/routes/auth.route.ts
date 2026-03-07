@@ -8,6 +8,7 @@ import {
   loginAgent,
   logoutAgent,
   changePasswordFirstLogin,
+  getAllAgency,
 } from "../controllers/auth.agent.controller.js";
 import { authenticationMiddlewareAccount } from "../middleware/auth.account.middleware.js";
 import {
@@ -49,5 +50,7 @@ router.post(
   authAgentFirstLoginOnly,
   changePasswordFirstLogin,
 );
+
+router.get("/agencies", getAllAgency);
 
 export default router;

@@ -39,3 +39,15 @@ export const createAgency = (data: Partial<Agency>): Agency => {
 export const saveAgency = async (agency: Agency): Promise<Agency> => {
   return AgencyRepository.save(agency);
 };
+
+export const findAllAgencies = async (): Promise<Agency[]> => {
+  return AgencyRepository.find({
+    select: {
+      id: true,
+      name: true,
+    },
+    order: {
+      name: "ASC",
+    },
+  });
+};

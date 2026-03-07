@@ -16,6 +16,7 @@ import {
   createRefreshToken,
   saveRefreshToken,
 } from "../repositories/refreshToken.repository.js";
+import { findAllAgencies } from "../repositories/agency.repository.js";
 import { AppDataSource } from "../data-source.js";
 import { RequestAgent } from "../types/express.js";
 import { Type } from "../entities/refreshToken.js";
@@ -246,6 +247,16 @@ export const changePasswordFirstLogin = async (
     return res.status(200).json({ message: "Password updated successfully" });
   } catch (err) {
     console.error("changePasswordFirstLogin error:", err);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+export const getAllAgency = async (req: Request, res: Response) => {
+  try {
+    const agencies =await findAllAgencies();
+    return res.status(200).json({ agencies });
+  } catch (err) {
+    console.error("getAllAgency error:", err);
     return res.status(500).json({ error: "Internal server error" });
   }
 };
