@@ -253,7 +253,7 @@ export const changePasswordFirstLogin = async (
 
 export const getAllAgency = async (req: Request, res: Response) => {
   try {
-    const agencies =await findAllAgencies();
+    const agencies = await findAllAgencies();
     return res.status(200).json({ agencies });
   } catch (err) {
     console.error("getAllAgency error:", err);

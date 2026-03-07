@@ -50,8 +50,8 @@ export const verifyAccessToken = (accessToken: string): Payload => {
 
   try {
     return jwt.verify(accessToken, process.env.ACCESS_TOKEN_SECRET as Secret) as Payload;
-  } catch (err: any) {
-    if (err.name === "TokenExpiredError") throw new ExpiredTokenError("access", err);
+  } catch (err: unknown) {
+    if (err instanceof Error && err.name === "TokenExpiredError") throw new ExpiredTokenError("access", err);
     throw new InvalidTokenError("access", err);
   }
 };
@@ -68,8 +68,8 @@ export const verifyRefreshToken = (refreshToken: string): Payload => {
 
   try {
     return jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET as Secret) as Payload;
-  } catch (err: any) {
-    if (err.name === "TokenExpiredError") throw new ExpiredTokenError("refresh", err);
+  } catch (err: unknown) {
+    if (err instanceof Error && err.name === "TokenExpiredError") throw new ExpiredTokenError("refresh", err);
     throw new InvalidTokenError("refresh", err);
   }
 };
@@ -82,7 +82,7 @@ export const verifyRefreshToken = (refreshToken: string): Payload => {
 export const revokeRefreshToken = async (subjectId: number, type: Type): Promise<void> => {
   try {
     await deleteRefreshTokenBySubject(subjectId, type);
-  } catch (error) {
+  } catch (error: unknown ) {
     console.error(`Failed to revoke refresh token for subject ${subjectId} ${type}`, error);
     throw new Error("Failed to revoke refresh token", { cause: error });
   }
@@ -114,27 +114,27 @@ export const setAuthCookies = (
       secure: true,
       sameSite: "none",
       domain: ".dietiestates.cloud",
-      maxAge: 15 * 60 * 1000,
+      maxAge: 3 * 60 * 1000,
     });
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
       secure: true,
       sameSite: "none",
       domain: ".dietiestates.cloud",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
+      maxAge: 6 * 60 * 1000,
     });
   } else {
     res.cookie("accessToken", accessToken, {
       httpOnly: true,
       secure: false,
       sameSite: "lax",
-      maxAge: 15 * 60 * 1000,
+      maxAge: 3 * 60 * 1000,
     });
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
       secure: false,
       sameSite: "lax",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
+      maxAge: 6 * 60 * 1000,
     });
   }
 };
