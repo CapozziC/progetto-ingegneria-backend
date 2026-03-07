@@ -62,7 +62,6 @@ export const authenticationMiddlewareAgent = async (
     } catch (err) {
       if (err instanceof InvalidTokenError) {
         clearAuthCookies(res);
-        return res.status(401).json({ error: "Invalid access token" });
       }
       if (!(err instanceof ExpiredTokenError)) {
         clearAuthCookies(res);
