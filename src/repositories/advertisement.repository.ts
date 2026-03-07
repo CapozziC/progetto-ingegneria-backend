@@ -183,10 +183,32 @@ export async function findAdvertisements({
 }: FindAdvertisementsParams) {
   const qb = AppDataSource.getRepository(Advertisement)
     .createQueryBuilder("adv")
-    .leftJoinAndSelect("adv.realEstate", "re")
-    .leftJoinAndSelect("adv.photos", "photos")
-    .leftJoinAndSelect("adv.agent", "agent")
-    .leftJoinAndSelect("adv.pois", "pois");
+    .select([
+    "adv.id",
+    "adv.description",
+    "adv.price",
+    "adv.type",
+  ])
+    .leftJoin("adv.realEstate", "re")
+    .addSelect([
+      "re.id",
+      "re.size",
+      "re.rooms",
+      "re.housingType",
+      "re.location",
+      "re.addressFormatted",
+    ])
+    .leftJoin("adv.photos", "photos")
+    .addSelect(["photos.id", "photos.url", "photos.position"])
+    .leftJoin("adv.agent", "agent")
+    .addSelect([
+      "agent.id",
+      "agent.firstName",
+      "agent.lastName",
+      "agent.phoneNumber",
+    ])
+    .leftJoin("adv.pois", "pois")
+    .addSelect(["pois.name", "pois.type", "pois.id"]);
 
   if (status) {
     qb.andWhere("adv.status = :status", { status });
