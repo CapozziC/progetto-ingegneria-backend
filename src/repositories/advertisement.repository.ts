@@ -191,12 +191,23 @@ export async function findAdvertisements({
   ])
     .leftJoin("adv.realEstate", "re")
     .addSelect([
-      "re.id",
       "re.size",
       "re.rooms",
+      "re.floor",
+      "re.elevator",
+      "re.airConditioning",
+      "re.heating",
+      "re.concierge",
+      "re.parking",
+      "re.garage",
+      "re.furnished",
+      "re.solarPanels",
+      "re.balcony",
+      "re.terrace",
+      "re.garden",
       "re.housingType",
       "re.location",
-      "re.addressFormatted",
+      "re.addressFormatted"
     ])
     .leftJoin("adv.photos", "photos")
     .addSelect(["photos.id", "photos.url", "photos.position"])
