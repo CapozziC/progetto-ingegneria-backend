@@ -39,10 +39,6 @@ export const authenticationMiddlewareAccount = async (
   const accessToken = req.cookies?.accessToken as string | undefined;
   const refreshToken = req.cookies?.refreshToken as string | undefined;
 
-  if (!refreshToken) {
-    return res.status(401).json({ error: "Missing refresh token" });
-  }
-
   // 1) Provo access token
   if (accessToken) {
     try {
@@ -64,7 +60,6 @@ export const authenticationMiddlewareAccount = async (
     } catch (err) {
       if (err instanceof InvalidTokenError) {
         res.clearCookie("accessToken");
-        return res.status(401).json({ error: "Invalid access token" });
       }
       if (err instanceof ExpiredTokenError) {
         res.clearCookie("accessToken");
@@ -75,10 +70,14 @@ export const authenticationMiddlewareAccount = async (
   }
 
   // 2) Refresh flow (access token assente o scaduto)
+  if (!refreshToken) {
+    clearAuthCookies(res);
+    return res.status(401).json({ error: "Refresh token missing" });
+  }
   try {
     const payload = verifyRefreshToken(refreshToken);
 
-    // ✅ Questo middleware è per ACCOUNT
+    // Questo middleware è per ACCOUNT
     if (payload.type !== Type.ACCOUNT) {
       clearAuthCookies(res);
       return res.status(403).json({ error: "Forbidden" });
