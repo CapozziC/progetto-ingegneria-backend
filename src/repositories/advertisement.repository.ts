@@ -74,6 +74,8 @@ export async function findAdvertisementById(advertisementId: number) {
       "agent.lastName",
       "agent.phoneNumber",
     ])
+    .leftJoin("agent.agency", "agency")
+    .addSelect(["agency.id", "agency.name", "agency.phoneNumber"])
     .where("adv.id = :id", { id: advertisementId });
 
   return qb.getOne();
@@ -183,12 +185,7 @@ export async function findAdvertisements({
 }: FindAdvertisementsParams) {
   const qb = AppDataSource.getRepository(Advertisement)
     .createQueryBuilder("adv")
-    .select([
-    "adv.id",
-    "adv.description",
-    "adv.price",
-    "adv.type",
-  ])
+    .select(["adv.id", "adv.description", "adv.price", "adv.type"])
     .leftJoin("adv.realEstate", "re")
     .addSelect([
       "re.size",
@@ -207,7 +204,7 @@ export async function findAdvertisements({
       "re.garden",
       "re.housingType",
       "re.location",
-      "re.addressFormatted"
+      "re.addressFormatted",
     ])
     .leftJoin("adv.photos", "photos")
     .addSelect(["photos.id", "photos.url", "photos.position"])
@@ -218,6 +215,8 @@ export async function findAdvertisements({
       "agent.lastName",
       "agent.phoneNumber",
     ])
+    .leftJoin("agent.agency", "agency")
+    .addSelect(["agency.id", "agency.name"])
     .leftJoin("adv.pois", "pois")
     .addSelect(["pois.name", "pois.type", "pois.id"]);
 
