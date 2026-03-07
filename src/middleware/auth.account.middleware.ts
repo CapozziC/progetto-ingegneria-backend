@@ -63,7 +63,7 @@ export const authenticationMiddlewareAccount = async (
       }
       if (err instanceof ExpiredTokenError) {
         res.clearCookie("accessToken");
-        return res.status(401).json({ error: "Access token expired" });
+        //return res.status(401).json({ error: "Access token expired" });
         // se scaduto -> continuo al refresh flow
       }
     }
