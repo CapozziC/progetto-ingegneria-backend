@@ -65,7 +65,6 @@ export const authenticationMiddlewareAgent = async (
       }
       if (!(err instanceof ExpiredTokenError)) {
         clearAuthCookies(res);
-        return res.status(401).json({ error: "Unauthorized" });
       }
     }
 
