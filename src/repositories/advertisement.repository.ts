@@ -64,8 +64,16 @@ export const findAdvertisementOwnerId = async (
 export async function findAdvertisementById(advertisementId: number) {
   const qb = AppDataSource.getRepository(Advertisement)
     .createQueryBuilder("adv")
+    .select([
+      "adv.id",
+      "adv.description",
+      "adv.price",
+      "adv.type",
+      "adv.status",
+    ])
     .leftJoinAndSelect("adv.realEstate", "re")
-    .leftJoinAndSelect("adv.photos", "photos")
+    .leftJoin("adv.photos", "photos")
+    .addSelect(["photos.id", "photos.url"])
     .leftJoinAndSelect("adv.pois", "pois")
     .leftJoin("adv.agent", "agent")
     .addSelect([
@@ -190,18 +198,6 @@ export async function findAdvertisements({
     .addSelect([
       "re.size",
       "re.rooms",
-      "re.floor",
-      "re.elevator",
-      "re.airConditioning",
-      "re.heating",
-      "re.concierge",
-      "re.parking",
-      "re.garage",
-      "re.furnished",
-      "re.solarPanels",
-      "re.balcony",
-      "re.terrace",
-      "re.garden",
       "re.housingType",
       "re.location",
       "re.addressFormatted",
