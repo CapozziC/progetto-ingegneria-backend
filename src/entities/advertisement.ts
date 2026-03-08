@@ -23,6 +23,7 @@ import { Poi } from "./poi.js";
 export enum Status {
   ACTIVE = "active",
   SOLD = "sold",
+  RENTED = "rented",
 }
 
 export enum Type {
@@ -35,9 +36,33 @@ export enum Type {
 @Check(`"price" > 0`)
 @Check(`
 (
-  (status = 'sold' AND sold_price IS NOT NULL AND sold_at IS NOT NULL)
+  ("status" <> 'rented' OR "type" = 'rent')
+  AND
+  ("status" <> 'sold' OR "type" = 'sale')
+)
+`)
+@Check(`
+(
+  (
+    "status" = 'active'
+    AND "sold_price" IS NULL
+    AND "sold_at" IS NULL
+    AND "rented_at" IS NULL
+  )
   OR
-  (status = 'active' AND sold_price IS NULL AND sold_at IS NULL)
+  (
+    "status" = 'sold'
+    AND "sold_price" IS NOT NULL
+    AND "sold_at" IS NOT NULL
+    AND "rented_at" IS NULL
+  )
+  OR
+  (
+    "status" = 'rented'
+    AND "sold_price" IS NULL
+    AND "sold_at" IS NULL
+    AND "rented_at" IS NOT NULL
+  )
 )
 `)
 @Index("IDX_adv_status_price", ["status", "price"])
@@ -78,6 +103,13 @@ export class Advertisement {
     nullable: true,
   })
   soldAt!: Date | null;
+
+  @Column({
+    name: "rented_at",
+    type: "timestamp with time zone",
+    nullable: true,
+  })
+  rentedAt!: Date | null;
 
   @Column({
     type: "enum",
