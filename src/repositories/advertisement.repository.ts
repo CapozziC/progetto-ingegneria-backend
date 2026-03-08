@@ -313,3 +313,14 @@ export async function findAdvertisements({
     items,
   };
 }
+
+export async function searchAdvertisementById(advertisementId: number) {
+  return await AdvertisementRepository.findOne({
+    where: {
+      id: advertisementId,
+    },
+    relations: {
+      agent: true,
+    },
+  });
+}

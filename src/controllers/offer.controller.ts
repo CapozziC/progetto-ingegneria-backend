@@ -5,6 +5,7 @@ import { parsePositiveInt } from "../utils/objectParse.utils.js";
 import {
   findAdvertisementOwnerId,
   findAdvertisementStatusById,
+  searchAdvertisementById,
 } from "../repositories/advertisement.repository.js";
 import {
   createCounterOffer,
@@ -16,7 +17,7 @@ import {
   findLatestPendingAccountOfferForAdvertisementAndAccount,
 } from "../repositories/offer.repository.js";
 
-import { Status as AdvStatus } from "../entities/advertisement.js";
+import { Status as AdvStatus, Type } from "../entities/advertisement.js";
 import { Status as AppStatus } from "../entities/appointment.js";
 import { Status, OfferMadeBy } from "../entities/offer.js";
 import { Advertisement } from "../entities/advertisement.js";
@@ -42,6 +43,17 @@ export const createOfferByAccount = async (
     if (!advertisementId) {
       return res.status(400).json({ error: "Invalid advertisement id" });
     }
+
+    const advertisement = await searchAdvertisementById(advertisementId);
+    if (!advertisement) {
+      return res.status(404).json({ error: "Advertisement not found" });
+    }
+    if (advertisement.type !== Type.SALE) {
+      return res
+        .status(409)
+        .json({ error: "Offers can only be made for sale advertisements" });
+    }
+
     const { price } = req.body;
     if (!price || typeof price !== "number" || price <= 0) {
       return res.status(400).json({ error: "Invalid price" });
@@ -72,7 +84,6 @@ export const createOfferByAccount = async (
     return res.status(500).json({ error: "Failed to create offer" });
   }
 };
-
 
 //Agent accept/reject offer and counteroffer
 /**
@@ -141,6 +152,12 @@ export const agentAcceptOffer = async (req: RequestAgent, res: Response) => {
       return res
         .status(404)
         .json({ error: "Associated advertisement not found" });
+    }
+    if (advertisement.type !== Type.SALE) {
+      await queryRunner.rollbackTransaction();
+      return res.status(409).json({
+        error: "Only offers for sale advertisements can be accepted",
+      });
     }
 
     if (advertisement.status !== "active") {
@@ -391,10 +408,16 @@ export const accountAcceptAgentOffer = async (
         .json({ error: "Associated advertisement not found" });
     }
 
+    if (advertisement.type !== Type.SALE) {
+      await queryRunner.rollbackTransaction();
+      return res.status(409).json({
+        error: "Only offers for sale advertisements can be accepted",
+      });
+    }
     if (advertisement.status !== AdvStatus.ACTIVE) {
       await queryRunner.rollbackTransaction();
       return res.status(409).json({
-        error: "Only offers for active advertisements can be accepted",
+        error: "Only offers for sale advertisements can be accepted",
       });
     }
 
@@ -628,5 +651,79 @@ export const accountRejectAgentOfferAndCreateCounter = async (
     return res.status(500).json({ error: "Failed to counter agent offer" });
   } finally {
     await queryRunner.release();
+  }
+};
+
+export const markAdvertisementAsRented = async (
+  req: RequestAgent,
+  res: Response,
+) => {
+  try {
+    const agent = requireAgent(req, res);
+    if (!agent) return;
+
+    const advertisementId = parsePositiveInt(req.params.advertisementId);
+    if (!advertisementId) {
+      return res.status(400).json({ error: "Invalid advertisement id" });
+    }
+
+    await AppDataSource.transaction(async (manager) => {
+      const advertisementRepo = manager.getRepository(Advertisement);
+      const appointmentRepo = manager.getRepository(Appointment);
+
+      const advertisement = await advertisementRepo.findOne({
+        where: { id: advertisementId },
+        relations: {
+          agent: true,
+        },
+      });
+
+      if (!advertisement) {
+        return res.status(404).json({ error: "Advertisement not found" });
+      }
+
+      if (advertisement.agent.id !== agent.id) {
+        return res
+          .status(403)
+          .json({ error: "You are not the owner of this advertisement" });
+      }
+
+      if (advertisement.type !== Type.RENT) {
+        return res.status(409).json({
+          error: "Only rental advertisements can be marked as rented",
+        });
+      }
+
+      if (advertisement.status !== AdvStatus.ACTIVE) {
+        return res.status(409).json({
+          error: "Only active advertisements can be marked as rented",
+        });
+      }
+
+      advertisement.status = AdvStatus.RENTED;
+      advertisement.rentedAt = new Date();
+
+      await advertisementRepo.save(advertisement);
+
+      await appointmentRepo.update(
+        {
+          advertisementId,
+          status: In([AppStatus.REQUESTED, AppStatus.CONFIRMED]),
+        },
+        { status: AppStatus.CANCELLED },
+      );
+
+      return res.status(200).json({
+        ok: true,
+        advertisementId: advertisement.id,
+        advertisementStatus: advertisement.status,
+        rentedAt: advertisement.rentedAt,
+      });
+    });
+  } catch (error) {
+    console.error("Error marking advertisement as rented:", error);
+    return res
+      .status(500)
+      .json({ error: "Failed to mark advertisement as rented" });
   }
 };
