@@ -13,6 +13,7 @@ import {
   findAccountNegotiations,
   findAccountNegotiationDetail,
 } from "../repositories/offer.repository.js";
+import { buildAdvertisementTitle } from "../utils/advertisementTitle.utils.js";
 import { parsePositiveInt } from "../utils/objectParse.utils.js";
 
 export const getAllAdvertisements = async (
@@ -167,7 +168,9 @@ export const getAllAdvertisements = async (
     lat,
     lon,
     radiusMeters:
-      Number.isFinite(radiusMeters) && radiusMeters > 0 ? radiusMeters : 100_000,
+      Number.isFinite(radiusMeters) && radiusMeters > 0
+        ? radiusMeters
+        : 100_000,
     minPrice: Number.isFinite(minPrice) ? minPrice : undefined,
     maxPrice: Number.isFinite(maxPrice) ? maxPrice : undefined,
     minSize: Number.isFinite(minSize) ? minSize : undefined,
@@ -191,6 +194,14 @@ export const getAllAdvertisements = async (
     mode,
     location: locationInfo,
     ...result,
+    items: result.items.map((adv) => ({
+      ...adv,
+      title: buildAdvertisementTitle({
+        rooms: adv.realEstate?.rooms,
+        addressFormatted: adv.realEstate?.addressFormatted,
+        housingType: adv.realEstate?.housingType,
+      }),
+    })),
   });
 };
 
@@ -272,7 +283,14 @@ export const getAdvertisementById = async (
     if (!advertisement) {
       return res.status(404).json({ error: "Advertisement not found" });
     }
-    return res.json(advertisement);
+    return res.json({
+      ...advertisement,
+      title: buildAdvertisementTitle({
+        rooms: advertisement.realEstate?.rooms,
+        addressFormatted: advertisement.realEstate?.addressFormatted,
+        housingType: advertisement.realEstate?.housingType,
+      }),
+    });
   } catch (err) {
     console.error("getAdvertisementById error:", err);
     return res.status(500).json({ error: "Failed to retrieve advertisement" });
