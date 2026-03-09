@@ -39,18 +39,19 @@ export const authenticationMiddlewareAgent = async (
   res: Response,
   next: NextFunction,
 ) => {
-  const accessToken = req.cookies?.accessToken as string;
-  const refreshToken = req.cookies?.refreshToken as string;
+  const accessToken = req.cookies?.accessToken as string | undefined;
+  const refreshToken = req.cookies?.refreshToken as string | undefined;
 
-  // 1) Provo access token
+  // 1. Provo access token se presente
   if (accessToken) {
     try {
       const payload = verifyAccessToken(accessToken);
-      // ✅ Questo middleware è per AGENT
+
       if (payload.type !== Type.AGENT) {
         clearAuthCookies(res);
         return res.status(403).json({ error: "Forbidden" });
       }
+
       const agent = await findAgentAuthById(payload.subjectId);
       if (!agent) {
         clearAuthCookies(res);
@@ -60,92 +61,105 @@ export const authenticationMiddlewareAgent = async (
       req.agent = agent;
       return next();
     } catch (err) {
-      if (err instanceof InvalidTokenError) {
+      // se non è scaduto ma è invalido, pulisco tutto
+      if (!(err instanceof ExpiredTokenError)) {
         clearAuthCookies(res);
+        return res.status(401).json({ error: "Invalid access token" });
       }
-      if (err instanceof ExpiredTokenError) {
-        clearAuthCookies(res);
-      }
+      // se è scaduto, continuo sotto col refresh
     }
+  }
 
-    if (!refreshToken) {
+  // - access token manca o è scaduto, provo a refreshare con il refresh token
+
+  if (!refreshToken) {
+    clearAuthCookies(res);
+    return res.status(401).json({ error: "Missing refresh token" });
+  }
+
+  try {
+    const payload = verifyRefreshToken(refreshToken);
+
+    if (payload.type !== Type.AGENT) {
       clearAuthCookies(res);
-      return res.status(401).json({ error: "Missing refresh token" });
+      return res.status(403).json({ error: "Forbidden" });
     }
-    try {
-      const payload = verifyRefreshToken(refreshToken);
 
-      // ✅ Questo middleware è per AGENT
-      if (payload.type !== Type.AGENT) {
-        clearAuthCookies(res);
-        return res.status(403).json({ error: "Forbidden" });
-      }
+    const storedToken = await findRefreshTokenBySubject(
+      payload.subjectId,
+      payload.type,
+    );
 
-      const storedToken = await findRefreshTokenBySubject(
-        payload.subjectId,
-        payload.type,
-      );
-      if (!storedToken) {
-        clearAuthCookies(res);
-        return res.status(401).json({ error: "Refresh token not found" });
-      }
+    if (!storedToken) {
+      clearAuthCookies(res);
+      return res.status(401).json({ error: "Refresh token not found" });
+    }
 
-      // hash match
-      const incomingHash = hashRefreshToken(refreshToken);
-      if (storedToken.id !== incomingHash) {
-        await revokeRefreshToken(payload.subjectId, payload.type);
-        clearAuthCookies(res);
-        return res.status(401).json({ error: "Refresh token mismatch" });
-      }
-
-      // scadenza server-side
-      if (storedToken.expiresAt.getTime() <= Date.now()) {
-        await revokeRefreshToken(payload.subjectId, payload.type);
-        clearAuthCookies(res);
-        return res.status(401).json({ error: "Refresh token expired" });
-      }
-
-      const agent = await findAgentById(payload.subjectId);
-      if (!agent) {
-        await revokeRefreshToken(payload.subjectId, payload.type);
-        clearAuthCookies(res);
-        return res.status(401).json({ error: "User not found" });
-      }
-      // ROTATION: revoco quello vecchio e genero nuovi token
+    const incomingHash = hashRefreshToken(refreshToken);
+    if (storedToken.id !== incomingHash) {
       await revokeRefreshToken(payload.subjectId, payload.type);
-
-      const newAccessToken = generateAccessToken(
-        { subjectId: agent.id, type: Type.AGENT },
-        process.env.ACCESS_TOKEN_SECRET!,
-        "3m",
-      );
-      const newRefreshToken = generateRefreshToken(
-        { subjectId: agent.id, type: Type.AGENT },
-        process.env.REFRESH_TOKEN_SECRET!,
-        "6m",
-      );
-      const hashedNewRefreshToken = hashRefreshToken(newRefreshToken);
-
-      const refreshTokenEntry = createRefreshToken({
-        subjectId: agent.id,
-        id: hashedNewRefreshToken,
-        type: Type.AGENT,
-        expiresAt: new Date(Date.now() + 6 * 60 * 1000),
-      });
-      await saveRefreshToken(refreshTokenEntry);
-
-      setAuthCookies(res, newAccessToken, newRefreshToken);
-      req.agent = agent;
-      return next();
-    } catch (err) {
       clearAuthCookies(res);
-      return res
-        .status(401)
-        .json({ error: "Invalid refresh token", cause: err });
+      return res.status(401).json({ error: "Refresh token mismatch" });
     }
+
+    if (storedToken.expiresAt.getTime() <= Date.now()) {
+      await revokeRefreshToken(payload.subjectId, payload.type);
+      clearAuthCookies(res);
+      return res.status(401).json({ error: "Refresh token expired" });
+    }
+
+    const agent = await findAgentAuthById(payload.subjectId);
+    if (!agent) {
+      await revokeRefreshToken(payload.subjectId, payload.type);
+      clearAuthCookies(res);
+      return res.status(401).json({ error: "Agent not found" });
+    }
+
+    // rotation
+    await revokeRefreshToken(payload.subjectId, payload.type);
+
+    const newAccessToken = generateAccessToken(
+      { subjectId: agent.id, type: Type.AGENT },
+      process.env.ACCESS_TOKEN_SECRET!,
+      "3m",
+    );
+
+    const newRefreshToken = generateRefreshToken(
+      { subjectId: agent.id, type: Type.AGENT },
+      process.env.REFRESH_TOKEN_SECRET!,
+      "6m",
+    );
+
+    const hashedNewRefreshToken = hashRefreshToken(newRefreshToken);
+
+    const refreshTokenEntry = createRefreshToken({
+      subjectId: agent.id,
+      id: hashedNewRefreshToken,
+      type: Type.AGENT,
+      expiresAt: new Date(Date.now() + 6 * 60 * 1000),
+    });
+
+    await saveRefreshToken(refreshTokenEntry);
+
+    setAuthCookies(res, newAccessToken, newRefreshToken);
+    req.agent = agent;
+
+    return next();
+  } catch {
+    clearAuthCookies(res);
+    return res.status(401).json({
+      error: "Invalid refresh token",
+    });
   }
 };
 
+/**
+ * Login an agent by validating credentials, generating access and refresh tokens,
+ * revoking old refresh tokens, saving the new refresh token in the DB, and setting cookies.
+ * @param req Request with agent credentials in req.body
+ * @param res Response with success message or error message
+ * @returns JSON with success message or error message
+ */
 export const authAgentFirstLoginOnly = async (
   req: RequestAgent,
   res: Response,
