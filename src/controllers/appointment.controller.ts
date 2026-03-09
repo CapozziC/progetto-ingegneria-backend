@@ -235,10 +235,7 @@ export const getAppointmentsForAgent = async (
     return res.json({
       agentId: agent.id,
       appointments: appointments.map((a) => {
-        const previewPhoto =
-          a.advertisement?.photos?.sort(
-            (p1, p2) => p1.position - p2.position,
-          )[0]?.url ?? null;
+        const previewPhoto = a.advertisement?.photos?.[0]?.url ?? null;
 
         return {
           appointmentId: a.id,
@@ -387,6 +384,11 @@ export const getAppointmentsForAccount = async (
     const account = requireAccount(req, res);
     if (!account) return;
     const parsedStatus = parseStatus(status);
+    if (status !== undefined && parsedStatus === null) {
+      return res.status(400).json({
+        error: "Invalid status value",
+      });
+    }
 
     const parsedFrom = from ? new Date(from as string) : undefined;
     const parsedTo = to ? new Date(to as string) : undefined;
@@ -399,13 +401,27 @@ export const getAppointmentsForAccount = async (
 
     return res.json({
       accountId: account.id,
-      appointments: appointments.map((a) => ({
-        appointmentId: a.id,
-        status: a.status,
-        appointmentAt: a.appointmentAt.toISOString(),
-        advertisementId: a.advertisementId,
-        agentId: a.agentId,
-      })),
+      appointments: appointments.map((a) => {
+        const previewPhoto = a.advertisement?.photos?.[0]?.url ?? null;
+
+        return {
+          appointmentId: a.id,
+          status: a.status,
+          appointmentAt: a.appointmentAt.toISOString(),
+
+          advertisement: {
+            id: a.advertisementId,
+            previewPhoto,
+            address: a.advertisement?.realEstate?.addressFormatted ?? null,
+          },
+
+          agent: {
+            id: a.agentId,
+            firstName: a.agent?.firstName ?? null,
+            lastName: a.agent?.lastName ?? null,
+          },
+        };
+      }),
     });
   } catch (e) {
     console.error("getAppointmentsForAccount error:", e);

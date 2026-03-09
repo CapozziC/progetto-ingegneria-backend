@@ -120,7 +120,10 @@ export const findAppointmentsByAccount = async (
   return AppointmentRepository.find({
     where: buildAppointmentFilters({ accountId }, options),
     relations: {
-      advertisement: true,
+      advertisement: {
+        photos: true,
+        realEstate: true,
+      },
       agent: true,
     },
     order: {
