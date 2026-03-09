@@ -36,6 +36,8 @@ export const authenticationMiddlewareAccount = async (
   res: Response,
   next: NextFunction,
 ) => {
+  console.log("SONO ENTRATO NEL MIDDLEWARE ACCOUNT");
+  console.log("cookies:", req.cookies);
   const accessToken = req.cookies?.accessToken as string | undefined;
   const refreshToken = req.cookies?.refreshToken as string | undefined;
 
