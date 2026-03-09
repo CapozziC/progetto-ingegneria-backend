@@ -76,6 +76,7 @@ export const authenticationMiddlewareAccount = async (
     return res.status(401).json({ error: "Refresh token missing" });
   }
   try {
+    console.log("Faccio il refresh flow");
     const payload = verifyRefreshToken(refreshToken);
 
     // Questo middleware è per ACCOUNT
@@ -121,13 +122,13 @@ export const authenticationMiddlewareAccount = async (
     const newAccessToken = generateAccessToken(
       { subjectId: account.id, type: Type.ACCOUNT },
       process.env.ACCESS_TOKEN_SECRET!,
-      "20m",
+      "3m",
     );
 
     const newRefreshToken = generateRefreshToken(
       { subjectId: account.id, type: Type.ACCOUNT },
       process.env.REFRESH_TOKEN_SECRET!,
-      "5d",
+      "5m",
     );
 
     const hashedNewRefreshToken = hashRefreshToken(newRefreshToken);
@@ -136,7 +137,7 @@ export const authenticationMiddlewareAccount = async (
       subjectId: account.id,
       id: hashedNewRefreshToken,
       type: Type.ACCOUNT,
-      expiresAt: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000),
+      expiresAt: new Date(Date.now() + 5 * 60 * 1000),
     });
 
     await saveRefreshToken(refreshTokenEntry);
