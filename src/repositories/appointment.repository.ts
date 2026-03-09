@@ -80,7 +80,13 @@ export const findAppointmentsByAgentId = async (
 ) => {
   return AppointmentRepository.find({
     where: buildAppointmentFilters({ agentId }, options),
-    relations: { advertisement: true, account: true },
+    relations: {
+      advertisement: {
+        photos: true,
+        realEstate: true,
+      },
+      account: true,
+    },
     order: { appointmentAt: "ASC" },
   });
 };

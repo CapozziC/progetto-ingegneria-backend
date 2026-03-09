@@ -152,12 +152,10 @@ export const createAppointment = async (req: RequestAccount, res: Response) => {
       account.id,
     );
     if (existingAppointment) {
-      return res
-        .status(409)
-        .json({
-          error:
-            "You already have a pending appointment request for this advertisement",
-        });
+      return res.status(409).json({
+        error:
+          "You already have a pending appointment request for this advertisement",
+      });
     }
 
     const appointment = new Appointment();
@@ -195,7 +193,6 @@ export const createAppointment = async (req: RequestAccount, res: Response) => {
  * @param res Response with list of appointments of the authenticated agent matching the filters or error message
  * @returns JSON with list of appointments of the authenticated agent matching the filters or error message
  */
-
 export const getAppointmentsForAgent = async (
   req: RequestAgent,
   res: Response,
@@ -211,6 +208,7 @@ export const getAppointmentsForAgent = async (
         error: "Invalid status value",
       });
     }
+
     let parsedFrom: Date | undefined;
     let parsedTo: Date | undefined;
 
@@ -223,6 +221,7 @@ export const getAppointmentsForAgent = async (
           error: "Invalid date range",
         });
       }
+
       parsedFrom = f;
       parsedTo = t;
     }
@@ -235,13 +234,30 @@ export const getAppointmentsForAgent = async (
 
     return res.json({
       agentId: agent.id,
-      appointments: appointments.map((a) => ({
-        appointmentId: a.id,
-        status: a.status,
-        appointmentAt: a.appointmentAt.toISOString(),
-        advertisementId: a.advertisementId,
-        accountId: a.accountId,
-      })),
+      appointments: appointments.map((a) => {
+        const previewPhoto =
+          a.advertisement?.photos?.sort(
+            (p1, p2) => p1.position - p2.position,
+          )[0]?.url ?? null;
+
+        return {
+          appointmentId: a.id,
+          status: a.status,
+          appointmentAt: a.appointmentAt.toISOString(),
+
+          advertisement: {
+            id: a.advertisementId,
+            previewPhoto,
+            address: a.advertisement?.realEstate?.addressFormatted ?? null,
+          },
+
+          account: {
+            id: a.accountId,
+            firstName: a.account?.firstName ?? null,
+            lastName: a.account?.lastName ?? null,
+          },
+        };
+      }),
     });
   } catch (e) {
     console.error("getAppointmentsForAgent error:", e);
