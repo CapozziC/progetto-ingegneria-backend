@@ -82,13 +82,13 @@ export const loginAgent = async (req: Request, res: Response) => {
     const accessToken = generateAccessToken(
       { subjectId: agent.id, type: Type.AGENT },
       process.env.ACCESS_TOKEN_SECRET!,
-      "3m",
+      "20m",
     );
 
     const refreshToken = generateRefreshToken(
       { subjectId: agent.id, type: Type.AGENT },
       process.env.REFRESH_TOKEN_SECRET!,
-      "5m",
+      "3d",
     );
 
     if (!accessToken || !refreshToken) {
@@ -106,7 +106,7 @@ export const loginAgent = async (req: Request, res: Response) => {
       subjectId: agent.id,
       id: hashedRefreshToken,
       type: Type.AGENT,
-      expiresAt: new Date(Date.now() + 5  * 60 * 1000), // 5 minutes
+      expiresAt: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000), // 3 days
     });
 
     const savedRefreshToken = await saveRefreshToken(refreshTokenEntry);
