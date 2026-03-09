@@ -1,7 +1,6 @@
 import { NextFunction, Response } from "express";
 import {
   findAgentById,
-  findAgentAuthById,
 } from "../repositories/agent.repository.js";
 import {
   findRefreshTokenBySubject,
@@ -9,7 +8,7 @@ import {
   saveRefreshToken,
 } from "../repositories/refreshToken.repository.js";
 import { Type } from "../entities/refreshToken.js";
-import { RequestAgent } from "../types/express.js";
+import {RequestAgent } from "../types/express.js";
 import {
   generateAccessToken,
   generateRefreshToken,
@@ -44,48 +43,44 @@ export const authenticationMiddlewareAgent = async (
   const accessToken = req.cookies?.accessToken as string | undefined;
   const refreshToken = req.cookies?.refreshToken as string | undefined;
 
-  console.log("accessToken exists:", !!accessToken);
-  console.log("refreshToken exists:", !!refreshToken);
-  // 1) Provo prima con access token
+  // 1) Provo access token
   if (accessToken) {
     try {
       const payload = verifyAccessToken(accessToken);
 
+      // ✅ Questo middleware è per AGENT
       if (payload.type !== Type.AGENT) {
         clearAuthCookies(res);
         return res.status(403).json({ error: "Forbidden" });
       }
 
-      const agent = await findAgentAuthById(payload.subjectId);
+      const agent = await findAgentById(payload.subjectId);
       if (!agent) {
         clearAuthCookies(res);
-        return res.status(401).json({ error: "Agent not found" });
+        return res.status(401).json({ error: "User not found" });
       }
-
       req.agent = agent;
       return next();
     } catch (err) {
+      if (err instanceof InvalidTokenError) {
+        res.clearCookie("accessToken");
+      }
       if (err instanceof ExpiredTokenError) {
         res.clearCookie("accessToken");
-        // continuo sotto col refresh
-      } else {
-        clearAuthCookies(res);
-        return res.status(401).json({ error: "Invalid access token" });
+        // se scaduto -> continuo al refresh flow
       }
     }
   }
 
-  // 2) Access token mancante o scaduto -> provo refresh
+  // 2) Refresh flow (access token assente o scaduto)
   if (!refreshToken) {
     clearAuthCookies(res);
-    return res.status(401).json({ error: "Missing refresh token" });
+    return res.status(401).json({ error: "Refresh token missing" });
   }
-
   try {
-    console.log("ENTER REFRESH FLOW");
     const payload = verifyRefreshToken(refreshToken);
-    console.log("refresh token verified");
 
+    // Questo middleware è per AGENT
     if (payload.type !== Type.AGENT) {
       clearAuthCookies(res);
       return res.status(403).json({ error: "Forbidden" });
@@ -95,14 +90,12 @@ export const authenticationMiddlewareAgent = async (
       payload.subjectId,
       payload.type,
     );
-
-    console.log("stored token found:", !!storedToken);
-
     if (!storedToken) {
       clearAuthCookies(res);
       return res.status(401).json({ error: "Refresh token not found" });
     }
 
+    // hash match
     const incomingHash = hashRefreshToken(refreshToken);
     if (storedToken.id !== incomingHash) {
       await revokeRefreshToken(payload.subjectId, payload.type);
@@ -110,19 +103,21 @@ export const authenticationMiddlewareAgent = async (
       return res.status(401).json({ error: "Refresh token mismatch" });
     }
 
+    // scadenza server-side
     if (storedToken.expiresAt.getTime() <= Date.now()) {
       await revokeRefreshToken(payload.subjectId, payload.type);
       clearAuthCookies(res);
       return res.status(401).json({ error: "Refresh token expired" });
     }
 
-    const agent = await findAgentAuthById(payload.subjectId);
+    const agent = await findAgentById(payload.subjectId);
     if (!agent) {
       await revokeRefreshToken(payload.subjectId, payload.type);
       clearAuthCookies(res);
       return res.status(401).json({ error: "Agent not found" });
     }
 
+    // ROTATION: revoco quello vecchio e genero nuovi token
     await revokeRefreshToken(payload.subjectId, payload.type);
 
     const newAccessToken = generateAccessToken(
@@ -149,12 +144,12 @@ export const authenticationMiddlewareAgent = async (
     await saveRefreshToken(refreshTokenEntry);
 
     setAuthCookies(res, newAccessToken, newRefreshToken);
-    req.agent = agent;
 
+    req.agent = agent;
     return next();
-  } catch {
+  } catch (err) {
     clearAuthCookies(res);
-    return res.status(401).json({ error: "Invalid refresh token" });
+    return res.status(401).json({ error: "Invalid refresh token", cause: err });
   }
 };
 
