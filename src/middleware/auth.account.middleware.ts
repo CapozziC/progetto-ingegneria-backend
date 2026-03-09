@@ -61,10 +61,10 @@ export const authenticationMiddlewareAccount = async (
       return next();
     } catch (err) {
       if (err instanceof InvalidTokenError) {
-        res.clearCookie("accessToken");
+        clearAuthCookies(res);
       }
       if (err instanceof ExpiredTokenError) {
-        res.clearCookie("accessToken");
+        clearAuthCookies(res);
         // se scaduto -> continuo al refresh flow
       }
     }

@@ -176,23 +176,27 @@ export const clearAuthCookies = (res: Response) => {
       secure: true,
       sameSite: "none",
       domain: ".dietiestates.cloud",
+      path: "/",
     });
     res.clearCookie("refreshToken", {
       httpOnly: true,
       secure: true,
       sameSite: "none",
       domain: ".dietiestates.cloud",
+      path: "/",
     });
   } else {
     res.clearCookie("accessToken", {
       httpOnly: true,
       secure: false,
       sameSite: "lax",
+      path: "/",
     });
     res.clearCookie("refreshToken", {
       httpOnly: true,
       secure: false,
       sameSite: "lax",
+      path: "/",
     });
   }
 };
