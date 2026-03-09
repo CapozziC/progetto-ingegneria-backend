@@ -42,7 +42,7 @@ export const authenticationMiddlewareAgent = async (
   const accessToken = req.cookies?.accessToken as string | undefined;
   const refreshToken = req.cookies?.refreshToken as string | undefined;
 
-  // 1. Provo access token se presente
+  // 1) Provo prima con access token
   if (accessToken) {
     try {
       const payload = verifyAccessToken(accessToken);
@@ -61,19 +61,17 @@ export const authenticationMiddlewareAgent = async (
       req.agent = agent;
       return next();
     } catch (err) {
-       if (err instanceof InvalidTokenError) {
-        res.clearCookie("accessToken");
-      }
       if (err instanceof ExpiredTokenError) {
         res.clearCookie("accessToken");
-        // se scaduto -> continuo al refresh flow
+        // continuo sotto col refresh
+      } else {
+        clearAuthCookies(res);
+        return res.status(401).json({ error: "Invalid access token" });
       }
-      // se è scaduto, continuo sotto col refresh
     }
   }
 
-  // - access token manca o è scaduto, provo a refreshare con il refresh token
-
+  // 2) Access token mancante o scaduto -> provo refresh
   if (!refreshToken) {
     clearAuthCookies(res);
     return res.status(401).json({ error: "Missing refresh token" });
@@ -117,7 +115,6 @@ export const authenticationMiddlewareAgent = async (
       return res.status(401).json({ error: "Agent not found" });
     }
 
-    // rotation
     await revokeRefreshToken(payload.subjectId, payload.type);
 
     const newAccessToken = generateAccessToken(
@@ -149,9 +146,7 @@ export const authenticationMiddlewareAgent = async (
     return next();
   } catch {
     clearAuthCookies(res);
-    return res.status(401).json({
-      error: "Invalid refresh token",
-    });
+    return res.status(401).json({ error: "Invalid refresh token" });
   }
 };
 
