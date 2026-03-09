@@ -122,13 +122,13 @@ export const authenticationMiddlewareAgent = async (
     const newAccessToken = generateAccessToken(
       { subjectId: agent.id, type: Type.AGENT },
       process.env.ACCESS_TOKEN_SECRET!,
-      "20m",
+      "3m",
     );
 
     const newRefreshToken = generateRefreshToken(
       { subjectId: agent.id, type: Type.AGENT },
       process.env.REFRESH_TOKEN_SECRET!,
-      "5d",
+      "5m",
     );
 
     const hashedNewRefreshToken = hashRefreshToken(newRefreshToken);
@@ -137,7 +137,7 @@ export const authenticationMiddlewareAgent = async (
       subjectId: agent.id,
       id: hashedNewRefreshToken,
       type: Type.AGENT,
-      expiresAt: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000),
+      expiresAt: new Date(Date.now() + 5  * 60 * 1000),
     });
 
     await saveRefreshToken(refreshTokenEntry);
