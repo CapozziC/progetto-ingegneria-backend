@@ -3,8 +3,16 @@ const router = express.Router();
 import { authenticationMiddlewareAgent } from "../middleware/auth.agent.middleware.js";
 import { uploadPhotos } from "../utils/multer.utils.js";
 import { parseJsonFields } from "../utils/objectParse.utils.js";
-import { validateBody } from "../middleware/validate.middleware.js";
-import { createAdvertisementSchema } from "../validations/advertisement.validation.js";
+import {
+  validateBody,
+  validateParams,
+} from "../middleware/validate.middleware.js";
+import {
+  createAdvertisementSchema,
+  createAppointmentBodySchema,
+  createOfferByAccountBodySchema,
+  advertisementParamsSchema,
+} from "../validations/advertisement.validation.js";
 import {
   createAdvertisementWithRealEstateAndPhotosTx,
   deleteAgentAdvertisement,
@@ -15,7 +23,6 @@ import {
 } from "../controllers/appointment.controller.js";
 import { authenticationMiddlewareAccount } from "../middleware/auth.account.middleware.js";
 import { createOfferByAccount } from "../controllers/offer.controller.js";
-
 
 router.post(
   "/create",
@@ -29,10 +36,9 @@ router.post(
 router.delete(
   "/delete/:id",
   authenticationMiddlewareAgent,
+  validateParams(advertisementParamsSchema),
   deleteAgentAdvertisement,
 );
-
-
 
 // Routes for appointments
 router.get(
@@ -44,6 +50,8 @@ router.get(
 router.post(
   "/create_appointments/:id",
   authenticationMiddlewareAccount,
+  validateBody(createAppointmentBodySchema),
+  validateParams(advertisementParamsSchema),
   createAppointment,
 );
 
@@ -51,6 +59,8 @@ router.post(
 router.post(
   "/create_offer/:id",
   authenticationMiddlewareAccount,
+  validateBody(createOfferByAccountBodySchema),
+  validateParams(advertisementParamsSchema),
   createOfferByAccount,
 );
 

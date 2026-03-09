@@ -9,6 +9,8 @@ import {
   getAdvertisementById,
   getAllAdvertisements,
 } from "../controllers/account.controller.js";
+import { validateParams } from "../middleware/validate.middleware.js";
+import { deleteAccountSchema } from "../validations/account.validation.js";
 
 router.get(
   "/me/appointments",
@@ -43,6 +45,6 @@ router.get(
   getAccountNegotiationByAdvertisementAndAgent,
 );
 
-router.delete("/delete/:id", authenticationMiddlewareAccount, deleteAccount);
+router.delete("/delete/:id", authenticationMiddlewareAccount,validateParams(deleteAccountSchema), deleteAccount);
 
 export default router;

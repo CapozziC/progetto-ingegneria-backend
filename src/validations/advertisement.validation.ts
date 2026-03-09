@@ -40,21 +40,50 @@ export const createAdvertisementSchema = Joi.object({
       .valid(...Object.values(HousingType))
       .required(),
 
-    // 👇 nuovo
     addressInput: Joi.string().trim().min(3).max(300),
 
     addressFormatted: Joi.string().trim().min(3).max(400),
     placeId: Joi.string().trim().min(3).max(200),
 
-    // 👇 NON più required
     location: Joi.object({
       lat: Joi.number().min(-90).max(90).required(),
       lng: Joi.number().min(-180).max(180).required(),
     }),
   })
-    // 👇 deve esserci almeno uno dei due
+
     .or("addressInput", "location")
     .with("addressFormatted", "addressInput")
     .with("placeId", "addressInput")
     .required(),
+});
+
+
+export const advertisementParamsSchema = Joi.object({
+  id: Joi.number().integer().positive().required().messages({
+    "number.base": "Advertisement ID must be a number",
+    "number.integer": "Advertisement ID must be an integer",
+    "number.positive": "Advertisement ID must be positive",
+    "any.required": "Advertisement ID is required",
+  })
+  ,
+});
+
+export const createAppointmentBodySchema = Joi.object({
+  appointmentAt: Joi.string().isoDate().required().messages({
+    "string.base": "Appointment date must be a string",
+    "string.isoDate": "Appointment date must be in ISO format",
+    "any.required": "Appointment date is required",
+  }),
+});
+
+
+export const createOfferByAccountBodySchema = Joi.object({
+  price: Joi.number()
+    .positive()
+    .required()
+    .messages({
+      "number.base": "Price must be a number",
+      "number.positive": "Price must be greater than 0",
+      "any.required": "Price is required",
+    }),
 });
