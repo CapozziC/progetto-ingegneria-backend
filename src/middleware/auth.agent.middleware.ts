@@ -78,6 +78,7 @@ export const authenticationMiddlewareAgent = async (
   try {
     console.log("Faccio il refresh flow");
     const payload = verifyRefreshToken(refreshToken);
+    console.log("Refresh token payload:", payload);
 
     // Questo middleware è per AGENT
     if (payload.type !== Type.AGENT) {
@@ -118,6 +119,7 @@ export const authenticationMiddlewareAgent = async (
 
     // ROTATION: revoco quello vecchio e genero nuovi token
     await revokeRefreshToken(payload.subjectId, payload.type);
+    console.log("Refresh token valid, genero nuovi token");
 
     const newAccessToken = generateAccessToken(
       { subjectId: agent.id, type: Type.AGENT },
