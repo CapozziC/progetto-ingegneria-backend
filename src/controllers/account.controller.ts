@@ -45,7 +45,7 @@ export const getAllAdvertisements = async (
   const radiusMeters =
     typeof req.query.radiusMeters === "string"
       ? Number(req.query.radiusMeters)
-      : 50_000;
+      : 100_000;
 
   const minPrice =
     typeof req.query.minPrice === "string"
@@ -167,7 +167,7 @@ export const getAllAdvertisements = async (
     lat,
     lon,
     radiusMeters:
-      Number.isFinite(radiusMeters) && radiusMeters > 0 ? radiusMeters : 50_000,
+      Number.isFinite(radiusMeters) && radiusMeters > 0 ? radiusMeters : 100_000,
     minPrice: Number.isFinite(minPrice) ? minPrice : undefined,
     maxPrice: Number.isFinite(maxPrice) ? maxPrice : undefined,
     minSize: Number.isFinite(minSize) ? minSize : undefined,

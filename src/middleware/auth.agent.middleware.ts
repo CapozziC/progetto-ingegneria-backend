@@ -61,10 +61,12 @@ export const authenticationMiddlewareAgent = async (
       req.agent = agent;
       return next();
     } catch (err) {
-      // se non è scaduto ma è invalido, pulisco tutto
-      if (!(err instanceof ExpiredTokenError)) {
-        clearAuthCookies(res);
-        return res.status(401).json({ error: "Invalid access token" });
+       if (err instanceof InvalidTokenError) {
+        res.clearCookie("accessToken");
+      }
+      if (err instanceof ExpiredTokenError) {
+        res.clearCookie("accessToken");
+        // se scaduto -> continuo al refresh flow
       }
       // se è scaduto, continuo sotto col refresh
     }

@@ -110,7 +110,7 @@ export const loginAgent = async (req: Request, res: Response) => {
       subjectId: agent.id,
       id: hashedRefreshToken,
       type: Type.AGENT,
-      expiresAt: new Date(Date.now() + 6 * 60 * 60 * 1000),
+      expiresAt: new Date(Date.now() + 6 * 60 * 1000),
     });
 
     const savedRefreshToken = await saveRefreshToken(refreshTokenEntry);
