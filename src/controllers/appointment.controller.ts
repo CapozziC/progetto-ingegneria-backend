@@ -23,6 +23,15 @@ import { QueryFailedError } from "typeorm";
 import { requireAccount, requireAgent } from "../utils/require.utils.js";
 import { parsePositiveInt, parseStatus } from "../utils/objectParse.utils.js";
 
+/**
+ * Get the available appointment slots for a specific advertisement in the next 14 days, grouped by day.
+ * If the query parameter 'day' is provided (in format YYYY-MM-DD), also return the available slots for that specific day.
+ * @param req RequestAccount with authenticated account in req.account, advertisement id in req.params.id and optional query parameter day for filtering the slots of a specific day
+ * @param res Response with available appointment slots for the specified advertisement and optional day or error message
+ * @returns JSON with available appointment slots for the specified advertisement and optional day or error message
+ * The available appointment slots are returned as an array of days, each with an array of available hours (in Europe/Rome timezone)
+ * If the 'day' query parameter is provided, also return an array of available slots (in ISO format) for that specific day
+ */
 export const getAvailableDays = async (req: RequestAccount, res: Response) => {
   try {
     const account = requireAccount(req, res);

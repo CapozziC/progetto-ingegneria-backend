@@ -16,6 +16,23 @@ import {
 import { buildAdvertisementTitle } from "../utils/advertisementTitle.utils.js";
 import { parsePositiveInt } from "../utils/objectParse.utils.js";
 
+/**
+ * Get a paginated list of advertisements, with optional filters for status, type, housingType,
+ * city, geolocation (lat, lon, radiusMeters)
+ * and real estate features (price range, size range,
+ * rooms, floor, elevator, air conditioning, heating, concierge, parking, garage, furnished, solar panels, balcony, terrace and garden
+ * If lat and lon are provided, they are used as the center of a circular geofence with radius defined by radiusMeters (default 100km) to filter advertisements.
+ * If city is provided, it is geocoded and used as the center of the geofence. If both city and lat/lon are provided, lat/lon are used.
+ * If neither city nor lat/lon are provided, an attempt is made to geolocate the user by IP
+ * and use that as the center of the geofence. If geolocation by IP fails, no geofencing is applied.
+ * @param req   RequestAccount with optional query parameters for pagination and filtering
+ * @param res   Response with paginated list of advertisements matching the filters,
+ * including a title built from rooms, address and housing type for each advertisement
+ * @returns   JSON with paginated list of advertisements matching the filters,
+ * including a title built from rooms, address and housing type for each advertisement
+ * and information about the geolocation mode used (coords, city, ip, none) and the location info (coordinates or city name) if applicable
+ * or error message in case of failure
+ */
 export const getAllAdvertisements = async (
   req: RequestAccount,
   res: Response,
@@ -205,6 +222,17 @@ export const getAllAdvertisements = async (
   });
 };
 
+/**
+ * Get the list of negotiations for the authenticated account, with pagination.
+ * @param req RequestAccount with authenticated account in req.account and optional query parameters for pagination (take, skip)
+ * @param res Response with paginated list of negotiations for the authenticated account or error message
+ * @returns JSON with paginated list of negotiations for the authenticated account or error message
+ * Each negotiation includes the related advertisement with a title built from rooms, address and housing type
+ * and the related agent information (id, name, email)
+ * and the related account information (id, name, email)
+ * and the negotiation details (id, status, createdAt, updatedAt)
+ */
+
 export const getAccountNegotiations = async (
   req: RequestAccount,
   res: Response,
@@ -231,6 +259,16 @@ export const getAccountNegotiations = async (
   }
 };
 
+/**
+ * Get the negotiation details for the authenticated account for a specific advertisement and agent.
+ * @param req RequestAccount with authenticated account in req.account, advertisementId and agentId in req.params
+ * @param res Response with negotiation details for the specified advertisement and agent or error message
+ * @returns JSON with negotiation details for the specified advertisement and agent or error message
+ * The negotiation details include the related advertisement with a title built from rooms, address and housing type
+ * and the related agent information (id, name, email)
+ * and the related account information (id, name, email)
+ * and the negotiation details (id, status, createdAt, updatedAt)
+ */
 export const getAccountNegotiationByAdvertisementAndAgent = async (
   req: RequestAccount,
   res: Response,
@@ -268,6 +306,17 @@ export const getAccountNegotiationByAdvertisementAndAgent = async (
   }
 };
 
+/**
+ * Get the details of a specific advertisement by ID, including a title built from rooms,
+ * address and housing type.
+ * @param req RequestAccount with authenticated account in req.account and advertisementId in req.params
+ * @param res Response with advertisement details including a title built from rooms, address and housing type or error message
+ * @returns JSON with advertisement details including a title built from rooms, address and housing type or error message
+ * The advertisement details include the related advertisement with a title built from rooms, address and housing type
+ * and the related agent information (id, name, email)
+ * and the related account information (id, name, email)
+ * and the advertisement details (id, description, price, type, status, createdAt, updatedAt)
+ */
 export const getAdvertisementById = async (
   req: RequestAccount,
   res: Response,
@@ -296,6 +345,14 @@ export const getAdvertisementById = async (
     return res.status(500).json({ error: "Failed to retrieve advertisement" });
   }
 };
+
+/**
+ * Delete the authenticated account by ID. Only the account owner can delete their account.
+ * @param req RequestAccount with authenticated account in req.account and accountId in req.params
+ * @param res Response with success message or error message
+ * @returns JSON with success message or error message
+ * Only the account owner can delete their account. 
+ */
 
 export const deleteAccount = async (req: RequestAccount, res: Response) => {
   const account = requireAccount(req, res);

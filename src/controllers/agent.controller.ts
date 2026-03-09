@@ -227,6 +227,16 @@ export const getAgentAdvertisements = async (
     return res.status(500).json({ error: "Internal server error" });
   }
 };
+/**
+ * Get all negotiations of the authenticated agent, with pagination support (take, skip).
+ * Each negotiation includes the related advertisement with a title built from rooms, address and housing type
+ * and the related agent information (id, name, email)
+ * and the related account information (id, name, email)
+ * and the negotiation details (id, status, createdAt, updatedAt)
+ * @param req RequestAgent with authenticated agent in req.agent and pagination parameters take and skip in req.query
+ * @param res Response with list of negotiations of the authenticated agent or error message
+ * @returns JSON with list of negotiations of the authenticated agent or error message
+ */
 
 export const getAgentNegotiations = async (
   req: RequestAgent,
@@ -254,6 +264,17 @@ export const getAgentNegotiations = async (
   }
 };
 
+/**
+ *  Get the negotiation details for the authenticated agent for a specific advertisement and account.
+ * The negotiation details include the related advertisement with a title built from rooms, address and housing type
+ * and the related agent information (id, name, email)
+ * and the related account information (id, name, email)
+ * and the negotiation details (id, status, createdAt, updatedAt)
+ * @param req RequestAgent with authenticated agent in req.agent, advertisementId and accountId in req.params
+ * @param res Response with negotiation details for the specified advertisement and account or error message
+ * @returns JSON with negotiation details for the specified advertisement and account or error message
+ * Only the agent involved in the negotiation can access the negotiation details.
+ */
 export const getAgentNegotiationByAdvertisementAndAccount = async (
   req: RequestAgent,
   res: Response,
