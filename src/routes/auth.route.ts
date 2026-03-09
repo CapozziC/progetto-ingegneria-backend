@@ -37,7 +37,6 @@ router.post(
 router.post("/account/login", validateBody(loginAccountSchema), loginAccount);
 router.post(
   "/agent/login",
-  authenticationMiddlewareAgent,
   validateBody(loginAgentSchema),
   loginAgent,
 );
