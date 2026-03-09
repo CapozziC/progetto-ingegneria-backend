@@ -42,6 +42,8 @@ export const authenticationMiddlewareAgent = async (
   const accessToken = req.cookies?.accessToken as string | undefined;
   const refreshToken = req.cookies?.refreshToken as string | undefined;
 
+  console.log("accessToken exists:", !!accessToken);
+  console.log("refreshToken exists:", !!refreshToken);
   // 1) Provo prima con access token
   if (accessToken) {
     try {
@@ -78,7 +80,9 @@ export const authenticationMiddlewareAgent = async (
   }
 
   try {
+    console.log("ENTER REFRESH FLOW");
     const payload = verifyRefreshToken(refreshToken);
+    console.log("refresh token verified");
 
     if (payload.type !== Type.AGENT) {
       clearAuthCookies(res);
@@ -89,6 +93,8 @@ export const authenticationMiddlewareAgent = async (
       payload.subjectId,
       payload.type,
     );
+
+    console.log("stored token found:", !!storedToken);
 
     if (!storedToken) {
       clearAuthCookies(res);
