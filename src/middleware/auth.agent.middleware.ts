@@ -1,14 +1,12 @@
 import { NextFunction, Response } from "express";
-import {
-  findAgentById,
-} from "../repositories/agent.repository.js";
+import { findAgentById } from "../repositories/agent.repository.js";
 import {
   findRefreshTokenBySubject,
   createRefreshToken,
   saveRefreshToken,
 } from "../repositories/refreshToken.repository.js";
 import { Type } from "../entities/refreshToken.js";
-import {RequestAgent } from "../types/express.js";
+import { RequestAgent } from "../types/express.js";
 import {
   generateAccessToken,
   generateRefreshToken,
@@ -124,13 +122,13 @@ export const authenticationMiddlewareAgent = async (
     const newAccessToken = generateAccessToken(
       { subjectId: agent.id, type: Type.AGENT },
       process.env.ACCESS_TOKEN_SECRET!,
-      "3m",
+      "20m",
     );
 
     const newRefreshToken = generateRefreshToken(
       { subjectId: agent.id, type: Type.AGENT },
       process.env.REFRESH_TOKEN_SECRET!,
-      "6m",
+      "5d",
     );
 
     const hashedNewRefreshToken = hashRefreshToken(newRefreshToken);
@@ -139,7 +137,7 @@ export const authenticationMiddlewareAgent = async (
       subjectId: agent.id,
       id: hashedNewRefreshToken,
       type: Type.AGENT,
-      expiresAt: new Date(Date.now() + 6 * 60 * 1000),
+      expiresAt: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000),
     });
 
     await saveRefreshToken(refreshTokenEntry);
@@ -189,10 +187,11 @@ export const authAgentFirstLoginOnly = async (
     req.agent = agent;
     return next();
   } catch (err) {
-    if (err instanceof InvalidTokenError)
-      return res.status(401).json({ error: "Invalid access token" });
-    if (err instanceof ExpiredTokenError)
-      return res.status(401).json({ error: "Access token expired" });
+    if (err instanceof InvalidTokenError) clearAuthCookies(res);
+    return res.status(401).json({ error: "Invalid access token" });
+
+    if (err instanceof ExpiredTokenError) clearAuthCookies(res);
+    return res.status(401).json({ error: "Access token expired" });
     return res.status(401).json({ error: "Unauthorized" });
   }
 };

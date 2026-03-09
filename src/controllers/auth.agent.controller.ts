@@ -11,6 +11,7 @@ import {
   revokeRefreshToken,
   setAuthCookies,
   clearAuthCookies,
+  setFirstLoginAccessCookie,
 } from "../utils/auth.utils.js";
 import {
   createRefreshToken,
@@ -67,15 +68,10 @@ export const loginAgent = async (req: Request, res: Response) => {
           type: Type.AGENT,
         },
         process.env.ACCESS_TOKEN_SECRET!,
-        "10m",
+        "15m",
       );
 
-      res.cookie("accessToken", accessToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "strict",
-        maxAge: 10 * 60 * 1000,
-      });
+      setFirstLoginAccessCookie(res, accessToken);
 
       return res.status(200).json({
         message: "Password change required",
@@ -86,13 +82,13 @@ export const loginAgent = async (req: Request, res: Response) => {
     const accessToken = generateAccessToken(
       { subjectId: agent.id, type: Type.AGENT },
       process.env.ACCESS_TOKEN_SECRET!,
-      "3m",
+      "20m",
     );
 
     const refreshToken = generateRefreshToken(
       { subjectId: agent.id, type: Type.AGENT },
       process.env.REFRESH_TOKEN_SECRET!,
-      "6m",
+      "5d",
     );
 
     if (!accessToken || !refreshToken) {
@@ -110,7 +106,7 @@ export const loginAgent = async (req: Request, res: Response) => {
       subjectId: agent.id,
       id: hashedRefreshToken,
       type: Type.AGENT,
-      expiresAt: new Date(Date.now() + 6 * 60 * 1000),
+      expiresAt: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000),
     });
 
     const savedRefreshToken = await saveRefreshToken(refreshTokenEntry);

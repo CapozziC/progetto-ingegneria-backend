@@ -55,13 +55,13 @@ export const registerAccount = async (req: RequestAccount, res: Response) => {
     const accessToken = generateAccessToken(
       { subjectId: savedAccount.id, type: Type.ACCOUNT },
       process.env.ACCESS_TOKEN_SECRET!,
-      "3m",
+      "20m",
     );
 
     const refreshToken = generateRefreshToken(
       { subjectId: savedAccount.id, type: Type.ACCOUNT },
       process.env.REFRESH_TOKEN_SECRET!,
-      "6m",
+      "5d",
     );
 
     if (!accessToken || !refreshToken) {
@@ -80,7 +80,7 @@ export const registerAccount = async (req: RequestAccount, res: Response) => {
       id: hashedRefreshToken,
       subjectId: savedAccount.id,
       type: Type.ACCOUNT,
-      expiresAt: new Date(Date.now() + 6 * 60 * 1000), // 6 minutes
+      expiresAt: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000), // 5 days
     });
     const savedRefreshToken = await saveRefreshToken(refreshTokenEntry);
 
@@ -134,13 +134,13 @@ export const loginAccount = async (req: RequestAccount, res: Response) => {
     const accessToken = generateAccessToken(
       { subjectId: account.id, type: Type.ACCOUNT },
       process.env.ACCESS_TOKEN_SECRET!,
-      "3m",
+      "20m",
     );
 
     const refreshToken = generateRefreshToken(
       { subjectId: account.id, type: Type.ACCOUNT },
       process.env.REFRESH_TOKEN_SECRET!,
-      "6m",
+      "5d",
     );
 
     if (!accessToken || !refreshToken) {
@@ -159,7 +159,7 @@ export const loginAccount = async (req: RequestAccount, res: Response) => {
       id: hashedRefreshToken,
       subjectId: account.id,
       type: Type.ACCOUNT,
-      expiresAt: new Date(Date.now() + 6 * 60 * 1000), // 6 minutes
+      expiresAt: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000), // 5 days
     });
 
     const savedRefreshToken = await saveRefreshToken(refreshTokenEntry);

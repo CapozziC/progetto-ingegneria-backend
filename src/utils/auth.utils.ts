@@ -114,27 +114,53 @@ export const setAuthCookies = (
       secure: true,
       sameSite: "none",
       domain: ".dietiestates.cloud",
-      maxAge: 3 * 60 * 1000,
+      maxAge: 20 * 60 * 1000,
     });
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
       secure: true,
       sameSite: "none",
       domain: ".dietiestates.cloud",
-      maxAge: 6 * 60 * 1000,
+      maxAge: 5 * 24 * 60 * 60 * 1000,
     });
   } else {
     res.cookie("accessToken", accessToken, {
       httpOnly: true,
       secure: false,
       sameSite: "lax",
-      maxAge: 3 * 60 * 1000,
+      maxAge: 20 * 60 * 1000, 
     });
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
       secure: false,
       sameSite: "lax",
-      maxAge: 6 * 60 * 1000,
+      maxAge: 5 * 24 * 60 * 60 * 1000,
+    });
+  }
+};
+/**
+ * Sets a short-lived access token cookie for first login scenarios where password change is required
+ * @param res The response object
+ * @param accessToken The access token to set
+ */
+export const setFirstLoginAccessCookie = (
+  res: Response,
+  accessToken: string,
+) => {
+  if (isProd) {
+    res.cookie("accessToken", accessToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "none",
+      domain: ".dietiestates.cloud",
+      maxAge: 15 * 60 * 1000,
+    });
+  } else {
+    res.cookie("accessToken", accessToken, {
+      httpOnly: true,
+      secure: false,
+      sameSite: "lax",
+      maxAge: 15 * 60 * 1000,
     });
   }
 };
