@@ -78,6 +78,7 @@ export const authenticationMiddlewareAgent = async (
     return res.status(401).json({ error: "Refresh token missing" });
   }
   try {
+    console.log("Faccio il refresh flow");
     const payload = verifyRefreshToken(refreshToken);
 
     // Questo middleware è per AGENT
