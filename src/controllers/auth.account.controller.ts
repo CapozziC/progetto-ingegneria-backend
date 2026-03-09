@@ -134,13 +134,13 @@ export const loginAccount = async (req: RequestAccount, res: Response) => {
     const accessToken = generateAccessToken(
       { subjectId: account.id, type: Type.ACCOUNT },
       process.env.ACCESS_TOKEN_SECRET!,
-      "3m",
+      "10m",
     );
 
     const refreshToken = generateRefreshToken(
       { subjectId: account.id, type: Type.ACCOUNT },
       process.env.REFRESH_TOKEN_SECRET!,
-      "5m",
+      "20m",
     );
 
     if (!accessToken || !refreshToken) {
@@ -159,7 +159,7 @@ export const loginAccount = async (req: RequestAccount, res: Response) => {
       id: hashedRefreshToken,
       subjectId: account.id,
       type: Type.ACCOUNT,
-      expiresAt: new Date(Date.now() + 5  * 60 * 1000), // 5 minutes
+      expiresAt: new Date(Date.now() + 20  * 60 * 1000), // 20 minutes
     });
 
     const savedRefreshToken = await saveRefreshToken(refreshTokenEntry);

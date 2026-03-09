@@ -117,32 +117,34 @@ export const authenticationMiddlewareAccount = async (
     }
 
     // ROTATION: revoco quello vecchio e genero nuovi token
+    console.log("Rotazione token in corso...");
     await revokeRefreshToken(payload.subjectId, payload.type);
 
     const newAccessToken = generateAccessToken(
       { subjectId: account.id, type: Type.ACCOUNT },
       process.env.ACCESS_TOKEN_SECRET!,
-      "3m",
+      "10m",
     );
 
     const newRefreshToken = generateRefreshToken(
       { subjectId: account.id, type: Type.ACCOUNT },
       process.env.REFRESH_TOKEN_SECRET!,
-      "5m",
+      "20m",
     );
 
     const hashedNewRefreshToken = hashRefreshToken(newRefreshToken);
-
+    console.log("Nuovi token generati, salvo il nuovo refresh token e aggiorno i cookie");
     const refreshTokenEntry = createRefreshToken({
       subjectId: account.id,
       id: hashedNewRefreshToken,
       type: Type.ACCOUNT,
-      expiresAt: new Date(Date.now() + 5 * 60 * 1000),
+      expiresAt: new Date(Date.now() + 20 * 60 * 1000),
     });
 
     await saveRefreshToken(refreshTokenEntry);
 
     setAuthCookies(res, newAccessToken, newRefreshToken);
+    console.log("Token refresh riuscito, proseguo alla route protetta");
 
     req.account = account;
     return next();
