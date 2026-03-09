@@ -61,10 +61,11 @@ export const authenticationMiddlewareAgent = async (
       return next();
     } catch (err) {
       if (err instanceof InvalidTokenError) {
-        res.clearCookie("accessToken");
+        clearAuthCookies(res);
       }
       if (err instanceof ExpiredTokenError) {
-        res.clearCookie("accessToken");
+        clearAuthCookies(res);
+
         // se scaduto -> continuo al refresh flow
       }
     }
@@ -139,7 +140,7 @@ export const authenticationMiddlewareAgent = async (
       subjectId: agent.id,
       id: hashedNewRefreshToken,
       type: Type.AGENT,
-      expiresAt: new Date(Date.now() + 5  * 60 * 1000),
+      expiresAt: new Date(Date.now() + 5 * 60 * 1000),
     });
 
     await saveRefreshToken(refreshTokenEntry);
