@@ -23,6 +23,7 @@ import {
   findAgentNegotiations,
   findAgentNegotiationDetail,
 } from "../repositories/offer.repository.js";
+import { buildAdvertisementTitle } from "../utils/advertisementTitle.utils.js";
 
 /**
  * Create a new agent under the same agency of the admin creating it, with a generated username and temporary password.
@@ -205,6 +206,11 @@ export const getAgentAdvertisements = async (
     return res.status(200).json({
       items: advertisements.map((a) => ({
         id: a.id,
+        title: buildAdvertisementTitle({
+          rooms: a.realEstate?.rooms,
+          addressFormatted: a.realEstate?.addressFormatted,
+          housingType: a.realEstate?.housingType,
+        }),
         description: a.description,
         price: a.price,
         type: a.type,
