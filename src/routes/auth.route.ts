@@ -35,7 +35,12 @@ router.post(
   registerAccount,
 );
 router.post("/account/login", validateBody(loginAccountSchema), loginAccount);
-router.post("/agent/login", validateBody(loginAgentSchema), loginAgent);
+router.post(
+  "/agent/login",
+  authenticationMiddlewareAgent,
+  validateBody(loginAgentSchema),
+  loginAgent,
+);
 router.post("/agent/logout", authenticationMiddlewareAgent, logoutAgent);
 router.post("/account/logout", authenticationMiddlewareAccount, logoutAccount);
 router.post(
