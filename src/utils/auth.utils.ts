@@ -114,27 +114,27 @@ export const setAuthCookies = (
       secure: true,
       sameSite: "none",
       domain: ".dietiestates.cloud",
-      maxAge: 10 * 60 * 1000,
+      maxAge: 20 * 60 * 1000,
     });
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
       secure: true,
       sameSite: "none",
       domain: ".dietiestates.cloud",
-      maxAge: 20  * 60 * 1000,
+      maxAge: 3 * 24 * 60 * 60 * 1000,
     });
   } else {
     res.cookie("accessToken", accessToken, {
       httpOnly: true,
       secure: false,
       sameSite: "lax",
-      maxAge: 10 * 60 * 1000, 
+      maxAge: 20 * 60 * 1000, 
     });
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
       secure: false,
       sameSite: "lax",
-      maxAge: 20 * 60 * 1000,
+      maxAge: 3 * 24 * 60 * 60 * 1000,
     });
   }
 };

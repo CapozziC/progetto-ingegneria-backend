@@ -123,22 +123,24 @@ export const authenticationMiddlewareAccount = async (
     const newAccessToken = generateAccessToken(
       { subjectId: account.id, type: Type.ACCOUNT },
       process.env.ACCESS_TOKEN_SECRET!,
-      "10m",
+      "20m",
     );
 
     const newRefreshToken = generateRefreshToken(
       { subjectId: account.id, type: Type.ACCOUNT },
       process.env.REFRESH_TOKEN_SECRET!,
-      "20m",
+      "3d",
     );
 
     const hashedNewRefreshToken = hashRefreshToken(newRefreshToken);
-    console.log("Nuovi token generati, salvo il nuovo refresh token e aggiorno i cookie");
+    console.log(
+      "Nuovi token generati, salvo il nuovo refresh token e aggiorno i cookie",
+    );
     const refreshTokenEntry = createRefreshToken({
       subjectId: account.id,
       id: hashedNewRefreshToken,
       type: Type.ACCOUNT,
-      expiresAt: new Date(Date.now() + 20 * 60 * 1000),
+      expiresAt: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
     });
 
     await saveRefreshToken(refreshTokenEntry);
