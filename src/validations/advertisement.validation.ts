@@ -12,7 +12,7 @@ export const createAdvertisementSchema = Joi.object({
     "string.min": "Description must be at least 1 character long",
     "string.max": "Description cannot be longer than 500 characters",
     "any.required": "Description is required",
-    }),
+  }),
   price: Joi.number().positive().required().messages({
     "number.base": "Price must be a number",
     "number.positive": "Price must be greater than 0",
@@ -20,14 +20,16 @@ export const createAdvertisementSchema = Joi.object({
   }),
   type: Joi.string()
     .valid(...Object.values(AdvType))
-    .required().messages({
+    .required()
+    .messages({
       "string.base": "Type must be a string",
       "any.only": `Type must be one of ${Object.values(AdvType).join(", ")}`,
       "any.required": "Type is required",
     }),
   status: Joi.string()
     .valid(...Object.values(AdvStatus))
-    .default(AdvStatus.ACTIVE).messages({
+    .default(AdvStatus.ACTIVE)
+    .messages({
       "string.base": "Status must be a string",
       "any.only": `Status must be one of ${Object.values(AdvStatus).join(", ")}`,
     }),
@@ -44,6 +46,11 @@ export const createAdvertisementSchema = Joi.object({
       "number.integer": "Rooms must be an integer",
       "number.positive": "Rooms must be positive",
       "any.required": "Rooms is required",
+    }),
+    bathrooms: Joi.number().integer().positive().default(1).messages({
+      "number.base": "Bathrooms must be a number",
+      "number.integer": "Bathrooms must be an integer",
+      "number.positive": "Bathrooms must be positive",
     }),
     floor: Joi.number().integer().required().messages({
       "number.base": "Floor must be a number",
@@ -65,7 +72,8 @@ export const createAdvertisementSchema = Joi.object({
 
     energyClass: Joi.string()
       .valid(...Object.values(EnergyClass))
-      .required().messages({
+      .required()
+      .messages({
         "string.base": "Energy class must be a string",
         "any.only": `Energy class must be one of ${Object.values(EnergyClass).join(", ")}`,
         "any.required": "Energy class is required",
@@ -73,7 +81,8 @@ export const createAdvertisementSchema = Joi.object({
 
     housingType: Joi.string()
       .valid(...Object.values(HousingType))
-      .required().messages({
+      .required()
+      .messages({
         "string.base": "Housing type must be a string",
         "any.only": `Housing type must be one of ${Object.values(HousingType).join(", ")}`,
         "any.required": "Housing type is required",
@@ -118,15 +127,13 @@ export const createAdvertisementSchema = Joi.object({
     .required(),
 });
 
-
 export const advertisementParamsSchema = Joi.object({
   id: Joi.number().integer().positive().required().messages({
     "number.base": "Advertisement ID must be a number",
     "number.integer": "Advertisement ID must be an integer",
     "number.positive": "Advertisement ID must be positive",
     "any.required": "Advertisement ID is required",
-  })
-  ,
+  }),
 });
 
 export const createAppointmentBodySchema = Joi.object({
@@ -137,14 +144,10 @@ export const createAppointmentBodySchema = Joi.object({
   }),
 });
 
-
 export const createOfferByAccountBodySchema = Joi.object({
-  price: Joi.number()
-    .positive()
-    .required()
-    .messages({
-      "number.base": "Price must be a number",
-      "number.positive": "Price must be greater than 0",
-      "any.required": "Price is required",
-    }),
+  price: Joi.number().positive().required().messages({
+    "number.base": "Price must be a number",
+    "number.positive": "Price must be greater than 0",
+    "any.required": "Price is required",
+  }),
 });
