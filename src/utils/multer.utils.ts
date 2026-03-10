@@ -39,7 +39,7 @@ export const uploadPhotos = multer({
   storage: photosStorage,
   fileFilter,
   limits: { fileSize: 8 * 1024 * 1024 },
-}).array("photos", 20);
+}).array("photos", 10);
 
 const logoStorage = multer.diskStorage({
   destination: (_req, _file, cb) => cb(null, logosDir),
