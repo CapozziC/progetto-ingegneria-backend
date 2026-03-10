@@ -68,7 +68,7 @@ export const loginAgent = async (req: Request, res: Response) => {
           type: Type.AGENT,
         },
         process.env.ACCESS_TOKEN_SECRET!,
-        "15m",
+        "3m",
       );
 
       setFirstLoginAccessCookie(res, accessToken);
@@ -82,13 +82,13 @@ export const loginAgent = async (req: Request, res: Response) => {
     const accessToken = generateAccessToken(
       { subjectId: agent.id, type: Type.AGENT },
       process.env.ACCESS_TOKEN_SECRET!,
-      "20m",
+      "3m",
     );
 
     const refreshToken = generateRefreshToken(
       { subjectId: agent.id, type: Type.AGENT },
       process.env.REFRESH_TOKEN_SECRET!,
-      "3d",
+      "10m",
     );
 
     if (!accessToken || !refreshToken) {
@@ -106,7 +106,7 @@ export const loginAgent = async (req: Request, res: Response) => {
       subjectId: agent.id,
       id: hashedRefreshToken,
       type: Type.AGENT,
-      expiresAt: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000), // 3 days
+      expiresAt: new Date(Date.now() + 10 * 60 * 1000), // 10 minutes
     });
 
     const savedRefreshToken = await saveRefreshToken(refreshTokenEntry);
