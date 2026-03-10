@@ -68,7 +68,7 @@ export const loginAgent = async (req: Request, res: Response) => {
           type: Type.AGENT,
         },
         process.env.ACCESS_TOKEN_SECRET!,
-        "3m",
+        "10m",
       );
 
       setFirstLoginAccessCookie(res, accessToken);
