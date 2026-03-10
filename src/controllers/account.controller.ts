@@ -67,7 +67,7 @@ export const getAllAdvertisements = async (
   const account = requireAccount(req, res);
   if (!account) return res.status(401).json({ error: "Unauthorized" });
 
-  const take = Number(req.query.take ?? 20);
+  const take = Number(req.query.take ?? 10);
   const skip = Number(req.query.skip ?? 0);
 
   const status =
@@ -209,7 +209,7 @@ export const getAllAdvertisements = async (
   }
 
   const result = await findAdvertisements({
-    take: Number.isFinite(take) && take > 0 ? take : 20,
+    take: Number.isFinite(take) && take > 0 ? take : 10,
     skip: Number.isFinite(skip) && skip >= 0 ? skip : 0,
     status,
     type,
@@ -273,13 +273,13 @@ export const getAccountNegotiations = async (
   const account = requireAccount(req, res);
   if (!account) return res.status(401).json({ error: "Unauthorized" });
 
-  const take = Number(req.query.take ?? 20);
+  const take = Number(req.query.take ?? 10);
   const skip = Number(req.query.skip ?? 0);
 
   try {
     const result = await findAccountNegotiations({
       accountId: account.id,
-      take: Number.isFinite(take) && take > 0 ? take : 20,
+      take: Number.isFinite(take) && take > 0 ? take : 10,
       skip: Number.isFinite(skip) && skip >= 0 ? skip : 0,
     });
 
