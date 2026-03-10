@@ -40,7 +40,7 @@ router.delete(
   deleteAgent,
 );
 router.get(
-  "/me/advertisement",
+  "/advertisements",
   authenticationMiddlewareAgent,
   getAgentAdvertisements,
 );
@@ -52,7 +52,7 @@ router.patch(
 );
 // Route to get appointments for the authenticated agent
 router.get(
-  "/me/appointments",
+  "/appointments",
   authenticationMiddlewareAgent,
   getAppointmentsForAgent,
 );
