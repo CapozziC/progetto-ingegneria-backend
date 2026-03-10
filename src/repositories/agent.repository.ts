@@ -74,7 +74,12 @@ export const deleteAgentById = async (id: number): Promise<void> => {
  * @returns A Promise that resolves to the Agent object if found, or null if not found
  */
 export const findAgentById = async (id: number): Promise<Agent | null> => {
-  return AgentRepository.findOne({ where: { id } });
+  return AgentRepository.findOne({
+    where: { id },
+    relations: {
+      agency: true,
+    },
+  });
 };
 /**
  *  Find an agent created by a specific admin within a specific agency. This function queries the database for an agent with the specified agent ID, agency ID, and administrator ID, and returns it if found. If no agent is found with the given criteria, it returns null.

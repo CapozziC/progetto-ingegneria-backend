@@ -13,6 +13,7 @@ export const requireAgent = (req: RequestAgent, res: Response) => {
 
 export const requireAdmin = (req: RequestAgent, res: Response) => {
   const agent = requireAgent(req, res);
+  console.log("Authenticated agent:", agent);
   if (!agent) return null;
 
   if (!agent.isAdmin) {
