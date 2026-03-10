@@ -47,6 +47,7 @@ export const createNewAgent = async (req: RequestAgent, res: Response) => {
     if (!phoneNumber) {
       return res.status(400).json({ error: "Phone number is required" });
     }
+
     const usernameBase = normalizeUsernameBase(firstName, lastName);
     const existingUsernames = (
       await findAgentsByAgencyAndUsernamePrefix(admin.agency.id, usernameBase)
@@ -55,14 +56,13 @@ export const createNewAgent = async (req: RequestAgent, res: Response) => {
     const username = nextUsernameFromExisting(usernameBase, existingUsernames);
 
     const temporaryPassword = generateTemporaryPassword();
-    //Inserire logica per invio email con temporary password e username
+    // Inserire logica per invio email con temporary password e username
     const hashedPassword = await bcrypt.hash(temporaryPassword, 10);
 
-    // Create and save the new agent
     const newAgent = createAgent({
       firstName,
       lastName,
-      username: username,
+      username,
       password: hashedPassword,
       phoneNumber,
       isAdmin: Boolean(isAdmin),
@@ -71,11 +71,12 @@ export const createNewAgent = async (req: RequestAgent, res: Response) => {
     });
 
     const savedAgent = await saveAgent(newAgent);
+
     return res.status(201).json({
       message: "Agent created successfully",
       agentId: savedAgent.id,
       username: savedAgent.username,
-      temporaryPassword: temporaryPassword,
+      temporaryPassword,
     });
   } catch (error) {
     console.error("Error creating agent:", error);
