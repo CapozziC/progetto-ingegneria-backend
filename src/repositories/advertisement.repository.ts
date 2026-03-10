@@ -200,6 +200,7 @@ export async function findAdvertisements({
     .addSelect([
       "re.size",
       "re.rooms",
+      "re.floor",
       "re.bathrooms",
       "re.housingType",
       "re.location",
