@@ -82,13 +82,13 @@ export const loginAgent = async (req: Request, res: Response) => {
     const accessToken = generateAccessToken(
       { subjectId: agent.id, type: Type.AGENT },
       process.env.ACCESS_TOKEN_SECRET!,
-      "3m",
+      "20m",
     );
 
     const refreshToken = generateRefreshToken(
       { subjectId: agent.id, type: Type.AGENT },
       process.env.REFRESH_TOKEN_SECRET!,
-      "10m",
+      "6d",
     );
 
     if (!accessToken || !refreshToken) {
@@ -106,7 +106,7 @@ export const loginAgent = async (req: Request, res: Response) => {
       subjectId: agent.id,
       id: hashedRefreshToken,
       type: Type.AGENT,
-      expiresAt: new Date(Date.now() + 10 * 60 * 1000), // 10 minutes
+      expiresAt: new Date(Date.now() + 6 * 24 * 60 * 60 * 1000), // 6 days
     });
 
     const savedRefreshToken = await saveRefreshToken(refreshTokenEntry);
@@ -219,13 +219,13 @@ export const changePasswordFirstLogin = async (
     const accessToken = generateAccessToken(
       { subjectId: freshAgent.id, type: Type.AGENT },
       process.env.ACCESS_TOKEN_SECRET!,
-      "15m",
+      "20m",
     );
 
     const refreshToken = generateRefreshToken(
       { subjectId: freshAgent.id, type: Type.AGENT },
       process.env.REFRESH_TOKEN_SECRET!,
-      "7d",
+      "6d",
     );
 
     const hashedRefreshToken = hashRefreshToken(refreshToken);
@@ -234,7 +234,7 @@ export const changePasswordFirstLogin = async (
       subjectId: freshAgent.id,
       id: hashedRefreshToken,
       type: Type.AGENT,
-      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      expiresAt: new Date(Date.now() + 6 * 24 * 60 * 60 * 1000),
     });
     await saveRefreshToken(refreshTokenEntry);
     // Set new tokens as httpOnly cookies
