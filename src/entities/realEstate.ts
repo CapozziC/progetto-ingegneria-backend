@@ -29,6 +29,9 @@ export class RealEstate {
   @Column({ type: "int" })
   rooms!: number;
 
+  @Column({ type: "int", default: 1 })
+  bathrooms!: number;
+
   @Column({ type: "int" })
   floor!: number;
 
