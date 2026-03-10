@@ -76,6 +76,7 @@ export const createAdvertisementWithRealEstateAndPhotosTx = async (
       size: reDto.size,
       rooms: reDto.rooms,
       floor: reDto.floor,
+      bathrooms: reDto.bathrooms,
       elevator: reDto.elevator,
       airConditioning: reDto.airConditioning,
       heating: reDto.heating,
@@ -416,4 +417,3 @@ export const deleteAgentAdvertisement = async (
     return res.status(500).json({ error: "Internal server error" });
   }
 };
-

@@ -150,6 +150,7 @@ type FindAdvertisementsParams = {
   maxSize?: number;
   rooms?: number;
   floor?: number;
+  bathrooms?: number;
   elevator?: boolean;
   airConditioning?: boolean;
   heating?: boolean;
@@ -179,6 +180,7 @@ export async function findAdvertisements({
   rooms,
   floor,
   elevator,
+  bathrooms,
   airConditioning,
   heating,
   concierge,
@@ -198,6 +200,7 @@ export async function findAdvertisements({
     .addSelect([
       "re.size",
       "re.rooms",
+      "re.bathrooms",
       "re.housingType",
       "re.location",
       "re.addressFormatted",
@@ -242,6 +245,9 @@ export async function findAdvertisements({
 
   if (rooms !== undefined) {
     qb.andWhere("re.rooms = :rooms", { rooms });
+  }
+  if (bathrooms !== undefined) {
+    qb.andWhere("re.bathrooms = :bathrooms", { bathrooms });
   }
   if (housingType) {
     qb.andWhere("re.housingType = :housingType", { housingType });

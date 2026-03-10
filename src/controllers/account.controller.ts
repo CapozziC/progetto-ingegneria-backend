@@ -91,6 +91,11 @@ export const getAllAdvertisements = async (
   const floor =
     typeof req.query.floor === "string" ? Number(req.query.floor) : undefined;
 
+  const bathrooms =
+    typeof req.query.bathrooms === "string"
+      ? Number(req.query.bathrooms)
+      : undefined;
+
   const parseBooleanQueryParam = (value: unknown): boolean | undefined => {
     if (value === "true") return true;
     if (value === "false") return false;
@@ -194,6 +199,7 @@ export const getAllAdvertisements = async (
     maxSize: Number.isFinite(maxSize) ? maxSize : undefined,
     rooms: Number.isFinite(rooms) ? rooms : undefined,
     floor: Number.isFinite(floor) ? floor : undefined,
+    bathrooms: Number.isFinite(bathrooms) ? bathrooms : undefined,
     elevator,
     airConditioning,
     heating,
@@ -351,7 +357,7 @@ export const getAdvertisementById = async (
  * @param req RequestAccount with authenticated account in req.account and accountId in req.params
  * @param res Response with success message or error message
  * @returns JSON with success message or error message
- * Only the account owner can delete their account. 
+ * Only the account owner can delete their account.
  */
 
 export const deleteAccount = async (req: RequestAccount, res: Response) => {
