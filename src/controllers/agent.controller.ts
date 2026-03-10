@@ -7,6 +7,7 @@ import {
   findAgentsByAgencyAndUsernamePrefix,
   findAgentCreatedByAdmin,
   updateAgentPhoneNumber,
+  findAgentById,
 } from "../repositories/agent.repository.js";
 import { AppDataSource } from "../data-source.js";
 import {
@@ -24,6 +25,34 @@ import {
   findAgentNegotiationDetail,
 } from "../repositories/offer.repository.js";
 import { buildAdvertisementTitle } from "../utils/advertisementTitle.utils.js";
+
+export const getAgentProfile = async (req: RequestAgent, res: Response) => {
+  try {
+    const agent = requireAgent(req, res);
+    if (!agent) return;
+
+    const fullAgent = await findAgentById(agent.id);
+    if (!fullAgent) {
+      return res.status(404).json({ error: "Agent not found" });
+    }
+
+    return res.status(200).json({
+      id: agent.id,
+      firstName: agent.firstName,
+      lastName: agent.lastName,
+      username: agent.username,     
+      phoneNumber: agent.phoneNumber,
+      isAdmin: agent.isAdmin,
+      agency: {
+        id: agent.agency.id,
+        name: agent.agency.name,
+      },
+    });
+  } catch (error) {
+    console.error("Error fetching agent profile:", error);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+};
 
 /**
  * Create a new agent under the same agency of the admin creating it, with a generated username and temporary password.

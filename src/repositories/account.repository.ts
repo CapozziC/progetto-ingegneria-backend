@@ -41,3 +41,4 @@ export const findAccountById = async (id: number): Promise<Account | null> => {
 export const deleteAccountById = async (id: number): Promise<void> => {
   await AccountRepository.delete(id);
 }
+

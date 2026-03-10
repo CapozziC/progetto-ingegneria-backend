@@ -8,13 +8,40 @@ import {
 import { getClientIp, normalizeIp } from "../utils/ip.utils.js";
 import { geopifyIpGeolocate } from "../services/ip.service.js";
 import { forwardGeocodeAddress } from "../services/geocode.service.js";
-import { deleteAccountById } from "../repositories/account.repository.js";
+import {
+  deleteAccountById,
+  findAccountById,
+} from "../repositories/account.repository.js";
 import {
   findAccountNegotiations,
   findAccountNegotiationDetail,
 } from "../repositories/offer.repository.js";
 import { buildAdvertisementTitle } from "../utils/advertisementTitle.utils.js";
 import { parsePositiveInt } from "../utils/objectParse.utils.js";
+
+export const getAccountProfile = async (req: RequestAccount, res: Response) => {
+  const account = requireAccount(req, res);
+  try {
+    if (!account) return res.status(401).json({ error: "Unauthorized" });
+
+    const fullAccount = await findAccountById(account.id);
+    if (!fullAccount) {
+      return res.status(404).json({ error: "Account not found" });
+    }
+
+    return res.json({
+      id: fullAccount.id,
+      firstName: fullAccount.firstName,
+      lastName: fullAccount.lastName,
+      email: fullAccount.email,
+    });
+  } catch (err) {
+    console.error("getAccountProfile error:", err);
+    return res
+      .status(500)
+      .json({ error: "Failed to retrieve account profile" });
+  }
+};
 
 /**
  * Get a paginated list of advertisements, with optional filters for status, type, housingType,

@@ -35,11 +35,7 @@ router.post(
   registerAccount,
 );
 router.post("/account/login", validateBody(loginAccountSchema), loginAccount);
-router.post(
-  "/agent/login",
-  validateBody(loginAgentSchema),
-  loginAgent,
-);
+router.post("/agent/login", validateBody(loginAgentSchema), loginAgent);
 router.post("/agent/logout", authenticationMiddlewareAgent, logoutAgent);
 router.post("/account/logout", authenticationMiddlewareAccount, logoutAccount);
 router.post(
@@ -56,5 +52,15 @@ router.post(
 );
 
 router.get("/agencies", getAllAgency);
+
+//Rotta protetta per  verificare se l'account è autenticato
+router.get("/account/auth", authenticationMiddlewareAccount, (req, res) => {
+  res.json({ message: "Access granted to protected account route" });
+});
+
+//Rotta protetta per  verificare se l'agente è autenticato
+router.get("/agent/auth", authenticationMiddlewareAgent, (req, res) => {
+  res.json({ message: "Access granted to protected agent route" });
+});
 
 export default router;

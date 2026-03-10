@@ -17,8 +17,15 @@ import {
   getAgentNegotiations,
   getAgentNegotiationByAdvertisementAndAccount,
   updatePhoneNumberAgent,
+  getAgentProfile,
 } from "../controllers/agent.controller.js";
 import { getAppointmentsForAgent } from "../controllers/appointment.controller.js";
+
+router.get(
+  "/me/info",
+  authenticationMiddlewareAgent,
+  getAgentProfile
+);
 
 router.post(
   "/create_agent",
