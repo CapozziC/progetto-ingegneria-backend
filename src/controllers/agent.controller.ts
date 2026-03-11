@@ -26,6 +26,13 @@ import {
 } from "../repositories/offer.repository.js";
 import { buildAdvertisementTitle } from "../utils/advertisement-title.utils.js";
 
+/**
+ * Get the profile of the authenticated agent, including their ID, name, username, phone number, admin status, and associated agency information. The function checks for the authenticated agent in the request, retrieves their full details from the database using their ID, and returns a structured JSON response containing the agent's profile information. If the agent is not authenticated or if there is an error during retrieval, it returns an appropriate error response.
+ * @param req RequestAgent with authenticated agent in req.agent
+ * @param res Response with agent profile information or error message
+ * @returns JSON with agent profile information or error message
+ * Only authenticated agents can access their profile information.
+ */
 export const getAgentProfile = async (req: RequestAgent, res: Response) => {
   try {
     const agent = requireAgent(req, res);

@@ -1,66 +1,60 @@
-import { Photo } from "../entities/photo.js";
-import { QueryRunner } from "typeorm";
-import path from "path";
-import fs from "fs/promises";
-import { extToPhotoFormatEnum } from "../utils/multer.utils.js";
+
+import { UpdateAdvertisementBody } from "../types/advertisement.type.js";
+import { Advertisement } from "../entities/advertisement.js";
+import { RealEstate } from "../entities/realEstate.js";
 
 /**
- * Saves uploaded advertisement photos to the file system and creates corresponding Photo entities in the database. The function takes a QueryRunner for database operations, an array of uploaded files, the ID of the advertisement to which the photos belong, and the base URL for constructing photo URLs. It creates a directory for the advertisement's photos if it doesn't exist, moves each uploaded file to the appropriate location, and constructs a URL for each photo based on its new location. The function then creates Photo entities with the advertisement ID, URL, format, and position, and saves them to the database using the provided QueryRunner. Finally, it returns an array of the created Photo entities.
- * @param param0 - An object containing the QueryRunner for database operations, an array of uploaded files (Express.Multer.File[]), the ID of the advertisement (advertisementId) to which the photos belong, and the base URL (baseUrl) for constructing photo URLs.
- * @returns A promise that resolves to an array 
- *  of Photo entities that were created and saved to the database, each representing a photo associated with the specified advertisement.
- * @throws An error if the UPLOAD_DIR environment variable is not defined, or if there are issues with file operations or database interactions.
+ * Defines the fields that can be updated for an Advertisement entity and a RealEstate entity. The `advertisementFields` array lists the fields of the Advertisement that can be updated, while the `realEstateFields` array lists the fields of the RealEstate that can be updated. These arrays are used to build partial update data objects for both entities based on the provided update values.
+ * The `buildAdvertisementUpdateData` function takes an object containing the update values and constructs a partial object for the Advertisement entity, including only the fields that are defined in the `advertisementFields` array. Similarly, the `buildRealEstateUpdateData` function constructs a partial object for the RealEstate entity based on the `realEstateFields` array. These functions are useful for handling update operations where only a subset of fields may be provided for updating an advertisement and its associated real estate information.
+ * @see updateAdvertisementByAgent in src/services/advertisement.service.ts for an example of how these functions are used to perform an update operation on an advertisement and its associated real estate entity.
+ * @see UpdateAdvertisementBody in src/types/advertisement.type.ts for the type definition of the update values that can be passed to these functions.
+ * @see Advertisement and RealEstate entities for the full list of fields available in each entity.
+ * @param value - An object containing the update values for the advertisement and real estate fields. The object may include any subset of the fields defined in the `advertisementFields` and `realEstateFields` arrays.
+ * @returns An object containing the partial update data for the Advertisement and RealEstate entities, which can be used in an update operation to modify only the specified fields of an advertisement and its associated real estate information.
  */
-export const saveAdvertisementPhotos = async ({
-  queryRunner,
-  files,
-  advertisementId,
-  baseUrl,
-}: {
-  queryRunner: QueryRunner;
-  files: Express.Multer.File[];
-  advertisementId: number;
-  baseUrl: string;
-}): Promise<Photo[]> => {
-  const uploadDir = process.env.UPLOAD_DIR;
+export const advertisementFields = [
+  "description",
+  "price",
+  "type",
+  "status",
+] as const;
 
-  if (!uploadDir) {
-    throw new Error("UPLOAD_DIR environment variable is not defined");
-  }
+export const realEstateFields = [
+  "size",
+  "rooms",
+  "bathrooms",
+  "floor",
+  "elevator",
+  "airConditioning",
+  "heating",
+  "concierge",
+  "parking",
+  "garage",
+  "furnished",
+  "solarPanels",
+  "balcony",
+  "terrace",
+  "garden",
+  "energyClass",
+  "housingType",
+] as const;
 
-  const advPhotosDir = path.join(uploadDir, "photos", String(advertisementId));
-  await fs.mkdir(advPhotosDir, { recursive: true });
+export const buildAdvertisementUpdateData = (
+  value: UpdateAdvertisementBody,
+): Partial<Pick<Advertisement, (typeof advertisementFields)[number]>> => {
+  return Object.fromEntries(
+    advertisementFields
+      .filter((field) => value[field] !== undefined)
+      .map((field) => [field, value[field]]),
+  ) as Partial<Pick<Advertisement, (typeof advertisementFields)[number]>>;
+};
 
-  const photoEntities: Photo[] = [];
-
-  for (let idx = 0; idx < files.length; idx++) {
-    const file = files[idx];
-    if (!file) continue;
-
-    const ext =
-      path.extname(file.originalname).toLowerCase() ||
-      path.extname(file.filename).toLowerCase() ||
-      ".jpg";
-
-    const newFilename = `${idx}${ext}`;
-    const targetPath = path.join(advPhotosDir, newFilename);
-
-    await fs.rename(file.path, targetPath);
-    file.path = targetPath;
-
-    photoEntities.push(
-      Object.assign(new Photo(), {
-        advertisementId,
-        url: `${baseUrl}/uploads/photos/${advertisementId}/${newFilename}`,
-        format: extToPhotoFormatEnum(ext),
-        position: idx,
-      }),
-    );
-  }
-
-  if (photoEntities.length === 0) {
-    return [];
-  }
-
-  return queryRunner.manager.save(Photo, photoEntities);
+export const buildRealEstateUpdateData = (
+  value: UpdateAdvertisementBody,
+): Partial<Pick<RealEstate, (typeof realEstateFields)[number]>> => {
+  return Object.fromEntries(
+    realEstateFields
+      .filter((field) => value[field] !== undefined)
+      .map((field) => [field, value[field]]),
+  ) as Partial<Pick<RealEstate, (typeof realEstateFields)[number]>>;
 };

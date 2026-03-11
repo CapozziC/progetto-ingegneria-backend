@@ -1,4 +1,7 @@
-import { fetchJsonWithTimeout, HttpTimeoutError } from "../utils/http.utils.js";
+import {
+  fetchJsonWithTimeout,
+  HttpTimeoutError,
+} from "../../utils/http.utils.js";
 
 type GeoapifyFeature = {
   properties: {

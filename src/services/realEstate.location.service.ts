@@ -1,10 +1,14 @@
 import { RealEstate } from "../entities/realEstate.js";
 import { makePoint4326 } from "../utils/point.utils.js";
-import { forwardGeocodeAddress } from "./geocode.service.js";
+import { forwardGeocodeAddress } from "./geopify/geocode.service.js";
 
 export const resolveRealEstateLocation = async (
   realEstate: RealEstate,
-  reDto: { address?: string; addressInput?: string; location?: { lng: number; lat: number } },
+  reDto: {
+    address?: string;
+    addressInput?: string;
+    location?: { lng: number; lat: number };
+  },
 ): Promise<void> => {
   const addressText =
     typeof reDto.address === "string" && reDto.address.trim()

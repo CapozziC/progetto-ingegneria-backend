@@ -1,13 +1,13 @@
 import { RequestAccount } from "../types/express.js";
 import { LocationInfo, LocationMode } from "../types/advertisement.type.js";
-import { forwardGeocodeAddress } from "../services/geocode.service.js";
-import { geopifyIpGeolocate } from "./ip.service.js";
+import { forwardGeocodeAddress } from "./geopify/geocode.service.js";
+import { geopifyIpGeolocate } from "./geopify/ip.service.js";
 import { getClientIp, normalizeIp } from "../utils/ip.utils.js";
 import { Advertisement } from "../entities/advertisement.js";
 import { Poi } from "../entities/poi.js";
 import { QueryRunner } from "typeorm";
 import { RealEstate } from "../entities/realEstate.js";
-import { fetchNearbyPois } from "./places.service.js";
+import { fetchNearbyPois } from "./geopify/places.service.js";
 
 export const resolveAdvertisementLocation = async (
   req: RequestAccount,

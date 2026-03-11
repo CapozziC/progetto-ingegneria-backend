@@ -1,6 +1,6 @@
 import type { Point } from "geojson";
-import { Type as PoiType } from "../entities/poi.js";
-import { fetchJsonWithTimeout, HttpTimeoutError } from "../utils/http.utils.js";
+import { Type as PoiType } from "../../entities/poi.js";
+import { fetchJsonWithTimeout, HttpTimeoutError } from "../../utils/http.utils.js";
 
 const GEOAPIFY_KEY = process.env.GEOAPIFY_API_KEY_PLACE;
 

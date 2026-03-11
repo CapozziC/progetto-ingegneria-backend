@@ -1,4 +1,4 @@
-import { normalizeIp } from "../utils/ip.utils.js";
+import { normalizeIp } from "../../utils/ip.utils.js";
 
 type GeoapifyIpInfo = {
   ip?: string;
@@ -8,7 +8,7 @@ type GeoapifyIpInfo = {
 };
 
 export async function geopifyIpGeolocate(ipRaw?: string) {
-  const apiKey = process.env.IPGEOLOCATION_API_KEY; 
+  const apiKey = process.env.IPGEOLOCATION_API_KEY;
   console.log(
     "IPGEOLOCATION_API_KEY present?",
     Boolean(process.env.IPGEOLOCATION_API_KEY),

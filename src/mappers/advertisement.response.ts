@@ -60,3 +60,27 @@ export const buildCreateAdvertisementResponse = ({
     photos,
   };
 };
+/**
+ * Builds a response object for an updated advertisement, including a success message and the updated advertisement details. The function takes an updated advertisement entity and constructs a response object that includes a message indicating the successful update and an item object containing the advertisement's ID, description, price, type, status, associated real estate information, photos sorted by their position, and points of interest (POIs). This function is intended to be used as a mapper to format the response for the API endpoint that handles updating advertisements.
+ * @param advertisement - The updated advertisement entity containing the latest details after the update operation.
+ * @returns An object that includes a success message and an item object with the updated advertisement details, including ID, description, price, type, status, associated real estate information, sorted photos, and points of interest (POIs).
+ */
+export const buildUpdatedAdvertisementResponse = (
+  advertisement: Advertisement,
+) => {
+  return {
+    message: "Advertisement updated successfully",
+    item: {
+      id: advertisement.id,
+      description: advertisement.description,
+      price: advertisement.price,
+      type: advertisement.type,
+      status: advertisement.status,
+      realEstate: advertisement.realEstate,
+      photos: (advertisement.photos ?? []).sort(
+        (a, b) => a.position - b.position,
+      ),
+      pois: advertisement.pois ?? [],
+    },
+  };
+};
