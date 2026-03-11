@@ -2,6 +2,8 @@ import { EntityManager } from "typeorm";
 import { AppDataSource } from "../data-source.js";
 import { Advertisement } from "../entities/advertisement.js";
 import { RealEstate } from "../entities/realEstate.js";
+import { Logo } from "../entities/logo.js";
+import { In } from "typeorm";
 export const AdvertisementRepository =
   AppDataSource.getRepository(Advertisement);
 
@@ -214,9 +216,8 @@ export async function findAdvertisements({
       "re.addressFormatted",
     ])
     .leftJoin("adv.photos", "photos")
+    .leftJoin("agent.agency", "agency")
     .addSelect(["agency.id", "agency.name"])
-    .leftJoin("agency.logo", "logo")
-    .addSelect(["logo.id", "logo.url", "logo.format"])
     .addSelect(["photos.id", "photos.url", "photos.position"])
     .leftJoin("adv.agent", "agent")
     .addSelect([
@@ -322,6 +323,42 @@ export async function findAdvertisements({
   qb.take(take).skip(skip);
 
   const [items, total] = await qb.getManyAndCount();
+  const agencyIds = [
+    ...new Set(
+      items
+        .map((item) => item.agent?.agency?.id)
+        .filter((id): id is number => id !== undefined),
+    ),
+  ];
+
+  const logos =
+    agencyIds.length > 0
+      ? await AppDataSource.getRepository(Logo).find({
+          where: {
+            agency: {
+              id: In(agencyIds),
+            },
+          },
+          relations: {
+            agency: true,
+          },
+        })
+      : [];
+
+  const logoByAgencyId = new Map<number, Logo>(
+    logos.map((logo) => [logo.agency.id, logo]),
+  );
+
+  for (const item of items) {
+    const agency = item.agent?.agency;
+    if (!agency) {
+      continue;
+    }
+
+    const logo = logoByAgencyId.get(agency.id);
+
+    Object.assign(agency, { logo });
+  }
 
   return {
     total,
