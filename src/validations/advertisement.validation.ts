@@ -127,6 +127,39 @@ export const createAdvertisementSchema = Joi.object({
     .required(),
 });
 
+export const updateAdvertisementSchema = Joi.object({
+  // campi advertisement
+  description: Joi.string().trim().min(1).max(2000),
+  price: Joi.number().integer().min(0),
+  type: Joi.string().valid("sale", "rent"),
+  status: Joi.string().valid("available", "sold", "rented"),
+
+  // campi realEstate
+  size: Joi.number().integer().min(1),
+  rooms: Joi.number().integer().min(1),
+  bathrooms: Joi.number().integer().min(1),
+  floor: Joi.number().integer().min(0),
+
+  elevator: Joi.boolean(),
+  airConditioning: Joi.boolean(),
+  heating: Joi.boolean(),
+  concierge: Joi.boolean(),
+  parking: Joi.boolean(),
+  garage: Joi.boolean(),
+  furnished: Joi.boolean(),
+  solarPanels: Joi.boolean(),
+  balcony: Joi.boolean(),
+  terrace: Joi.boolean(),
+  garden: Joi.boolean(),
+
+  energyClass: Joi.string().valid(...Object.values(EnergyClass)),
+  housingType: Joi.string().valid(...Object.values(HousingType)),
+})
+  .min(1)
+  .messages({
+    "object.min": "You must provide at least one field to update",
+  });
+
 export const advertisementParamsSchema = Joi.object({
   id: Joi.number().integer().positive().required().messages({
     "number.base": "Advertisement ID must be a number",

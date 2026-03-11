@@ -12,10 +12,12 @@ import {
   createAppointmentBodySchema,
   createOfferByAccountBodySchema,
   advertisementParamsSchema,
+  updateAdvertisementSchema
 } from "../validations/advertisement.validation.js";
 import {
   createAdvertisementWithRealEstateAndPhotosTx,
   deleteAgentAdvertisement,
+  updateAgentAdvertisement
 } from "../controllers/advertisement.controller.js";
 import {
   getAvailableDays,
@@ -31,6 +33,15 @@ router.post(
   parseJsonFields(["realEstate"]),
   validateBody(createAdvertisementSchema),
   createAdvertisementWithRealEstateAndPhotosTx,
+);
+
+router.patch(
+  "/update/:id",
+  authenticationMiddlewareAgent,
+  parseJsonFields(["realEstate"]),
+  validateBody(updateAdvertisementSchema),
+  validateParams(advertisementParamsSchema),
+  updateAgentAdvertisement,
 );
 
 router.delete(

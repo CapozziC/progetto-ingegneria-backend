@@ -371,6 +371,134 @@ export const createAdvertisementWithRealEstateAndPhotosTx = async (
   }
 };
 
+export const updateAgentAdvertisement = async (
+  req: RequestAgent,
+  res: Response,
+) => {
+  try {
+    const value = req.body;
+    const agent = requireAgent(req, res);
+
+    if (!agent) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    const advertisementId = Number(req.params.id);
+    if (Number.isNaN(advertisementId)) {
+      return res.status(400).json({ error: "Invalid advertisement id" });
+    }
+
+    const ownerId = await findAdvertisementOwnerId(advertisementId);
+
+    if (!ownerId) {
+      return res.status(404).json({ error: "Advertisement not found" });
+    }
+
+    if (ownerId !== agent.id) {
+      return res.status(403).json({
+        error: "Forbidden: you can update only your own advertisements",
+      });
+    }
+
+    await AppDataSource.transaction(async (manager) => {
+      const advertisementRepository = manager.getRepository(Advertisement);
+      const realEstateRepository = manager.getRepository(RealEstate);
+
+      const advertisement = await advertisementRepository.findOne({
+        where: {
+          id: advertisementId,
+          agent: { id: agent.id },
+        },
+        relations: {
+          agent: true,
+          realEstate: true,
+          photos: true,
+          pois: true,
+        },
+      });
+
+      if (!advertisement) {
+        throw new Error("ADVERTISEMENT_NOT_FOUND");
+      }
+
+      if (!advertisement.realEstate) {
+        throw new Error("REALESTATE_NOT_FOUND");
+      }
+
+      const advertisementFields = [
+        "description",
+        "price",
+        "type",
+        "status",
+      ] as const;
+
+      const realEstateFields = [
+        "size",
+        "rooms",
+        "bathrooms",
+        "floor",
+        "elevator",
+        "airConditioning",
+        "heating",
+        "concierge",
+        "parking",
+        "garage",
+        "furnished",
+        "solarPanels",
+        "balcony",
+        "terrace",
+        "garden",
+        "energyClass",
+        "housingType",
+      ] as const;
+
+      const advertisementData = Object.fromEntries(
+        advertisementFields
+          .filter((field) => value[field] !== undefined)
+          .map((field) => [field, value[field]]),
+      ) as Partial<Pick<Advertisement, (typeof advertisementFields)[number]>>;
+
+      const realEstateData = Object.fromEntries(
+        realEstateFields
+          .filter((field) => value[field] !== undefined)
+          .map((field) => [field, value[field]]),
+      ) as Partial<Pick<RealEstate, (typeof realEstateFields)[number]>>;
+
+      Object.assign(advertisement, advertisementData);
+      Object.assign(advertisement.realEstate, realEstateData);
+
+      await advertisementRepository.save(advertisement);
+      await realEstateRepository.save(advertisement.realEstate);
+
+      return res.status(200).json({
+        message: "Advertisement updated successfully",
+        item: {
+          id: advertisement.id,
+          description: advertisement.description,
+          price: advertisement.price,
+          type: advertisement.type,
+          status: advertisement.status,
+          realEstate: advertisement.realEstate,
+          photos: (advertisement.photos ?? []).sort(
+            (a, b) => a.position - b.position,
+          ),
+          pois: advertisement.pois ?? [],
+        },
+      });
+    });
+  } catch (err) {
+    if (err instanceof Error && err.message === "ADVERTISEMENT_NOT_FOUND") {
+      return res.status(404).json({ error: "Advertisement not found" });
+    }
+
+    if (err instanceof Error && err.message === "REALESTATE_NOT_FOUND") {
+      return res.status(400).json({ error: "Real estate data not found" });
+    }
+
+    console.error("updateAgentAdvertisement error:", err);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+};
 /**
  * Delete an advertisement if it belongs to the authenticated agent, in a single transaction also with its related real estate and photos
  * @param req RequestAgent
