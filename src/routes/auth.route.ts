@@ -23,7 +23,7 @@ import {
   registerAccountSchema,
   createNewAgencyWithFirstAgentSchema,
 } from "../validations/auth.validation.js";
-import { uploadLogo } from "../utils/multer.utils.js";
+import { uploadLogo } from "../config/multer.config.js";
 import express from "express";
 
 // Create a router instance

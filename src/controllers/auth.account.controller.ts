@@ -8,17 +8,19 @@ import {
   saveRefreshToken,
 } from "../repositories/refreshToken.repository.js";
 import { Response } from "express";
-import {
-  generateAccessToken,
-  generateRefreshToken,
-  hashRefreshToken,
-  revokeRefreshToken,
-  setAuthCookies,
+import { revokeRefreshToken } from "../services/auth.service.js";
+  import {setAuthCookies,
   clearAuthCookies,
-} from "../utils/auth.utils.js";
+} from "../utils/cookie.utils.js";
+
 import bcrypt from "bcryptjs";
 import { Type } from "../entities/refreshToken.js";
 import { RequestAccount } from "../types/express.js";
+import {
+  hashRefreshToken,
+  generateAccessToken,
+  generateRefreshToken,
+} from "../utils/auth.utils.js";
 
 /**
  * Register a new account with the provided first name, last name, email and password. The password is hashed before saving. If registration is successful, an access token and a refresh token are generated and sent as httpOnly cookies.
@@ -198,4 +200,3 @@ export const logoutAccount = async (req: RequestAccount, res: Response) => {
     return res.status(500).json({ error: "Internal server error" });
   }
 };
-

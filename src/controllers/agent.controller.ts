@@ -14,17 +14,20 @@ import {
   normalizeUsernameBase,
   nextUsernameFromExisting,
 } from "../utils/username.utils.js";
-import { requireAdmin, requireAgent } from "../utils/require.utils.js";
+import {
+  requireAdmin,
+  requireAgent,
+} from "../middleware/require.middleware.js";
 import { generateTemporaryPassword } from "../utils/password.utils.js";
 import { Advertisement } from "../entities/advertisement.js";
 import { Agent } from "../entities/agent.js";
 import { findAdvertisementsByAgentId } from "../repositories/advertisement.repository.js";
-import { parsePositiveInt } from "../utils/object-parse.utils.js";
+import { parsePositiveInt } from "../utils/parse.utils.js";
 import {
   findAgentNegotiations,
   findAgentNegotiationDetail,
 } from "../repositories/offer.repository.js";
-import { buildAdvertisementTitle } from "../utils/advertisement-title.utils.js";
+import { buildAdvertisementTitle } from "../helpers/advertisement-title.helper.js";
 
 /**
  * Get the profile of the authenticated agent, including their ID, name, username, phone number, admin status, and associated agency information. The function checks for the authenticated agent in the request, retrieves their full details from the database using their ID, and returns a structured JSON response containing the agent's profile information. If the agent is not authenticated or if there is an error during retrieval, it returns an appropriate error response.

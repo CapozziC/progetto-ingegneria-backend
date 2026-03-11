@@ -1,6 +1,6 @@
 import type { Response } from "express";
 import { RequestAccount } from "../types/express.js";
-import { requireAccount } from "../utils/require.utils.js";
+import { requireAccount } from "../middleware/require.middleware.js";
 import {
   findAdvertisementById,
   findAdvertisements,
@@ -13,15 +13,14 @@ import {
   findAccountNegotiations,
   findAccountNegotiationDetail,
 } from "../repositories/offer.repository.js";
-import { buildAdvertisementTitle } from "../utils/advertisement-title.utils.js";
+import { buildAdvertisementTitle } from "../helpers/advertisement-title.helper.js";
 import {
   parseAdvertisementFilters,
   parsePositiveInt,
   normalizePagination,
-} from "../utils/object-parse.utils.js";
+} from "../utils/parse.utils.js";
 import { buildAdvertisementResponse } from "../mappers/advertisement.response.js";
-import {resolveAdvertisementLocation} from "../services/advertisement.location.service.js";
-
+import { resolveAdvertisementLocation } from "../services/advertisement.location.service.js";
 
 /**
  *  Get the profile information of the authenticated account.

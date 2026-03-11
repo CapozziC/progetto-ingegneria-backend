@@ -3,7 +3,7 @@ import { Request } from "express";
 import { Agency } from "../entities/agency.js";
 import { Logo } from "../entities/logo.js";
 import path from "path";
-import { extToLogoFormat } from "../utils/multer.utils.js";
+import { extToLogoFormat } from "../helpers/file.helper.js";
 
 /**
  * Checks if an agency with the given name or email already exists in the database.
@@ -69,7 +69,7 @@ export const createAgencyLogo = async ({
   return logoRepo.save(logo);
 };
 
-/** 
+/**
  * Validates the request body for creating a new agency with its first agent. It checks for the presence of required fields and returns an error message if any are missing or if the request body is not properly formatted. The function expects the request body to contain the agency's name, email, phone number, as well as the first agent's first name, last name, and phone number. If all validations pass, it returns null, indicating that the request is valid.
  * If the request body is missing, it returns an error message indicating that the body is required and should be in multipart/form-data format. If any of the required fields for the agency or the first agent are missing, it returns an error message specifying which fields are required. This function is intended to be used as a validation step before processing the creation of a new agency and its first agent in the database.
  * @param req - The Express request object containing the body of the request to validate

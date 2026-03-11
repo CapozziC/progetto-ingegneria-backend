@@ -8,11 +8,11 @@ import { generateTemporaryPassword } from "../utils/password.utils.js";
 import { deleteUploadedFilesSafe } from "./upload.controller.js";
 import { ensureAgencyDoesNotExist, createAgencyLogo } from "../helpers/agency.helper.js";
 import { generateFirstAgentUsername } from "../helpers/agent.helper.js";
-import { createFirstAgentEntity } from "../utils/agency-entity.utils.js";
+import { createFirstAgentEntity } from "../services/agency.service.js";
 import { buildCreateAgencyResponse } from "../mappers/agency.response.js";
 import { extractCreateAgencyPayload } from "../types/agency.type.js";
 import { QueryFailedError } from "typeorm";
-import { createAgencyEntity } from "../utils/agency-entity.utils.js";
+import { createAgencyEntity } from "../services/agency.service.js";
 import { validateCreateAgencyRequest } from "../helpers/agency.helper.js";
 
 /**

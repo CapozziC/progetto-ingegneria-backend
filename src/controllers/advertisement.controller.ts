@@ -4,7 +4,7 @@ import {
   findAdvertisementOwnerId,
   deleteAdvertisementById,
 } from "../repositories/advertisement.repository.js";
-import { requireAgent } from "../utils/require.utils.js";
+import { requireAgent } from "../middleware/require.middleware.js";
 import { AppDataSource } from "../data-source.js";
 import { Advertisement } from "../entities/advertisement.js";
 import { RealEstate } from "../entities/realEstate.js";
@@ -12,7 +12,7 @@ import { RequestAgent } from "../types/express.js";
 import {
   buildRealEstateEntity,
   buildAdvertisementEntity,
-} from "../utils/advertisement-entity.utils.js";
+} from "../mappers/advertisement.mapper.js";
 import { resolveRealEstateLocation } from "../services/realEstate.location.service.js";
 import { saveAdvertisementPhotos } from "../services/advertisement.service.js";
 import {

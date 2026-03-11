@@ -5,11 +5,9 @@ import {
   generateRefreshToken,
   verifyAccessToken,
   verifyRefreshToken,
-  revokeRefreshToken,
   hashRefreshToken,
-  setAuthCookies,
-  clearAuthCookies,
 } from "../utils/auth.utils.js";
+import { setAuthCookies, clearAuthCookies } from "../utils/cookie.utils.js";
 import {
   findRefreshTokenBySubject,
   saveRefreshToken,
@@ -18,6 +16,7 @@ import {
 import { InvalidTokenError, ExpiredTokenError } from "../utils/error.utils.js";
 import { Type } from "../entities/refreshToken.js";
 import { RequestAccount } from "../types/express.js";
+import { revokeRefreshToken } from "../services/auth.service.js";
 
 /**
  * Account authentication middleware.

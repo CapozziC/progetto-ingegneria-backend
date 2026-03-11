@@ -6,7 +6,7 @@ import {
   toHoursByDayRome,
   dayKeyRome,
 } from "../utils/date.utils.js";
-import { getAvailableSlotsForAdvertisement } from "../utils/slots.utils.js";
+import { getAvailableSlotsForAdvertisement } from "../services/slots.service.js";
 import { RequestAccount, RequestAgent } from "../types/express.js";
 import {
   findAppointmentByIdForAgent,
@@ -18,10 +18,13 @@ import {
 } from "../repositories/appointment.repository.js";
 import { Appointment, Status } from "../entities/appointment.js";
 import { findAdvertisementOwnerId } from "../repositories/advertisement.repository.js";
-import { isValidHourlySlotRome } from "../utils/slots.utils.js";
+import { isValidHourlySlotRome } from "../services/slots.service.js";
 import { QueryFailedError } from "typeorm";
-import { requireAccount, requireAgent } from "../utils/require.utils.js";
-import { parsePositiveInt, parseStatus } from "../utils/object-parse.utils.js";
+import {
+  requireAccount,
+  requireAgent,
+} from "../middleware/require.middleware.js";
+import { parsePositiveInt, parseStatus } from "../utils/parse.utils.js";
 
 /**
  * Get the available appointment slots for a specific advertisement in the next 14 days, grouped by day.

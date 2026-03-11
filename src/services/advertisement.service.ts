@@ -8,7 +8,7 @@ import { findAdvertisementOwnerId } from "../repositories/advertisement.reposito
 import { AppDataSource } from "../data-source.js";
 import { UpdateAdvertisementByAgentParams } from "../types/advertisement.type.js";
 import { Photo } from "../entities/photo.js";
-import { extToPhotoFormatEnum } from "../utils/multer.utils.js";
+import { extToPhotoFormatEnum } from "../helpers/file.helper.js";
 import { QueryRunner } from "typeorm";
 import path from "path";
 import fs from "fs/promises";

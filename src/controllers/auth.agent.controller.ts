@@ -8,11 +8,13 @@ import {
   generateAccessToken,
   generateRefreshToken,
   hashRefreshToken,
-  revokeRefreshToken,
+} from "../utils/auth.utils.js";
+
+import {
   setAuthCookies,
   clearAuthCookies,
   setFirstLoginAccessCookie,
-} from "../utils/auth.utils.js";
+} from "../utils/cookie.utils.js";
 import {
   createRefreshToken,
   saveRefreshToken,
@@ -22,6 +24,7 @@ import { AppDataSource } from "../data-source.js";
 import { RequestAgent } from "../types/express.js";
 import { Type } from "../entities/refreshToken.js";
 import { Agent } from "../entities/agent.js";
+import { revokeRefreshToken } from "../services/auth.service.js";
 
 /**
  * Login an agent with the provided agency ID, username and password.

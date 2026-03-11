@@ -10,13 +10,12 @@ import { RequestAgent } from "../types/express.js";
 import {
   generateAccessToken,
   generateRefreshToken,
-  hashRefreshToken,
   verifyAccessToken,
   verifyRefreshToken,
-  revokeRefreshToken,
-  setAuthCookies,
-  clearAuthCookies,
+  hashRefreshToken,
 } from "../utils/auth.utils.js";
+import { setAuthCookies, clearAuthCookies } from "../utils/cookie.utils.js";
+import { revokeRefreshToken } from "../services/auth.service.js";
 import { ExpiredTokenError, InvalidTokenError } from "../utils/error.utils.js";
 
 /**

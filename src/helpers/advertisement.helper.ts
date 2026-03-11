@@ -1,4 +1,3 @@
-
 import { UpdateAdvertisementBody } from "../types/advertisement.type.js";
 import { Advertisement } from "../entities/advertisement.js";
 import { RealEstate } from "../entities/realEstate.js";
@@ -58,3 +57,4 @@ export const buildRealEstateUpdateData = (
       .map((field) => [field, value[field]]),
   ) as Partial<Pick<RealEstate, (typeof realEstateFields)[number]>>;
 };
+
