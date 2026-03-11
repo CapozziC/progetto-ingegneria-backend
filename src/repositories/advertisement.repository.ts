@@ -214,6 +214,9 @@ export async function findAdvertisements({
       "re.addressFormatted",
     ])
     .leftJoin("adv.photos", "photos")
+    .addSelect(["agency.id", "agency.name"])
+    .leftJoin("agency.logo", "logo")
+    .addSelect(["logo.id", "logo.url", "logo.format"])
     .addSelect(["photos.id", "photos.url", "photos.position"])
     .leftJoin("adv.agent", "agent")
     .addSelect([

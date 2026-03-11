@@ -6,8 +6,10 @@ import {
   Check,
   Index,
   Unique,
+  OneToOne,
 } from "typeorm";
 import type { Agent } from "./agent.js";
+import { Logo } from "./logo.js";
 
 @Entity("agency")
 @Check(`length(trim("name")) > 1`)
@@ -30,6 +32,9 @@ export class Agency {
 
   @Column({ type: "varchar", length: 100 })
   email!: string;
+
+  @OneToOne(() => Logo, (logo) => logo.agency)
+  logo?: Logo;
 
   /**
    * Agents that belong to this agency
