@@ -382,7 +382,6 @@ export const deleteAgentAdvertisement = async (
   res: Response,
 ) => {
   try {
-    //Controllo autenticazione
     const agent = requireAgent(req, res);
     if (!agent) {
       return res
@@ -407,13 +406,17 @@ export const deleteAgentAdvertisement = async (
       });
     }
 
-    await deleteAdvertisementById(advertisementId);
+    const deleted = await deleteAdvertisementById(advertisementId);
 
-    return res
-      .status(200)
-      .json({ message: "Advertisement deleted successfully" });
+    if (!deleted) {
+      return res.status(404).json({ error: "Advertisement not found" });
+    }
+
+    return res.status(200).json({
+      message: "Advertisement deleted successfully",
+    });
   } catch (err) {
-    console.error("deleteMyAdvertisement error:", err);
+    console.error("deleteAgentAdvertisement error:", err);
     return res.status(500).json({ error: "Internal server error" });
   }
 };

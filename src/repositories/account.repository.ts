@@ -38,7 +38,11 @@ export const findAccountById = async (id: number): Promise<Account | null> => {
   return AccountRepository.findOne({ where: { id } });
 };
 
+
+/** Delete an account from the database by its unique identifier (ID). This function takes the ID of the account to be deleted and removes it from the database using the AccountRepository. It returns a Promise that resolves when the deletion is complete.
+ * @param id The unique identifier of the account to delete
+ * @returns A Promise that resolves when the account has been deleted
+ */
 export const deleteAccountById = async (id: number): Promise<void> => {
   await AccountRepository.delete(id);
-}
-
+};

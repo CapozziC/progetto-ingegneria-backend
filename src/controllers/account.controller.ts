@@ -19,6 +19,12 @@ import {
 import { buildAdvertisementTitle } from "../utils/advertisementTitle.utils.js";
 import { parsePositiveInt } from "../utils/objectParse.utils.js";
 
+/**
+ *  Get the profile information of the authenticated account.
+ * @param req  RequestAccount with authenticated account in req.account
+ * @param res  Response with account profile information or error message
+ * @returns   JSON with account profile information (id, firstName, lastName, email) or error message
+ */
 export const getAccountProfile = async (req: RequestAccount, res: Response) => {
   const account = requireAccount(req, res);
   try {
@@ -42,6 +48,8 @@ export const getAccountProfile = async (req: RequestAccount, res: Response) => {
       .json({ error: "Failed to retrieve account profile" });
   }
 };
+
+
 
 /**
  * Get a paginated list of advertisements, with optional filters for status, type, housingType,

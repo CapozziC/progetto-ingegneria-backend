@@ -94,24 +94,31 @@ export async function findAdvertisementById(advertisementId: number) {
  * @param advertisementId The unique identifier of the advertisement to delete
  * @returns A Promise that resolves when the deletion is complete
  */
-export const deleteAdvertisementById = async (advertisementId: number) => {
-  await AppDataSource.transaction(async (manager) => {
+export const deleteAdvertisementById = async (
+  advertisementId: number,
+): Promise<boolean> => {
+  return AppDataSource.transaction(async (manager) => {
     const advertisementRepo = manager.getRepository(Advertisement);
     const realEstateRepo = manager.getRepository(RealEstate);
 
-    const adv = await advertisementRepo.findOne({
+    const advertisement = await advertisementRepo.findOne({
       where: { id: advertisementId },
       relations: { realEstate: true },
     });
-    if (!adv) return;
 
-    const realEstateId = adv.realEstate?.id;
+    if (!advertisement) {
+      return false;
+    }
+
+    const realEstateId = advertisement.realEstate?.id ?? null;
 
     await advertisementRepo.delete({ id: advertisementId });
 
     if (realEstateId) {
       await realEstateRepo.delete({ id: realEstateId });
     }
+
+    return true;
   });
 };
 

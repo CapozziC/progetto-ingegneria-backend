@@ -40,7 +40,7 @@ export const getAgentProfile = async (req: RequestAgent, res: Response) => {
       id: agent.id,
       firstName: agent.firstName,
       lastName: agent.lastName,
-      username: agent.username,     
+      username: agent.username,
       phoneNumber: agent.phoneNumber,
       isAdmin: agent.isAdmin,
       agency: {
@@ -114,31 +114,35 @@ export const createNewAgent = async (req: RequestAgent, res: Response) => {
 };
 
 /**
- * Update the phone number of the authenticated agent
- * @param req RequestAgent with authenticated agent in req.agent and phone number in req.body.phoneNumber
- * @param res Response with success message or error message
- * @returns JSON with success message or error message
+ * Update the phone number of the authenticated agent. The new phone number is provided in the request body. The function validates the input and updates the agent's phone number in the database. Only authenticated agents can update their phone number.
+ * @param req RequestAgent with authenticated agent in req.agent and new phone number in req.body.phoneNumber
+ * @param res Response with success message and updated phone number or error message
+ * @returns JSON with success message and updated phone number or error message
  */
-
 export const updatePhoneNumberAgent = async (
   req: RequestAgent,
   res: Response,
 ) => {
   try {
-    const { phoneNumber } = req.body;
     const agent = requireAgent(req, res);
     if (!agent) return;
 
-    if (!phoneNumber) {
+    const { phoneNumber } = req.body;
+
+    if (typeof phoneNumber !== "string" || phoneNumber.trim() === "") {
       return res.status(400).json({
-        error: "Phone number is required",
+        error: "Invalid phone number",
       });
     }
 
-    await updateAgentPhoneNumber(agent.id, phoneNumber);
+    const cleanedPhoneNumber = phoneNumber.trim();
+
+    await updateAgentPhoneNumber(agent.id, cleanedPhoneNumber);
+    const updatedAgent = await findAgentById(agent.id);
 
     return res.status(200).json({
       message: "Phone number updated successfully",
+      phoneNumber: updatedAgent?.phoneNumber,
     });
   } catch (err) {
     console.error("updateMyPhoneNumber error:", err);
