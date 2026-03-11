@@ -1,7 +1,7 @@
 import { RequestAccount, RequestAgent } from "../types/express.js";
 import { Response } from "express";
 import { requireAccount, requireAgent } from "../utils/require.utils.js";
-import { parsePositiveInt } from "../utils/objectParse.utils.js";
+import { parsePositiveInt } from "../utils/object-parse.utils.js";
 import {
   findAdvertisementOwnerId,
   findAdvertisementStatusById,

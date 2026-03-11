@@ -21,7 +21,7 @@ import { findAdvertisementOwnerId } from "../repositories/advertisement.reposito
 import { isValidHourlySlotRome } from "../utils/slots.utils.js";
 import { QueryFailedError } from "typeorm";
 import { requireAccount, requireAgent } from "../utils/require.utils.js";
-import { parsePositiveInt, parseStatus } from "../utils/objectParse.utils.js";
+import { parsePositiveInt, parseStatus } from "../utils/object-parse.utils.js";
 
 /**
  * Get the available appointment slots for a specific advertisement in the next 14 days, grouped by day.

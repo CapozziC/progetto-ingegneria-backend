@@ -19,12 +19,12 @@ import { generateTemporaryPassword } from "../utils/password.utils.js";
 import { Advertisement } from "../entities/advertisement.js";
 import { Agent } from "../entities/agent.js";
 import { findAdvertisementsByAgentId } from "../repositories/advertisement.repository.js";
-import { parsePositiveInt } from "../utils/objectParse.utils.js";
+import { parsePositiveInt } from "../utils/object-parse.utils.js";
 import {
   findAgentNegotiations,
   findAgentNegotiationDetail,
 } from "../repositories/offer.repository.js";
-import { buildAdvertisementTitle } from "../utils/advertisementTitle.utils.js";
+import { buildAdvertisementTitle } from "../utils/advertisement-title.utils.js";
 
 export const getAgentProfile = async (req: RequestAgent, res: Response) => {
   try {

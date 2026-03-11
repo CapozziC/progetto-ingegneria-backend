@@ -2,7 +2,7 @@ import express from "express";
 const router = express.Router();
 import { authenticationMiddlewareAgent } from "../middleware/auth.agent.middleware.js";
 import { uploadPhotos } from "../utils/multer.utils.js";
-import { parseJsonFields } from "../utils/objectParse.utils.js";
+import { parseJsonFields } from "../utils/object-parse.utils.js";
 import {
   validateBody,
   validateParams,
@@ -12,12 +12,12 @@ import {
   createAppointmentBodySchema,
   createOfferByAccountBodySchema,
   advertisementParamsSchema,
-  updateAdvertisementSchema
+  updateAdvertisementSchema,
 } from "../validations/advertisement.validation.js";
 import {
   createAdvertisementWithRealEstateAndPhotosTx,
   deleteAgentAdvertisement,
-  updateAgentAdvertisement
+  updateAgentAdvertisement,
 } from "../controllers/advertisement.controller.js";
 import {
   getAvailableDays,

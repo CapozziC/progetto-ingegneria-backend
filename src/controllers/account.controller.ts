@@ -13,14 +13,15 @@ import {
   findAccountNegotiations,
   findAccountNegotiationDetail,
 } from "../repositories/offer.repository.js";
-import { buildAdvertisementTitle } from "../utils/advertisementTitle.utils.js";
+import { buildAdvertisementTitle } from "../utils/advertisement-title.utils.js";
 import {
   parseAdvertisementFilters,
   parsePositiveInt,
   normalizePagination,
-} from "../utils/objectParse.utils.js";
-import { buildAdvertisementResponse } from "../utils/response.utils.js";
-import { resolveAdvertisementLocation } from "../services/advertisementLocation.service.js";
+} from "../utils/object-parse.utils.js";
+import { buildAdvertisementResponse } from "../mappers/advertisement.response.js";
+import {resolveAdvertisementLocation} from "../services/advertisement.location.service.js";
+
 
 /**
  *  Get the profile information of the authenticated account.

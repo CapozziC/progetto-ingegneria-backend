@@ -2,7 +2,12 @@ import multer from "multer";
 import path from "path";
 import crypto from "crypto";
 import fs from "fs";
-
+import { Format as PhotoFormat } from "../entities/photo.js";
+/**
+ * Multer configuration for handling file uploads, specifically for photos and logos.
+ * The uploaded files are stored in designated directories with unique names to prevent conflicts.
+ * Only JPEG, PNG, and HEIC image formats are allowed, with specific size limits for photos and logos.
+ */
 const uploadDir = process.env.UPLOAD_DIR;
 
 if (!uploadDir) {
@@ -19,6 +24,10 @@ const logosDir = path.join(uploadDir, "logos");
 ensureDir(tmpPhotosDir);
 ensureDir(logosDir);
 
+/**
+ * Multer file filter to allow only JPEG, PNG, and HEIC image formats.
+ * Rejects any files that do not match the allowed MIME types.
+ */
 const fileFilter: multer.Options["fileFilter"] = (_req, file, cb) => {
   const allowed = ["image/jpeg", "image/png", "image/heic"];
   if (!allowed.includes(file.mimetype))
@@ -26,6 +35,12 @@ const fileFilter: multer.Options["fileFilter"] = (_req, file, cb) => {
   cb(null, true);
 };
 
+/**
+ * Multer middleware for handling photo uploads.
+ * Accepts multiple files with the field name "photos".
+ * The files are stored in the "tmp/photos" directory with unique names.
+ * Only JPEG, PNG, and HEIC formats are allowed, and the maximum file size is 8MB per file.
+ */
 const photosStorage = multer.diskStorage({
   destination: (_req, _file, cb) => cb(null, tmpPhotosDir),
   filename: (_req, file, cb) => {
@@ -34,13 +49,24 @@ const photosStorage = multer.diskStorage({
     cb(null, `${name}${ext}`);
   },
 });
-
+/**
+ * Multer middleware for handling photo uploads.
+ * Accepts multiple files with the field name "photos".
+ * The files are stored in the "tmp/photos" directory with unique names.
+ * Only JPEG, PNG, and HEIC formats are allowed, and the maximum file size is 8MB per file.
+ */
 export const uploadPhotos = multer({
   storage: photosStorage,
   fileFilter,
   limits: { fileSize: 8 * 1024 * 1024 },
 }).array("photos", 10);
 
+/**
+ * Multer middleware for handling logo uploads.
+ * Accepts a single file with the field name "logo".
+ * The file is stored in the "logos" directory with a unique name.
+ * Only JPEG, PNG, and HEIC formats are allowed, and the maximum file size is 2MB.
+ */
 const logoStorage = multer.diskStorage({
   destination: (_req, _file, cb) => cb(null, logosDir),
   filename: (_req, file, cb) => {
@@ -49,9 +75,26 @@ const logoStorage = multer.diskStorage({
     cb(null, `${name}${ext}`);
   },
 });
-
+/**
+ * Multer middleware for handling logo uploads. Accepts a single file with the field name "logo".
+ * The file is stored in the "logos" directory with a unique name. Only JPEG, PNG, and HEIC formats are allowed, and the maximum file size is 2MB.
+ */
 export const uploadLogo = multer({
   storage: logoStorage,
   fileFilter,
   limits: { fileSize: 2 * 1024 * 1024 },
 }).single("logo");
+
+/**
+ *  Convert file extension to PhotoFormat enum
+ * @param ext file extension (e.g. ".jpg", ".png")
+ * @returns corresponding PhotoFormat enum value (e.g. PhotoFormat.JPG, PhotoFormat.PNG)
+ */
+export const extToPhotoFormatEnum = (ext: string): PhotoFormat => {
+  const e = ext.replace(".", "").toUpperCase();
+  if (e === "JPG") return PhotoFormat.JPG;
+  if (e === "JPEG") return PhotoFormat.JPEG;
+  if (e === "PNG") return PhotoFormat.PNG;
+  if (e === "HEIC") return PhotoFormat.HEIC;
+  return PhotoFormat.JPG;
+};
