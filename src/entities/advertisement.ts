@@ -70,7 +70,7 @@ export class Advertisement {
   @PrimaryGeneratedColumn()
   id!: number;
 
-  @Column({ type: "varchar", length: 500 })
+  @Column({ type: "text" })
   description!: string;
 
   @Column({ type: "decimal", precision: 12, scale: 0 })

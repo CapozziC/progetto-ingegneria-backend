@@ -6,11 +6,11 @@ import {
 } from "../entities/advertisement.js";
 
 export const createAdvertisementSchema = Joi.object({
-  description: Joi.string().trim().min(1).max(500).required().messages({
+  description: Joi.string().trim().min(1).max(2000).required().messages({
     "string.base": "Description must be a string",
     "string.empty": "Description cannot be empty",
     "string.min": "Description must be at least 1 character long",
-    "string.max": "Description cannot be longer than 500 characters",
+    "string.max": "Description cannot be longer than 2000 characters",
     "any.required": "Description is required",
   }),
   price: Joi.number().positive().required().messages({
