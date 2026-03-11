@@ -41,3 +41,11 @@ export type AdvertisementFilters = {
   terrace?: boolean;
   garden?: boolean;
 };
+
+export type BuildAdvertisementTitleParams = {
+  rooms?: number | null;
+  street?: string | null;
+  city?: string | null;
+  housingType?: string | null;
+  addressFormatted?: string | null;
+};

@@ -11,7 +11,7 @@ import { RealEstate } from "../entities/realEstate.js";
 import { RequestAgent } from "../types/express.js";
 import { buildRealEstateEntity, buildAdvertisementEntity } from "../utils/advertisement-entity.utils.js";
 import { resolveRealEstateLocation } from "../services/realEstate.location.service.js";
-import { saveAdvertisementPhotos } from "../utils/advertisement-photo.utils.js";
+import { saveAdvertisementPhotos } from "../helpers/advertisement.helper.js";
 import { buildCreateAdvertisementResponse } from "../mappers/advertisement.response.js";
 import { attachNearbyPoisToAdvertisement } from "../services/advertisement.location.service.js";
 
