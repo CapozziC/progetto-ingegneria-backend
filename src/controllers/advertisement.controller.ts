@@ -111,7 +111,12 @@ export const createAdvertisementWithRealEstateAndPhotosTx = async (
     }
   }
 };
-
+/**
+ * Update an advertisement and its related real estate if it belongs to the authenticated agent, in a single transaction
+ * @param req RequestAgent with body containing advertisement and real estate fields to update (already validated by Joi)
+ * @param res Response with updated advertisement and real estate or error message
+ * @returns JSON with updated advertisement and real estate or error message
+ */
 export const updateAgentAdvertisement = async (
   req: RequestAgent,
   res: Response,
