@@ -276,9 +276,6 @@ export const updatePasswordAccount = async (
     if (!account) return;
 
     const accountId = Number(req.params.accountId);
-    if (!Number.isInteger(accountId)) {
-      return res.status(400).json({ error: "Invalid account ID" });
-    }
 
     if (account.id !== accountId) {
       return res.status(403).json({
@@ -288,22 +285,9 @@ export const updatePasswordAccount = async (
 
     const { currentPassword, newPassword, confirmPassword } = req.body;
 
-    if (!currentPassword || !newPassword || !confirmPassword) {
-      return res.status(400).json({
-        error:
-          "Current password, new password and confirm password are required",
-      });
-    }
-
     if (newPassword !== confirmPassword) {
       return res.status(400).json({
         error: "New password and confirm password do not match",
-      });
-    }
-
-    if (newPassword.length < 8) {
-      return res.status(400).json({
-        error: "New password must be at least 8 characters long",
       });
     }
 
