@@ -124,7 +124,7 @@ export const loginAgent = async (req: Request, res: Response) => {
       .json({
         id: agent.id,
         username: agent.username,
-        agencyId: agent.agency,
+        agencyId: agent.agency.id,
         firstName: agent.firstName,
         lastName: agent.lastName,
         phoneNumber: agent.phoneNumber,
