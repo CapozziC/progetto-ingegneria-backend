@@ -121,7 +121,14 @@ export const loginAgent = async (req: Request, res: Response) => {
 
     return res
       .status(200)
-      .json({ id: agent.id, username: agent.username, agencyId: agent.agency });
+      .json({
+        id: agent.id,
+        username: agent.username,
+        agencyId: agent.agency,
+        firstName: agent.firstName,
+        lastName: agent.lastName,
+        phoneNumber: agent.phoneNumber,
+      });
   } catch (error) {
     console.error("Login error:", error);
     return res.status(500).json({ error: "Internal server error" });
