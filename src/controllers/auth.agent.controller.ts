@@ -122,7 +122,7 @@ export const loginAgent = async (req: Request, res: Response) => {
     return res.status(200).json({
       id: agent.id,
       username: agent.username,
-      agencyId: agent.agency,
+      agency: agent.agency,
       firstName: agent.firstName,
       lastName: agent.lastName,
       phoneNumber: agent.phoneNumber,
