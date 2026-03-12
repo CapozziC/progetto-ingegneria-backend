@@ -333,7 +333,7 @@ export const updatePasswordAccount = async (
 
     const hashedNewPassword = await bcrypt.hash(newPassword, 10);
 
-    await updateAccountPassword(fullAccount, hashedNewPassword);
+    await updateAccountPassword(fullAccount.id, hashedNewPassword);
 
     return res.status(200).json({
       message: "Password updated successfully",
@@ -374,7 +374,7 @@ export const deleteAccount = async (req: RequestAccount, res: Response) => {
       "Comparing authenticated account id:",
       account.id,
       "with requested accountId:",
-      accountId
+      accountId,
     );
     if (account.id !== accountId) {
       return res.status(403).json({

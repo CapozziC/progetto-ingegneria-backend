@@ -28,6 +28,7 @@ import {
   findAgentNegotiationDetail,
 } from "../repositories/offer.repository.js";
 import { buildAdvertisementTitle } from "../helpers/advertisement-title.helper.js";
+import { agentUpdatePassword } from "../repositories/agent.repository.js";
 
 /**
  * Get the profile of the authenticated agent, including their ID, name, username, phone number, admin status, and associated agency information. The function checks for the authenticated agent in the request, retrieves their full details from the database using their ID, and returns a structured JSON response containing the agent's profile information. If the agent is not authenticated or if there is an error during retrieval, it returns an appropriate error response.
@@ -161,6 +162,55 @@ export const updatePhoneNumberAgent = async (
     });
   }
 };
+
+/**
+ * Update the password of the authenticated agent. The current password, new password and confirm password are provided in the request body. The function validates the input, checks if the current password is correct, and updates the agent's password in the database if everything is valid. Only authenticated agents can update their password, and they can only update their own password.
+ * @param req   RequestAgent with authenticated agent in req.agent and currentPassword, newPassword and confirmPassword in req.body
+ * @param res   Response with success message or error message
+ * @returns   JSON with success message or error message
+ * Only authenticated agents can update their password, and they can only update their own password.
+ */
+export const updateAgentPassword = async (req: RequestAgent, res: Response) => {
+  try {
+    const agent = requireAgent(req, res);
+    if (!agent) return;
+
+    const agentId = parsePositiveInt(req.params.agentId);
+    if (!agentId) {
+      return res.status(400).json({ error: "Invalid agent id" });
+    }
+    if (agent.id !== agentId) {
+      return res.status(403).json({ error: "Forbidden: cannot change another agent's password" });
+    }
+    
+    const { currentPassword ,newPassword, confirmPassword } = req.body;
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      return res.status(400).json({ error: "Current password, new password and confirm password are required" });
+    }
+    if (newPassword !== confirmPassword) {
+      return res.status(400).json({ error: "New password and confirm password do not match" });
+    }
+
+    if (newPassword.length < 8) {
+      return res.status(400).json({ error: "New password must be at least 8 characters long" });
+    }
+
+    
+    const isCurrentPasswordValid = await bcrypt.compare(currentPassword, agent.password);
+    if (!isCurrentPasswordValid) {
+      return res.status(401).json({ error: "Current password is incorrect" });
+    }
+    
+    const hashedNewPassword = await bcrypt.hash(newPassword, 10);
+    await agentUpdatePassword(agent.id, hashedNewPassword);
+
+    return res.status(200).json({ message: "Password updated successfully" });
+  }catch (err) {
+    console.error("updateAgentPassword error:", err);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+}
+
 
 /**
  * Delete an agent created by the authenticated admin, reassigning all their advertisements to the admin,

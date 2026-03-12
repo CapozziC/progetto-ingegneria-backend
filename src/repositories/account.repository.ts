@@ -44,9 +44,11 @@ export const findAccountById = async (id: number): Promise<Account | null> => {
   * @param newPassword The new password to set for the account
   * @returns A Promise that resolves to the updated Account object after the password has been updated and saved to the database
   */
-export const updateAccountPassword = async (account: Account, newPassword: string): Promise<Account> => {
-  account.password = newPassword;
-  return AccountRepository.save(account);
+export const updateAccountPassword = async (
+  accountId : number,
+  newPassword: string,
+): Promise<void> => {
+  await AccountRepository.update({ id: accountId }, { password: newPassword });
 }
 
 

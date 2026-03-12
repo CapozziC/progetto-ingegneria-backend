@@ -116,6 +116,13 @@ export const updateAgentPhoneNumber = async (
   await AgentRepository.update({ id: agentId }, { phoneNumber });
 };
 
+export const agentUpdatePassword = async (
+  agentId: number,
+  newPassword: string,
+): Promise<void> => {
+  await AgentRepository.update({ id: agentId }, { password: newPassword });
+};
+
 /**
  * Find an agent by their unique identifier (ID) for authentication purposes. This function queries the database for an agent with the specified ID and retrieves it along with its related agency and administrator entities. If no agent is found with the given ID, it returns null.
  * @param id The unique identifier of the agent to find
