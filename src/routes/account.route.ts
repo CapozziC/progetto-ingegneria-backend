@@ -11,8 +11,6 @@ import {
   getAllAdvertisements,
   updatePasswordAccount,
 } from "../controllers/account.controller.js";
-import { validateParams } from "../middleware/validate.middleware.js";
-import { deleteAccountSchema } from "../validations/account.validation.js";
 
 router.get("/me/info", authenticationMiddlewareAccount, getAccountProfile);
 
@@ -57,7 +55,7 @@ router.patch(
 router.delete(
   "/delete/:accountId",
   authenticationMiddlewareAccount,
-  validateParams(deleteAccountSchema),
+  //validateParams(deleteAccountSchema),
   deleteAccount,
 );
 
