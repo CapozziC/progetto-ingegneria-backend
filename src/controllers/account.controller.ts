@@ -355,24 +355,42 @@ export const updatePasswordAccount = async (
  */
 
 export const deleteAccount = async (req: RequestAccount, res: Response) => {
-  const account = requireAccount(req, res);
-  if (!account) {
-    return res.status(401).json({ error: "Unauthorized" });
-  }
-  const accountId = Number(req.params.accountId);
-  if (!Number.isInteger(accountId)) {
-    return res.status(400).json({ error: "Invalid account ID" });
-  }
+  console.log("deleteAccount endpoint called");
+
   try {
+    const account = requireAccount(req, res);
+    console.log("Authenticated account:", account);
+    if (!account) return;
+
+    const rawAccountId = req.params.accountId;
+    console.log("Raw accountId from params:", rawAccountId);
+    const accountId = Number(rawAccountId);
+    console.log("Parsed accountId:", accountId);
+
+    if (!rawAccountId || !Number.isInteger(accountId)) {
+      return res.status(400).json({ error: "Invalid account ID" });
+    }
+    console.log(
+      "Comparing authenticated account id:",
+      account.id,
+      "with requested accountId:",
+      accountId
+    );
     if (account.id !== accountId) {
       return res.status(403).json({
-        error: "Unauthorized,  only the account owner can delete their account",
+        error: "Unauthorized: only the account owner can delete their account",
       });
     }
+
     await deleteAccountById(account.id);
-    return res.status(200).json({ message: "Account deleted successfully" });
+
+    return res.status(200).json({
+      message: "Account deleted successfully",
+    });
   } catch (err) {
     console.error("deleteAccount error:", err);
-    return res.status(500).json({ error: "Failed to delete account" });
+    return res.status(500).json({
+      error: "Failed to delete account",
+    });
   }
 };
