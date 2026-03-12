@@ -54,12 +54,12 @@ router.post(
 router.get("/agencies", getAllAgency);
 
 //Rotta protetta per  verificare se l'account è autenticato
-router.get("/account/auth", authenticationMiddlewareAccount, (req, res) => {
+router.get("/auth/account", authenticationMiddlewareAccount, (req, res) => {
   res.json({ message: "Access granted to protected account route" });
 });
 
 //Rotta protetta per  verificare se l'agente è autenticato
-router.get("/agent/auth", authenticationMiddlewareAgent, (req, res) => {
+router.get("/auth/agent", authenticationMiddlewareAgent, (req, res) => {
   res.json({ message: "Access granted to protected agent route" });
 });
 

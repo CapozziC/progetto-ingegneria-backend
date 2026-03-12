@@ -1,10 +1,21 @@
+/**
+ * Custom error class representing a timeout error that occurs when an HTTP request takes longer than the specified timeout duration.
+ *  This error is thrown when a request exceeds the allowed time limit, allowing for better error handling and debugging 
+ * in scenarios where network latency or server response times may be an issue.
+ * @extends Error 
+ */
 export class HttpTimeoutError extends Error {
   constructor(message = "Request timed out") {
     super(message);
     this.name = "HttpTimeoutError";
   }
 }
-
+/**
+ * Fetches JSON data from a URL with a timeout.
+ * @param url The URL to fetch data from.
+ * @param opts Options for the fetch request, including a timeout duration.
+ * @returns A promise resolving to the fetched data or an error.
+ */
 export async function fetchJsonWithTimeout<T>(
   url: string,
   opts: RequestInit & { timeoutMs?: number } = {},
