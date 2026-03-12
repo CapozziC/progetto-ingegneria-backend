@@ -85,10 +85,46 @@ export async function findAdvertisementById(advertisementId: number) {
       "agent.phoneNumber",
     ])
     .leftJoin("agent.agency", "agency")
-    .addSelect(["agency.id", "agency.name", "agency.phoneNumber"])
+    .addSelect([
+      "agency.id",
+      "agency.name",
+      "agency.phoneNumber",
+      "agency.email",
+    ])
     .where("adv.id = :id", { id: advertisementId });
 
-  return qb.getOne();
+  const advertisement = await qb.getOne();
+
+  if (!advertisement) {
+    return null;
+  }
+
+  const agencyId = advertisement.agent?.agency?.id;
+
+  if (!agencyId) {
+    return advertisement;
+  }
+
+  const logo = await AppDataSource.getRepository(Logo).findOne({
+    where: {
+      agency: { id: agencyId },
+    },
+    relations: {
+      agency: true,
+    },
+  });
+
+  if (logo && advertisement.agent?.agency) {
+    Object.assign(advertisement.agent.agency, {
+      logo: {
+        id: logo.id,
+        format: logo.format,
+        url: logo.url,
+      },
+    });
+  }
+
+  return advertisement;
 }
 
 /**
@@ -355,7 +391,15 @@ export async function findAdvertisements({
 
     const logo = logoByAgencyId.get(agency.id);
 
-    Object.assign(agency, { logo });
+    Object.assign(agency, {
+      logo: logo
+        ? {
+            id: logo.id,
+            format: logo.format,
+            url: logo.url,
+          }
+        : null,
+    });
   }
 
   return {

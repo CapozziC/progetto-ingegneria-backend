@@ -9,16 +9,13 @@ import {
   getAccountProfile,
   getAdvertisementById,
   getAllAdvertisements,
+  updatePasswordAccount,
 } from "../controllers/account.controller.js";
 import { validateParams } from "../middleware/validate.middleware.js";
 import { deleteAccountSchema } from "../validations/account.validation.js";
 
-router.get(
-  "/me/info",
-  authenticationMiddlewareAccount,
-  getAccountProfile
-);
-  
+router.get("/me/info", authenticationMiddlewareAccount, getAccountProfile);
+
 router.get(
   "/me/appointments",
   authenticationMiddlewareAccount,
@@ -52,6 +49,16 @@ router.get(
   getAccountNegotiationByAdvertisementAndAgent,
 );
 
-router.delete("/delete/:id", authenticationMiddlewareAccount,validateParams(deleteAccountSchema), deleteAccount);
+router.patch(
+  "/:accountId/password",
+  authenticationMiddlewareAccount,
+  updatePasswordAccount,
+);
+router.delete(
+  "/delete/:accountId",
+  authenticationMiddlewareAccount,
+  validateParams(deleteAccountSchema),
+  deleteAccount,
+);
 
 export default router;

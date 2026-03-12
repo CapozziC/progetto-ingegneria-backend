@@ -38,6 +38,17 @@ export const findAccountById = async (id: number): Promise<Account | null> => {
   return AccountRepository.findOne({ where: { id } });
 };
 
+/**
+  * Update the password of an account. This function takes an Account object and a new password, updates the account's password field with the new password, and saves the updated account to the database. 
+  * @param account The Account object whose password is to be updated 
+  * @param newPassword The new password to set for the account
+  * @returns A Promise that resolves to the updated Account object after the password has been updated and saved to the database
+  */
+export const updateAccountPassword = async (account: Account, newPassword: string): Promise<Account> => {
+  account.password = newPassword;
+  return AccountRepository.save(account);
+}
+
 
 /** Delete an account from the database by its unique identifier (ID). This function takes the ID of the account to be deleted and removes it from the database using the AccountRepository. It returns a Promise that resolves when the deletion is complete.
  * @param id The unique identifier of the account to delete

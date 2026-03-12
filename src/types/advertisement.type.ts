@@ -91,7 +91,10 @@ type RealEstateUpdatableFields = Pick<
 export type UpdateAdvertisementBody = Partial<
   AdvertisementUpdatableFields & RealEstateUpdatableFields
 >;
-
+/**
+ * Type representing the parameters for updating an advertisement by an agent, including the unique identifier of the advertisement to update, the unique identifier of the agent performing the update, and the body of the update request containing the fields to be updated.
+ * This type ensures that all necessary information is provided for processing the update request while maintaining type safety.
+ */
 export type UpdateAdvertisementByAgentParams = {
   advertisementId: number;
   agentId: number;

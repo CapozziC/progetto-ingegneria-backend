@@ -8,6 +8,7 @@ import {
 import {
   deleteAccountById,
   findAccountById,
+  updateAccountPassword,
 } from "../repositories/account.repository.js";
 import {
   findAccountNegotiations,
@@ -21,6 +22,7 @@ import {
 } from "../utils/parse.utils.js";
 import { buildAdvertisementResponse } from "../mappers/advertisement.response.js";
 import { resolveAdvertisementLocation } from "../services/advertisement.location.service.js";
+import bcrypt from "bcryptjs";
 
 /**
  *  Get the profile information of the authenticated account.
@@ -258,6 +260,93 @@ export const getAdvertisementById = async (
 };
 
 /**
+ * Update the password of the authenticated account. Only the account owner can update their password.
+ * @param req RequestAccount with authenticated account in req.account, accountId in req.params and currentPassword, newPassword and confirmPassword in req.body
+ * @param res Response with success message or error message
+ * @returns JSON with success message or error message
+ * Only the account owner can update their password.
+ * The current password must be correct, the new password must be at least 8 characters long and different from the current password, and the new password and confirm password must match.
+ */
+export const updatePasswordAccount = async (
+  req: RequestAccount,
+  res: Response,
+) => {
+  try {
+    const account = requireAccount(req, res);
+    if (!account) return;
+
+    const accountId = Number(req.params.accountId);
+    if (!Number.isInteger(accountId)) {
+      return res.status(400).json({ error: "Invalid account ID" });
+    }
+
+    if (account.id !== accountId) {
+      return res.status(403).json({
+        error: "Forbidden: only the account owner can update their password",
+      });
+    }
+
+    const { currentPassword, newPassword, confirmPassword } = req.body;
+
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      return res.status(400).json({
+        error:
+          "Current password, new password and confirm password are required",
+      });
+    }
+
+    if (newPassword !== confirmPassword) {
+      return res.status(400).json({
+        error: "New password and confirm password do not match",
+      });
+    }
+
+    if (newPassword.length < 8) {
+      return res.status(400).json({
+        error: "New password must be at least 8 characters long",
+      });
+    }
+
+    if (newPassword === currentPassword) {
+      return res.status(400).json({
+        error: "New password must be different from current password",
+      });
+    }
+
+    const fullAccount = await findAccountById(account.id);
+    if (!fullAccount || !fullAccount.password) {
+      return res.status(404).json({
+        error: "Account not found or password not set",
+      });
+    }
+
+    const isCurrentPasswordValid = await bcrypt.compare(
+      currentPassword,
+      fullAccount.password,
+    );
+
+    if (!isCurrentPasswordValid) {
+      return res.status(401).json({
+        error: "Current password is incorrect",
+      });
+    }
+
+    const hashedNewPassword = await bcrypt.hash(newPassword, 10);
+
+    await updateAccountPassword(fullAccount, hashedNewPassword);
+
+    return res.status(200).json({
+      message: "Password updated successfully",
+    });
+  } catch (err) {
+    console.error("updatePasswordAccount error:", err);
+    return res.status(500).json({
+      error: "Failed to update password",
+    });
+  }
+};
+
+/**
  * Delete the authenticated account by ID. Only the account owner can delete their account.
  * @param req RequestAccount with authenticated account in req.account and accountId in req.params
  * @param res Response with success message or error message
@@ -270,7 +359,7 @@ export const deleteAccount = async (req: RequestAccount, res: Response) => {
   if (!account) {
     return res.status(401).json({ error: "Unauthorized" });
   }
-  const accountId = Number(req.params.id);
+  const accountId = Number(req.params.accountId);
   if (!Number.isInteger(accountId)) {
     return res.status(400).json({ error: "Invalid account ID" });
   }
