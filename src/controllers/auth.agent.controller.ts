@@ -119,7 +119,9 @@ export const loginAgent = async (req: Request, res: Response) => {
 
     setAuthCookies(res, accessToken, refreshToken);
 
-    return res.status(200).json({ message: "Login successful" });
+    return res
+      .status(200)
+      .json({ id: agent.id, username: agent.username, agencyId: agent.agency });
   } catch (error) {
     console.error("Login error:", error);
     return res.status(500).json({ error: "Internal server error" });

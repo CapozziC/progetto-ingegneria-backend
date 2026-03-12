@@ -9,9 +9,7 @@ import {
 } from "../repositories/refreshToken.repository.js";
 import { Response } from "express";
 import { revokeRefreshToken } from "../services/auth.service.js";
-  import {setAuthCookies,
-  clearAuthCookies,
-} from "../utils/cookie.utils.js";
+import { setAuthCookies, clearAuthCookies } from "../utils/cookie.utils.js";
 
 import bcrypt from "bcryptjs";
 import { Type } from "../entities/refreshToken.js";
@@ -92,7 +90,14 @@ export const registerAccount = async (req: RequestAccount, res: Response) => {
     // Set tokens as httpOnly cookies
     setAuthCookies(res, accessToken, refreshToken);
 
-    return res.status(201).json({ message: "User registered successfully" });
+    return res
+      .status(201)
+      .json({
+        id: savedAccount.id,
+        email: savedAccount.email,
+        firstName: savedAccount.firstName,
+        lastName: savedAccount.lastName,
+      });
   } catch (error) {
     console.error("Registration error:", error);
     return res.status(500).json({ error: "Internal server error" });
@@ -171,7 +176,7 @@ export const loginAccount = async (req: RequestAccount, res: Response) => {
 
     setAuthCookies(res, accessToken, refreshToken);
 
-    return res.status(200).json({ message: "Login successful" });
+    return res.status(200).json({ id: account.id, email: account.email, firstName: account.firstName, lastName: account.lastName });
   } catch (error) {
     console.error("Login error:", error);
     return res.status(500).json({ error: "Internal server error" });
