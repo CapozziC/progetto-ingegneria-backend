@@ -40,6 +40,9 @@ export const findAgentsByAgencyIdAndUsername = async (
       username,
       ...withAgency(agencyId),
     },
+    relations: {
+      agency: true,
+    },
   });
 };
 /**

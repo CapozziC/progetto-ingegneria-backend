@@ -119,16 +119,14 @@ export const loginAgent = async (req: Request, res: Response) => {
 
     setAuthCookies(res, accessToken, refreshToken);
 
-    return res
-      .status(200)
-      .json({
-        id: agent.id,
-        username: agent.username,
-        agencyId: agent.agency.id,
-        firstName: agent.firstName,
-        lastName: agent.lastName,
-        phoneNumber: agent.phoneNumber,
-      });
+    return res.status(200).json({
+      id: agent.id,
+      username: agent.username,
+      agencyId: agent.agency,
+      firstName: agent.firstName,
+      lastName: agent.lastName,
+      phoneNumber: agent.phoneNumber,
+    });
   } catch (error) {
     console.error("Login error:", error);
     return res.status(500).json({ error: "Internal server error" });
