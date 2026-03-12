@@ -8,7 +8,8 @@ import {
 import {
   createAgentSchema,
   deleteAgentParamsSchema,
-  updatePasswordBodySchema,
+  updatePasswordAgentParamsSchema,
+  updatePasswordAgentBodySchema,
   updatePhoneNumberSchema,
 } from "../validations/agent.validation.js";
 import {
@@ -22,13 +23,8 @@ import {
   updateAgentPassword,
 } from "../controllers/agent.controller.js";
 import { getAppointmentsForAgent } from "../controllers/appointment.controller.js";
-import { updatePasswordParamsSchema } from "../validations/account.validation.js";
 
-router.get(
-  "/me/info",
-  authenticationMiddlewareAgent,
-  getAgentProfile
-);
+router.get("/me/info", authenticationMiddlewareAgent, getAgentProfile);
 
 router.post(
   "/create_agent",
@@ -57,11 +53,10 @@ router.patch(
 router.patch(
   "/:agentId/password",
   authenticationMiddlewareAgent,
-  validateParams(updatePasswordParamsSchema),
-  validateBody(updatePasswordBodySchema),
+  validateParams(updatePasswordAgentParamsSchema),
+  validateBody(updatePasswordAgentBodySchema),
   updateAgentPassword,
-);  
-
+);
 
 // Route to get appointments for the authenticated agent
 router.get(

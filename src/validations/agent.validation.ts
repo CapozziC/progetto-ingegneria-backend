@@ -46,7 +46,7 @@ export const updatePhoneNumberSchema = Joi.object({
 }).unknown(false);
 
 
-export const updatePasswordParamsSchema = Joi.object({
+export const updatePasswordAgentParamsSchema = Joi.object({
   agentId: Joi.number().integer().positive().required().messages({
     "number.base": "Agent ID must be a number",
     "number.integer": "Agent ID must be an integer",
@@ -55,7 +55,7 @@ export const updatePasswordParamsSchema = Joi.object({
   }),
 });
 
-export const updatePasswordBodySchema = Joi.object({
+export const updatePasswordAgentBodySchema = Joi.object({
   currentPassword: Joi.string().required().messages({
     "string.base": "Current password must be a string",
     "any.required": "Current password is required",
