@@ -52,11 +52,18 @@ export type BuildAdvertisementTitleParams = {
   addressFormatted?: string | null;
 };
 
+/**
+ * Type representing the body of a request to update an advertisement, which can include any combination of updatable fields from both the Advertisement and RealEstate entities. 
+ * This type is defined as a Partial of the intersection of AdvertisementUpdatableFields and RealEstateUpdatableFields, allowing for flexibility in updating only the desired fields while ensuring type safety.
+ */
 type AdvertisementUpdatableFields = Pick<
   Advertisement,
   "description" | "price" | "type" | "status"
 >;
-
+/**
+ *  Type representing the body of a request to update an advertisement, which can include any combination of updatable fields from both the Advertisement and RealEstate entities.
+ *  This type is defined as a Partial of the intersection of AdvertisementUpdatableFields and RealEstateUpdatableFields, allowing for flexibility in updating only the desired fields while ensuring type safety.
+ */
 type RealEstateUpdatableFields = Pick<
   RealEstate,
   | "size"
@@ -78,6 +85,9 @@ type RealEstateUpdatableFields = Pick<
   | "housingType"
 >;
 
+/**
+ * Type representing the body of a request to update an advertisement, which can include any combination of updatable fields from both the Advertisement and RealEstate entities. This type is defined as a Partial of the intersection of AdvertisementUpdatableFields and RealEstateUpdatableFields, allowing for flexibility in updating only the desired fields while ensuring type safety.
+ */
 export type UpdateAdvertisementBody = Partial<
   AdvertisementUpdatableFields & RealEstateUpdatableFields
 >;

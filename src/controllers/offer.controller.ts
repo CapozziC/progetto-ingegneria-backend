@@ -7,19 +7,14 @@ import {
 import { parsePositiveInt } from "../utils/parse.utils.js";
 import {
   findAdvertisementOwnerId,
-  findAdvertisementStatusById,
   searchAdvertisementById,
 } from "../repositories/advertisement.repository.js";
 import {
-  createCounterOffer,
   createOffer,
   existPendingOfferByAdvertisementIdAndAccountId,
   findOfferByIdForAgent,
-  rejectOfferById,
   saveOffer,
-  findLatestPendingAccountOfferForAdvertisementAndAccount,
 } from "../repositories/offer.repository.js";
-
 import { Status as AdvStatus, Type } from "../entities/advertisement.js";
 import { Status as AppStatus } from "../entities/appointment.js";
 import { Status, OfferMadeBy } from "../entities/offer.js";
@@ -27,8 +22,15 @@ import { Advertisement } from "../entities/advertisement.js";
 import { Appointment } from "../entities/appointment.js";
 import { Offer } from "../entities/offer.js";
 import { AppDataSource } from "../data-source.js";
-import { In, Not } from "typeorm";
-
+import { In } from "typeorm";
+import {
+  createAgentCounterOffer,
+  acceptOfferByAgent,
+} from "../services/offer.agent.service.js";
+import {
+  acceptAgentOfferAsAccount,
+  counterAgentOfferAsAccount,
+} from "../services/offer.account.service.js";
 /**
  *  Create a new offer for an advertisement by an account
  * @param req RequestAccount with body containing price and params containing advertisement id
@@ -96,134 +98,67 @@ export const createOfferByAccount = async (
  * @returns JSON with success message or error message
  */
 export const agentAcceptOffer = async (req: RequestAgent, res: Response) => {
-  const agent = requireAgent(req, res);
-  if (!agent) return;
-
-  const offerId = parsePositiveInt(req.params.id);
-  if (!offerId) {
-    return res.status(400).json({ error: "Invalid offer id" });
-  }
-
-  const queryRunner = AppDataSource.createQueryRunner();
-  await queryRunner.connect();
-
   try {
-    await queryRunner.startTransaction();
+    const agent = requireAgent(req, res);
+    if (!agent) return;
 
-    const offerRepo = queryRunner.manager.getRepository(Offer);
-    const advRepo = queryRunner.manager.getRepository(Advertisement);
-    const appointmentRepo = queryRunner.manager.getRepository(Appointment);
+    const offerId = parsePositiveInt(req.params.id);
+    if (!offerId) {
+      return res.status(400).json({ error: "Invalid offer id" });
+    }
 
-    // Lock offer row
-    const offer = await offerRepo.findOne({
-      where: { id: offerId, agentId: agent.id },
-      lock: { mode: "pessimistic_write" },
+    const result = await acceptOfferByAgent({
+      offerId,
+      agentId: agent.id,
     });
-
-    if (!offer) {
-      await queryRunner.rollbackTransaction();
-      return res.status(404).json({ error: "Offer not found" });
-    }
-    //Verify owner of the offer
-    if (offer.agentId !== agent.id) {
-      await queryRunner.rollbackTransaction();
-      return res
-        .status(403)
-        .json({ error: "You are not the owner of this offer" });
-    }
-
-    if (offer.status !== Status.PENDING) {
-      await queryRunner.rollbackTransaction();
-      return res
-        .status(400)
-        .json({ error: "Only pending offers can be accepted" });
-    }
-
-    if (!offer.price || Number(offer.price) <= 0) {
-      await queryRunner.rollbackTransaction();
-      return res.status(400).json({ error: "Invalid offer price" });
-    }
-
-    // Lock advertisement row
-    const advertisement = await advRepo.findOne({
-      where: { id: offer.advertisementId },
-      lock: { mode: "pessimistic_write" },
-    });
-
-    if (!advertisement) {
-      await queryRunner.rollbackTransaction();
-      return res
-        .status(404)
-        .json({ error: "Associated advertisement not found" });
-    }
-    if (advertisement.type !== Type.SALE) {
-      await queryRunner.rollbackTransaction();
-      return res.status(409).json({
-        error: "Only offers for sale advertisements can be accepted",
-      });
-    }
-
-    if (advertisement.status !== "active") {
-      await queryRunner.rollbackTransaction();
-      return res.status(409).json({
-        error: "Only offers for active advertisements can be accepted",
-      });
-    }
-
-    // ✅ Set SOLD + sale metadata
-    advertisement.status = AdvStatus.SOLD;
-    advertisement.soldPrice = offer.price;
-    advertisement.soldPrice = Number(offer.price);
-    if (
-      !Number.isFinite(advertisement.soldPrice) ||
-      advertisement.soldPrice <= 0
-    ) {
-      await queryRunner.rollbackTransaction();
-      return res.status(400).json({ error: "Invalid offer price" });
-    } // prezzo di vendita
-    advertisement.soldAt = new Date(); // data di vendita
-
-    await advRepo.save(advertisement);
-
-    // Accept this offer
-    offer.status = Status.ACCEPTED;
-    await offerRepo.save(offer);
-
-    // Reject all other pending offers for same adv
-    await offerRepo.update(
-      {
-        advertisementId: offer.advertisementId,
-        id: Not(offer.id),
-        status: Status.PENDING,
-      },
-      { status: Status.REJECTED },
-    );
-
-    // Cancel requested/confirmed appointments for the adv
-    await appointmentRepo.update(
-      {
-        advertisementId: offer.advertisementId,
-        status: In([AppStatus.REQUESTED, AppStatus.CONFIRMED]),
-      },
-      { status: AppStatus.CANCELLED },
-    );
-
-    await queryRunner.commitTransaction();
 
     return res.status(200).json({
       ok: true,
-      acceptedOfferId: offer.id,
-      advertisementId: offer.advertisementId,
-      advertisementStatus: AdvStatus.SOLD,
-      soldPrice: offer.price,
-      soldAt: advertisement.soldAt,
+      acceptedOfferId: result.offerId,
+      advertisementId: result.advertisementId,
+      advertisementStatus: result.advertisementStatus,
+      soldPrice: result.soldPrice,
+      soldAt: result.soldAt,
     });
   } catch (error) {
-    await queryRunner.rollbackTransaction();
     console.error("Error accepting offer:", error);
+
+    if (error instanceof Error) {
+      switch (error.message) {
+        case "OFFER_NOT_FOUND":
+          return res.status(404).json({ error: "Offer not found" });
+
+        case "FORBIDDEN_OFFER":
+          return res
+            .status(403)
+            .json({ error: "You are not the owner of this offer" });
+
+        case "OFFER_NOT_PENDING":
+          return res
+            .status(400)
+            .json({ error: "Only pending offers can be accepted" });
+
+        case "INVALID_OFFER_PRICE":
+          return res.status(400).json({ error: "Invalid offer price" });
+
+        case "ADVERTISEMENT_NOT_FOUND":
+          return res
+            .status(404)
+            .json({ error: "Associated advertisement not found" });
+
+        case "ADVERTISEMENT_NOT_SALE":
+          return res.status(409).json({
+            error: "Only offers for sale advertisements can be accepted",
+          });
+
+        case "ADVERTISEMENT_NOT_ACTIVE":
+          return res.status(409).json({
+            error: "Only offers for active advertisements can be accepted",
+          });
+      }
+    }
+
     return res.status(500).json({ error: "Failed to accept offer" });
-  } finally {
-    await queryRunner.release();
   }
 };
 /**
@@ -267,9 +202,6 @@ export const rejectLatestAccountOfferAndCreateCounterOfferAsAgent = async (
   req: RequestAgent,
   res: Response,
 ) => {
-  const queryRunner = AppDataSource.createQueryRunner();
-  await queryRunner.connect();
-
   try {
     const agent = requireAgent(req, res);
     if (!agent) return;
@@ -283,86 +215,56 @@ export const rejectLatestAccountOfferAndCreateCounterOfferAsAgent = async (
     if (!accountId) {
       return res.status(400).json({ error: "Invalid account id" });
     }
-    console.log("PARAMS:", req.params);
 
     const { price } = req.body;
     if (typeof price !== "number" || !Number.isFinite(price) || price <= 0) {
       return res.status(400).json({ error: "Invalid price" });
     }
 
-    await queryRunner.startTransaction();
-
-    const advStatus = await findAdvertisementStatusById(
-      advertisementId,
-      queryRunner.manager,
-    );
-    if (!advStatus) {
-      await queryRunner.rollbackTransaction();
-      return res
-        .status(404)
-        .json({ error: "Associated advertisement not found" });
-    }
-    if (advStatus !== "active") {
-      await queryRunner.rollbackTransaction();
-      return res.status(409).json({
-        error: "Counteroffer can only be made for active advertisements",
-      });
-    }
-
-    const lastAccountOffer =
-      await findLatestPendingAccountOfferForAdvertisementAndAccount(
-        { advertisementId, agentId: agent.id, accountId },
-        queryRunner.manager,
-      );
-
-    if (!lastAccountOffer) {
-      await queryRunner.rollbackTransaction();
-      return res.status(409).json({
-        error:
-          "No pending account offer found for this account to counter (agent can only counter account offers)",
-      });
-    }
-
-    await rejectOfferById(lastAccountOffer.id, queryRunner.manager);
-
-    const counterOffer = await createCounterOffer(
-      {
-        price,
-        advertisementId,
-        accountId,
-        agentId: agent.id,
-      },
-      queryRunner.manager,
-    );
-
-    await queryRunner.commitTransaction();
-
-    return res.status(201).json({
-      agentId: agent.id,
+    const result = await createAgentCounterOffer({
       advertisementId,
       accountId,
-      rejectedOfferId: lastAccountOffer.id,
+      agentId: agent.id,
+      price,
+    });
+
+    return res.status(201).json({
+      agentId: result.agentId,
+      advertisementId: result.advertisementId,
+      accountId: result.accountId,
+      rejectedOfferId: result.rejectedOfferId,
       counterOffer: {
-        offerId: counterOffer.id,
-        price: counterOffer.price,
-        status: counterOffer.status,
-        madeBy: counterOffer.madeBy,
-        createdAt: counterOffer.createdAt.toISOString(),
+        offerId: result.counterOffer.id,
+        price: result.counterOffer.price,
+        status: result.counterOffer.status,
+        madeBy: result.counterOffer.madeBy,
+        createdAt: result.counterOffer.createdAt.toISOString(),
       },
     });
   } catch (error) {
-    try {
-      if (queryRunner.isTransactionActive) {
-        await queryRunner.rollbackTransaction();
+    console.error("Error creating counteroffer:", error);
+
+    if (error instanceof Error) {
+      switch (error.message) {
+        case "ADVERTISEMENT_NOT_FOUND":
+          return res
+            .status(404)
+            .json({ error: "Associated advertisement not found" });
+
+        case "ADVERTISEMENT_NOT_ACTIVE":
+          return res.status(409).json({
+            error: "Counteroffer can only be made for active advertisements",
+          });
+
+        case "PENDING_ACCOUNT_OFFER_NOT_FOUND":
+          return res.status(409).json({
+            error:
+              "No pending account offer found for this account to counter (agent can only counter account offers)",
+          });
       }
-    } catch (rollbackError) {
-      console.error("Rollback error:", rollbackError);
     }
 
-    console.error("Error creating counteroffer:", error);
     return res.status(500).json({ error: "Failed to create counteroffer" });
-  } finally {
-    await queryRunner.release();
   }
 };
 
@@ -380,9 +282,6 @@ export const accountAcceptAgentOffer = async (
   req: RequestAccount,
   res: Response,
 ) => {
-  const queryRunner = AppDataSource.createQueryRunner();
-  await queryRunner.connect();
-
   try {
     const account = requireAccount(req, res);
     if (!account) return;
@@ -392,113 +291,50 @@ export const accountAcceptAgentOffer = async (
       return res.status(400).json({ error: "Invalid advertisement id" });
     }
 
-    await queryRunner.startTransaction();
-
-    const offerRepo = queryRunner.manager.getRepository(Offer);
-    const advRepo = queryRunner.manager.getRepository(Advertisement);
-    const appointmentRepo = queryRunner.manager.getRepository(Appointment);
-
-    // Lock advertisement
-    const advertisement = await advRepo.findOne({
-      where: { id: advertisementId },
-      lock: { mode: "pessimistic_write" },
+    const result = await acceptAgentOfferAsAccount({
+      advertisementId,
+      accountId: account.id,
     });
-
-    if (!advertisement) {
-      await queryRunner.rollbackTransaction();
-      return res
-        .status(404)
-        .json({ error: "Associated advertisement not found" });
-    }
-
-    if (advertisement.type !== Type.SALE) {
-      await queryRunner.rollbackTransaction();
-      return res.status(409).json({
-        error: "Only offers for sale advertisements can be accepted",
-      });
-    }
-    if (advertisement.status !== AdvStatus.ACTIVE) {
-      await queryRunner.rollbackTransaction();
-      return res.status(409).json({
-        error: "Only offers for sale advertisements can be accepted",
-      });
-    }
-
-    // Lock ultima controproposta agente
-    const lastAgentOffer = await offerRepo.findOne({
-      where: {
-        advertisementId,
-        accountId: account.id,
-        status: Status.PENDING,
-        madeBy: OfferMadeBy.AGENT,
-      },
-      order: { createdAt: "DESC" },
-      lock: { mode: "pessimistic_write" },
-    });
-
-    if (!lastAgentOffer) {
-      await queryRunner.rollbackTransaction();
-      return res.status(409).json({
-        error: "No pending agent offer found to accept",
-      });
-    }
-
-    //  accetta la controproposta
-    lastAgentOffer.status = Status.ACCEPTED;
-    await offerRepo.save(lastAgentOffer);
-
-    // metti annuncio SOLD
-    advertisement.status = AdvStatus.SOLD;
-    advertisement.soldPrice = lastAgentOffer.price;
-    if (
-      !Number.isFinite(advertisement.soldPrice) ||
-      advertisement.soldPrice <= 0
-    ) {
-      await queryRunner.rollbackTransaction();
-      return res.status(400).json({ error: "Invalid offer price" });
-    }
-    advertisement.soldAt = new Date(); // data di vendita
-    await advRepo.save(advertisement);
-
-    // rifiuta tutte le altre pending dello stesso annuncio
-    await offerRepo.update(
-      {
-        advertisementId,
-        id: Not(lastAgentOffer.id),
-        status: Status.PENDING,
-      },
-      { status: Status.REJECTED },
-    );
-
-    // cancella appuntamenti attivi
-    await appointmentRepo.update(
-      {
-        advertisementId,
-        status: In([AppStatus.REQUESTED, AppStatus.CONFIRMED]),
-      },
-      { status: AppStatus.CANCELLED },
-    );
-
-    await queryRunner.commitTransaction();
 
     return res.status(200).json({
       ok: true,
-      acceptedOfferId: lastAgentOffer.id,
-      advertisementId,
-      advertisementStatus: AdvStatus.SOLD,
+      acceptedOfferId: result.acceptedOfferId,
+      advertisementId: result.advertisementId,
+      advertisementStatus: result.advertisementStatus,
+      soldPrice: result.soldPrice,
+      soldAt: result.soldAt,
     });
   } catch (error) {
-    try {
-      if (queryRunner.isTransactionActive)
-        await queryRunner.rollbackTransaction();
-    } catch (rollbackError) {
-      console.error("Rollback error:", rollbackError);
+    console.error("Error accepting agent offer as account:", error);
+
+    if (error instanceof Error) {
+      switch (error.message) {
+        case "ADVERTISEMENT_NOT_FOUND":
+          return res
+            .status(404)
+            .json({ error: "Associated advertisement not found" });
+
+        case "ADVERTISEMENT_NOT_SALE":
+          return res.status(409).json({
+            error: "Only offers for sale advertisements can be accepted",
+          });
+
+        case "ADVERTISEMENT_NOT_ACTIVE":
+          return res.status(409).json({
+            error: "Only active sale advertisements can accept offers",
+          });
+
+        case "AGENT_OFFER_NOT_FOUND":
+          return res.status(409).json({
+            error: "No pending agent offer found to accept",
+          });
+
+        case "INVALID_OFFER_PRICE":
+          return res.status(400).json({ error: "Invalid offer price" });
+      }
     }
 
-    console.error("Error accepting agent offer as account:", error);
     return res.status(500).json({ error: "Failed to accept agent offer" });
-  } finally {
-    await queryRunner.release();
   }
 };
 
@@ -576,9 +412,6 @@ export const accountRejectAgentOfferAndCreateCounter = async (
   req: RequestAccount,
   res: Response,
 ) => {
-  const queryRunner = AppDataSource.createQueryRunner();
-  await queryRunner.connect();
-
   try {
     const account = requireAccount(req, res);
     if (!account) return;
@@ -593,70 +426,43 @@ export const accountRejectAgentOfferAndCreateCounter = async (
       return res.status(400).json({ error: "Invalid price" });
     }
 
-    await queryRunner.startTransaction();
-
-    // trova ultima offer pending dell’agente nella trattativa
-    const lastAgentOffer = await queryRunner.manager
-      .getRepository(Offer)
-      .findOne({
-        where: {
-          advertisementId,
-          accountId: account.id,
-          status: Status.PENDING,
-          madeBy: OfferMadeBy.AGENT,
-        },
-        order: { createdAt: "DESC" },
-        lock: { mode: "pessimistic_write" },
-      });
-
-    if (!lastAgentOffer) {
-      await queryRunner.rollbackTransaction();
-      return res.status(409).json({
-        error:
-          "No pending agent offer found to counter (account can only counter agent offers)",
-      });
-    }
-
-    // rifiuta la offer agente
-    lastAgentOffer.status = Status.REJECTED;
-    await queryRunner.manager.getRepository(Offer).save(lastAgentOffer);
-
-    // crea nuova offer account (controproposta)
-    const repo = queryRunner.manager.getRepository(Offer);
-    const newAccountOffer = repo.create({
+    const result = await counterAgentOfferAsAccount({
       advertisementId,
       accountId: account.id,
-      agentId: lastAgentOffer.agentId, // importante: prendi l’agente della trattativa
       price,
-      madeBy: OfferMadeBy.ACCOUNT,
-      status: Status.PENDING,
     });
-    await repo.save(newAccountOffer);
-
-    await queryRunner.commitTransaction();
 
     return res.status(201).json({
       ok: true,
-      rejectedOfferId: lastAgentOffer.id,
-      counterOfferId: newAccountOffer.id,
-      advertisementId,
-      accountId: account.id,
-      agentId: newAccountOffer.agentId,
+      rejectedOfferId: result.rejectedOfferId,
+      counterOfferId: result.counterOfferId,
+      advertisementId: result.advertisementId,
+      accountId: result.accountId,
+      agentId: result.agentId,
     });
   } catch (error) {
-    try {
-      if (queryRunner.isTransactionActive)
-        await queryRunner.rollbackTransaction();
-    } catch (rollbackError) {
-      console.error("Error during rollback:", rollbackError);
-    }
     console.error("Error countering agent offer as account:", error);
+
+    if (error instanceof Error) {
+      switch (error.message) {
+        case "AGENT_OFFER_NOT_FOUND":
+          return res.status(409).json({
+            error:
+              "No pending agent offer found to counter (account can only counter agent offers)",
+          });
+      }
+    }
+
     return res.status(500).json({ error: "Failed to counter agent offer" });
-  } finally {
-    await queryRunner.release();
   }
 };
 
+/**
+ *  Mark an advertisement as rented, only if the authenticated agent is the owner of the advertisement and the advertisement is of type rent
+ * @param req RequestAgent with params containing advertisement id
+ * @param res Response with success or error message
+ * @returns JSON with success or error message
+ */
 export const markAdvertisementAsRented = async (
   req: RequestAgent,
   res: Response,
