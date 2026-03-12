@@ -25,6 +25,8 @@ import {
 } from "../validations/auth.validation.js";
 import { uploadLogo } from "../config/multer.config.js";
 import express from "express";
+import { RequestAccount, RequestAgent } from "../types/express.js";
+import { requireAccount,requireAgent } from "../middleware/require.middleware.js";
 
 // Create a router instance
 const router = express.Router();
@@ -54,13 +56,19 @@ router.post(
 router.get("/agencies", getAllAgency);
 
 //Rotta protetta per  verificare se l'account è autenticato
-router.get("/auth/account", authenticationMiddlewareAccount, (req, res) => {
-  res.json({ message: "Access granted to protected account route" });
+router.get("/account", authenticationMiddlewareAccount, (req, res) => {
+  const account = requireAccount(req as RequestAccount, res);
+  if (!account) return;
+
+  return res.json(account);
 });
 
 //Rotta protetta per  verificare se l'agente è autenticato
-router.get("/auth/agent", authenticationMiddlewareAgent, (req, res) => {
-  res.json({ message: "Access granted to protected agent route" });
+router.get("/agent", authenticationMiddlewareAgent, (req, res) => {
+  const agent = requireAgent(req as RequestAgent, res);
+  if (!agent) return;
+
+  return res.json(agent);
 });
 
 export default router;
