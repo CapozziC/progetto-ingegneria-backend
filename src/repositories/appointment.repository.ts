@@ -150,6 +150,11 @@ export const findAppointmentByIdForAccount = async (
   });
 };
 
+/** Check if there is an existing requested appointment for a specific advertisement and account. This function queries the database for an appointment with the given advertisement ID, account ID, and a status of "REQUESTED". If such an appointment exists, it returns the Appointment object; otherwise, it returns null.
+ * @param advertisementId The unique identifier of the advertisement for which to check for an existing requested appointment
+ * @param accountId The unique identifier of the account for which to check for an existing requested appointment
+ * @returns A Promise that resolves to the Appointment object if an existing requested appointment is found, or null if no such appointment exists
+ */
 export const existingRequestedAppointment = async (
   advertisementId: number,
   accountId: number,

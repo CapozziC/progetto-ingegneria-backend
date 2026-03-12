@@ -2,16 +2,36 @@ import { EntityManager } from "typeorm";
 import { AppDataSource } from "../data-source.js";
 import { Offer } from "../entities/offer.js";
 import { Status, OfferMadeBy } from "../entities/offer.js";
+import {
+  FindAccountNegotiationsParams,
+  FindAccountNegotiationDetailParams,
+  FindAgentNegotiationsParams,
+FindAgentNegotiationDetailParams} from "../types/offer.type.js";
 
 export const OfferRepository = AppDataSource.getRepository(Offer);
 
+/**
+ * Find an offer by its ID and the associated agent ID. This function queries the database for an offer with the specified offer ID and agent ID, allowing agents to retrieve details of offers they have made or received. If such an offer exists, it returns the Offer object; otherwise, it returns null.
+ * @param offerId The unique identifier of the offer to find
+ * @param agentId The unique identifier of the agent associated with the offer
+ * @returns A Promise that resolves to the Offer object if found, or null if no such offer exists
+ */
 export const createOffer = (offerData: Partial<Offer>): Offer => {
   return OfferRepository.create(offerData);
 };
 
+/** Save an offer to the database. This function takes an Offer object as input and persists it to the database using the OfferRepository. It returns a Promise that resolves to the saved Offer object, which may include additional properties such as the generated ID and timestamps after being saved.
+ * @param offer The Offer object to save to the database
+ * @returns A Promise that resolves to the saved Offer object with any additional properties set by the database
+ */
 export const saveOffer = async (offer: Offer): Promise<Offer> => {
   return await OfferRepository.save(offer);
 };
+
+/** Find an offer by its unique identifier (ID). This function queries the database for an offer with the specified ID and returns it if found. If no offer is found with the given ID, it returns null.
+ * @param offerId The unique identifier of the offer to find
+ * @returns A Promise that resolves to the Offer object if found, or null if no such offer exists
+ */
 
 export const existPendingOfferByAdvertisementIdAndAccountId = async (
   advertisementId: number,
@@ -26,18 +46,11 @@ export const existPendingOfferByAdvertisementIdAndAccountId = async (
   });
 };
 
-type FindAccountNegotiationsParams = {
-  accountId: number;
-  take: number;
-  skip: number;
-};
-
-type FindAccountNegotiationDetailParams = {
-  accountId: number;
-  advertisementId: number;
-  agentId: number;
-};
-
+/**
+ * Find an offer by its unique identifier (ID). This function queries the database for an offer with the specified ID and returns it if found. If no offer is found with the given ID, it returns null.
+ * @param offerId The unique identifier of the offer to find
+ * @returns A Promise that resolves to the Offer object if found, or null if no such offer exists
+ */
 export async function findAccountNegotiations({
   accountId,
   take,
@@ -152,6 +165,13 @@ export async function findAccountNegotiations({
   };
 }
 
+/**
+ * Find detailed information about negotiations associated with a specific account, advertisement, and agent. This function retrieves all offers related to the specified account ID, advertisement ID, and agent ID, along with details of the associated advertisement and agent. It returns an object containing the advertisement details, agent details, and a list of offers in the negotiation, or null if no offers are found for the given parameters.
+ * @param accountId The unique identifier of the account involved in the negotiation
+ * @param advertisementId The unique identifier of the advertisement involved in the negotiation
+ * @param agentId The unique identifier of the agent involved in the negotiation
+ * @returns A Promise that resolves to an object containing detailed information about the negotiation, or null if no such negotiation exists
+ */
 export async function findAccountNegotiationDetail({
   accountId,
   advertisementId,
@@ -224,7 +244,12 @@ export async function findAccountNegotiationDetail({
     })),
   };
 }
-
+/**
+ * Find an offer by its unique identifier (ID) for a specific agent. This function queries the database for an offer with the specified ID and agent ID and returns it if found. If no offer is found with the given ID and agent ID, it returns null.
+ * @param offerId The unique identifier of the offer to find
+ * @param agentId The unique identifier of the agent associated with the offer
+ * @returns A Promise that resolves to the Offer object if found, or null if no such offer exists
+ */
 export const findOfferByIdForAgent = async (
   offerId: number,
   agentId: number,
@@ -234,11 +259,23 @@ export const findOfferByIdForAgent = async (
   });
 };
 
-// Query for transaction to offer
+// QUERY TRANSACTIONAL REPOSITORY FUNCTIONS
+
+/**
+ * Helper function to get the Offer repository, optionally using a provided EntityManager for transactional operations. If an EntityManager is provided, it returns the repository from that manager; otherwise, it returns the default OfferRepository. This allows for flexibility in performing database operations within transactions when needed.
+ * @param manager An optional EntityManager to use for transactional operations. If not provided, the default OfferRepository will be used.
+ * @return The Offer repository, either from the provided EntityManager or the default OfferRepository
+ */
 function offerRepo(manager?: EntityManager) {
   return manager ? manager.getRepository(Offer) : OfferRepository;
 }
 
+/**
+ * Reject an offer by its unique identifier (ID). This function updates the status of the offer with the specified ID to "REJECTED" in the database. It can be used to reject offers that are no longer valid or acceptable. If an EntityManager is provided, it will use that manager to perform the update within a transaction; otherwise, it will use the default OfferRepository.
+ * @param offerId The unique identifier of the offer to reject
+ * @param manager An optional EntityManager to use for transactional operations. If not provided, the default OfferRepository will be used.
+ * @return A Promise that resolves when the offer has been successfully rejected. If the offer with the specified ID does not exist, it will still resolve without throwing an error, as the update operation will simply have no effect.
+ */
 export const rejectOfferById = async (
   offerId: number,
   manager?: EntityManager,
@@ -246,6 +283,12 @@ export const rejectOfferById = async (
   await offerRepo(manager).update({ id: offerId }, { status: Status.REJECTED });
 };
 
+/**
+ * Create a counter offer by an agent for a specific advertisement and account. This function takes the necessary details to create a new offer, including the price, advertisement ID, account ID, and agent ID. It creates a new Offer object with the provided data, sets the "madeBy" field to indicate that the offer is made by an agent, and saves it to the database. The function returns the saved Offer object, which includes any additional properties set by the database, such as the generated ID and timestamps.
+ * @param input An object containing the price, advertisement ID, account ID, and agent ID required to create a counter offer. The price is the value of the counter offer, the advertisement ID identifies the specific advertisement for which the counter offer is being made, the account ID identifies the account making the original offer that is being countered, and the agent ID ensures that the counter offer is associated with the correct agent.
+ * @param manager An optional EntityManager to use for transactional operations. If not provided, the default OfferRepository will be used.
+ * @returns A Promise that resolves to the created Offer object representing the counter offer, including any additional properties set by the database after saving.
+ */
 export const createCounterOffer = async (
   input: {
     price: number;
@@ -269,6 +312,12 @@ export const createCounterOffer = async (
   return repo.save(counterOffer);
 };
 
+/**
+ * Find the latest pending offer made by an account for a specific advertisement and agent. This function queries the database for offers that match the given advertisement ID, agent ID, account ID, and have a status of "PENDING" and were made by an account. It orders the results by creation date in descending order to ensure that the most recent offer is returned. If such an offer exists, it returns the Offer object; otherwise, it returns null.
+ * @param params An object containing the advertisement ID, agent ID, and account ID to filter the offers. The advertisement ID identifies the specific advertisement for which to find the offer, the agent ID ensures that the offer is associated with the correct agent, and the account ID identifies the account that made the offer.
+ * @param manager An optional EntityManager to use for transactional operations. If not provided, the default OfferRepository will be used.
+ * @returns A Promise that resolves to the latest pending Offer object made by an account for the specified advertisement and agent, or null if no such offer exists.
+ */
 export async function findLatestPendingAccountOfferForAdvertisementAndAccount(
   params: { advertisementId: number; agentId: number; accountId: number },
   manager: EntityManager,
@@ -286,7 +335,12 @@ export async function findLatestPendingAccountOfferForAdvertisementAndAccount(
     order: { createdAt: "DESC" },
   });
 }
-
+/**
+ * Find the latest pending offer made by an agent for a specific advertisement and account. This function queries the database for offers that match the given advertisement ID, agent ID, account ID, and have a status of "PENDING" and were made by an agent. It orders the results by creation date in descending order to ensure that the most recent offer is returned. If such an offer exists, it returns the Offer object; otherwise, it returns null.
+ * @param params An object containing the advertisement ID, agent ID, and account ID to filter the offers. The advertisement ID identifies the specific advertisement for which to find the offer, the agent ID ensures that the offer is associated with the correct agent, and the account ID identifies the account that made the offer.
+ * @param manager An optional EntityManager to use for transactional operations. If not provided, the default OfferRepository will be used.
+ * @returns A Promise that resolves to the latest pending Offer object made by an agent for the specified advertisement and account, or null if no such offer exists.
+ */
 export async function findLatestPendingAgentOfferForNegotiation(
   params: { advertisementId: number; agentId: number; accountId: number },
   manager: EntityManager,
@@ -304,19 +358,12 @@ export async function findLatestPendingAgentOfferForNegotiation(
     order: { createdAt: "DESC" },
   });
 }
-
-type FindAgentNegotiationsParams = {
-  agentId: number;
-  take: number;
-  skip: number;
-};
-
-type FindAgentNegotiationDetailParams = {
-  agentId: number;
-  advertisementId: number;
-  accountId: number;
-};
-
+/**
+ * Reject an offer made by an agent by its unique identifier (ID). This function updates the status of the offer with the specified ID to "REJECTED" in the database. It can be used to reject offers that are no longer valid or acceptable. If an EntityManager is provided, it will use that manager to perform the update within a transaction; otherwise, it will use the default OfferRepository.
+ * @param offerId The unique identifier of the offer to reject
+ * @param manager An optional EntityManager to use for transactional operations. If not provided, the default OfferRepository will be used.
+ * @return A Promise that resolves when the offer has been successfully rejected. If the offer with the specified ID does not exist, it will still resolve without throwing an error, as the update operation will simply have no effect.
+ */
 export async function findAgentNegotiations({
   agentId,
   take,
@@ -431,6 +478,13 @@ export async function findAgentNegotiations({
   };
 }
 
+/**
+ * Find detailed information about negotiations associated with a specific agent, advertisement, and account. This function retrieves all offers related to the specified agent ID, advertisement ID, and account ID, along with details of the associated advertisement and account. It returns an object containing the advertisement details, account details, and a list of offers in the negotiation, or null if no offers are found for the given parameters.
+ * @param agentId The unique identifier of the agent involved in the negotiation
+ * @param advertisementId The unique identifier of the advertisement involved in the negotiation
+ * @param accountId The unique identifier of the account involved in the negotiation
+ * @returns A Promise that resolves to an object containing detailed information about the negotiation, or null if no such negotiation exists
+ */
 export async function findAgentNegotiationDetail({
   agentId,
   advertisementId,

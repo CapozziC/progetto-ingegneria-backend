@@ -1,4 +1,4 @@
-import {Status as AdvStatus} from '../entities/advertisement.js';
+import { Status as AdvStatus } from "../entities/advertisement.js";
 /**
  * Parameters for accepting an offer by an agent
  */
@@ -58,16 +58,52 @@ export type AcceptAgentOfferAsAccountResult = {
   soldAt: Date;
 };
 
+/**
+ * Parameters for creating a counteroffer by an account in response to an agent's offer
+ */
 export type CounterAgentOfferAsAccountParams = {
   advertisementId: number;
   accountId: number;
   price: number;
 };
 
+/**
+ * Result type for creating a counteroffer by an account in response to an agent's offer, including details of the rejected offer and the newly created counteroffer.
+ */
 export type CounterAgentOfferAsAccountResult = {
   rejectedOfferId: number;
   counterOfferId: number;
   advertisementId: number;
   accountId: number;
   agentId: number;
+};
+/**
+ * Parameters for finding negotiations associated with a specific account, including pagination options.
+ */
+
+export type FindAccountNegotiationsParams = {
+  accountId: number;
+  take: number;
+  skip: number;
+};
+
+/**
+ * Parameters for finding detailed negotiation information for a specific account, advertisement, and agent combination. This type is used to specify the criteria for retrieving detailed information about negotiations, including the account ID, advertisement ID, and agent ID.
+ */
+export type FindAccountNegotiationDetailParams = {
+  accountId: number;
+  advertisementId: number;
+  agentId: number;
+};
+
+export type FindAgentNegotiationsParams = {
+  agentId: number;
+  take: number;
+  skip: number;
+};
+
+export type FindAgentNegotiationDetailParams = {
+  agentId: number;
+  advertisementId: number;
+  accountId: number;
 };
