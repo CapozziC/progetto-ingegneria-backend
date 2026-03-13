@@ -11,6 +11,7 @@ export const findAccountByEmail = async (email: string) => {
   return AccountRepository.findOne({ where: { email } });
 };
 
+
 /**
  * Create a new account instance with the provided user data. This function takes a partial account object containing the necessary fields for account creation and returns a new Account instance that can be saved to the database.
  * @param userData An object containing the fields required to create a new account (e.g. firstName, lastName, email, password)
@@ -50,6 +51,7 @@ export const updateAccountPassword = async (
 ): Promise<void> => {
   await AccountRepository.update({ id: accountId }, { password: newPassword });
 }
+
 
 
 /** Delete an account from the database by its unique identifier (ID). This function takes the ID of the account to be deleted and removes it from the database using the AccountRepository. It returns a Promise that resolves when the deletion is complete.

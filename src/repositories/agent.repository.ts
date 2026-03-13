@@ -24,7 +24,23 @@ export const createAgent = (agentData: Partial<Agent>): Agent => {
 export const saveAgent = async (agent: Agent): Promise<Agent> => {
   return await AgentRepository.save(agent);
 };
-
+/**
+ * Find an agent by their username. This function queries the database for an agent with the specified username and returns it if found. If no agent is found with the given username, it returns null.
+ * @param username The username of the agent to find
+ * @returns A Promise that resolves to the Agent object if found, or null if not found  
+ */
+export const findAgentByUsername = async (
+  username: string,
+): Promise<Agent | null> => {
+  return await AgentRepository.findOne({
+    where: {
+      username,
+    },
+    relations: {
+      agency: true,
+    },
+  });
+};
 /**
  * Find an agent by their username within a specific agency. This function queries the database for an agent with the specified username and agency ID, and returns it if found. If no agent is found with the given criteria, it returns null.
  * @param agencyId The unique identifier of the agency to which the agent belongs

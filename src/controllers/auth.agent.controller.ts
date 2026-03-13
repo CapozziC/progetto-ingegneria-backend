@@ -3,10 +3,13 @@ import bcrypt from "bcryptjs";
 import {
   findAgentById,
   findAgentsByAgencyIdAndUsername,
+  findAgentByUsername,
+  saveAgent,
 } from "../repositories/agent.repository.js";
 import {
   generateAccessToken,
   generateRefreshToken,
+  generateResetToken,
   hashRefreshToken,
 } from "../utils/auth.utils.js";
 
@@ -25,6 +28,9 @@ import { RequestAgent } from "../types/express.js";
 import { Type } from "../entities/refreshToken.js";
 import { Agent } from "../entities/agent.js";
 import { revokeRefreshToken } from "../services/auth.service.js";
+import {sendAgentForgotPasswordEmail} from "../services/nodemailer/agentForgotPassword.service.js"
+import { RequestWithResetToken } from "../types/auth.type.js";
+
 
 /**
  * Login an agent with the provided agency ID, username and password.
@@ -78,7 +84,7 @@ export const loginAgent = async (req: Request, res: Response) => {
 
       return res.status(200).json({
         message: "Password change required",
-        isPasswordChange: false,
+        isPasswordChange: false, 
       });
     }
 
@@ -126,6 +132,7 @@ export const loginAgent = async (req: Request, res: Response) => {
       firstName: agent.firstName,
       lastName: agent.lastName,
       phoneNumber: agent.phoneNumber,
+      createdAt: agent.createdAt,
     });
   } catch (error) {
     console.error("Login error:", error);
@@ -256,13 +263,102 @@ export const changePasswordFirstLogin = async (
     return res.status(500).json({ error: "Internal server error" });
   }
 };
-
+/**
+ * Get all agencies. This function retrieves all agencies from the database and returns them in the response. If an error occurs during the retrieval process, it logs the error and returns a 500 Internal Server Error response with an appropriate error message.
+ * @param req Request object (not used in this function)
+ * @param res Response object with status and JSON data containing the list of agencies or an error message
+ * @returns JSON response with the list of agencies or an error message
+ */
 export const getAllAgency = async (req: Request, res: Response) => {
   try {
     const agencies = await findAllAgencies();
     return res.status(200).json({ agencies });
   } catch (err) {
     console.error("getAllAgency error:", err);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+};
+/**
+ * Handle the forgot password process for an agent. This function takes the username from the request body, checks if an agent with that username exists, and if so, generates a reset token and sends a forgot password email to the agent's associated agency email address. If the username is not provided or if no agent is found with the given username, it returns an appropriate error response. If an error occurs during the process, it logs the error and returns a 500 Internal Server Error response with an appropriate error message.
+ * @param req Request object containing the username in the body
+ * @param res Response object with status and JSON data containing a success message or an error message
+ * @returns JSON response with a success message if the email was sent successfully, or an error message if there was an issue with the request or if an internal server error occurred
+ */
+export const forgotAgentPassword = async (req: Request, res: Response) => {
+  try {
+    const { username } = req.body;
+
+    if (!username) {
+      return res.status(400).json({ error: "Username is required" });
+    }
+
+    const agent = await findAgentByUsername(username);
+
+    if (!agent) {
+      return res.status(404).json({ error: "Agent not found" });
+    }
+
+    const resetToken = generateResetToken(
+      { subjectId: agent.id, type: Type.AGENT },
+      process.env.RESET_TOKEN_SECRET!,
+      "10m",
+    );
+
+    await sendAgentForgotPasswordEmail({
+      to: agent.agency.email,
+      username: agent.username,
+      token: resetToken,
+    });
+
+    return res.status(200).json({
+      message: "Reset password email sent",
+    });
+  } catch (error) {
+    console.error("Forgot agent password error:", error);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+};
+/**
+ * Reset the password of an agent using a reset token. This function takes the new password from the request body and the reset token from the request (which should have been verified by middleware). It checks if the reset token is valid and corresponds to an agent, and if so, it hashes the new password, updates the agent's password in the database, and returns a success message. If any step fails (e.g., missing new password, invalid token, agent not found), it returns an appropriate error response. If an error occurs during the process, it logs the error and returns a 500 Internal Server Error response with an appropriate error message.
+ * @param req Request object containing the new password in the body and the reset token in req.resetToken
+ * @param res Response object with status and JSON data containing a success message or an error message
+ * @returns JSON response with a success message if the password was reset successfully, or an error message if there was an issue with the request, token validation, or if an internal server error occurred
+ */
+export const resetAgentPassword = async (
+  req: RequestWithResetToken,
+  res: Response,
+) => {
+  try {
+    const { newPassword } = req.body;
+
+    if (!newPassword) {
+      return res.status(400).json({ error: "New password is required" });
+    }
+
+    const resetToken = req.resetToken;
+    if (!resetToken) {
+      return res.status(401).json({ error: "Missing reset token payload" });
+    }
+
+    if (resetToken.type !== Type.AGENT) {
+      return res.status(403).json({ error: "Invalid token type" });
+    }
+
+    const agent = await findAgentById(resetToken.subjectId);
+    if (!agent) {
+      return res.status(404).json({ error: "Agent not found" });
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    agent.password = hashedPassword;
+    await saveAgent(agent);
+
+    return res.status(200).json({
+      message: "Password updated successfully",
+    });
+  } catch (error) {
+    console.error("Reset agent password error:", error);
     return res.status(500).json({ error: "Internal server error" });
   }
 };

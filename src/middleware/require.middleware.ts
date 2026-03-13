@@ -2,6 +2,7 @@ import { Response } from "express";
 import { RequestAgent } from "../types/express.js";
 import { RequestAccount } from "../types/express.js";
 
+
 export const requireAgent = (req: RequestAgent, res: Response) => {
   const agent = req.agent;
   if (!agent) {
@@ -40,3 +41,5 @@ export const requireAccount = (req: RequestAccount, res: Response) => {
   }
   return account;
 };
+
+

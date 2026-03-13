@@ -6,7 +6,10 @@ import { Agent } from "../entities/agent.js";
 import { Logo } from "../entities/logo.js";
 import { generateTemporaryPassword } from "../utils/password.utils.js";
 import { deleteUploadedFilesSafe } from "./upload.controller.js";
-import { ensureAgencyDoesNotExist, createAgencyLogo } from "../helpers/agency.helper.js";
+import {
+  ensureAgencyDoesNotExist,
+  createAgencyLogo,
+} from "../helpers/agency.helper.js";
 import { generateFirstAgentUsername } from "../helpers/agent.helper.js";
 import { createFirstAgentEntity } from "../services/agency.service.js";
 import { buildCreateAgencyResponse } from "../mappers/agency.response.js";
@@ -14,6 +17,7 @@ import { extractCreateAgencyPayload } from "../types/agency.type.js";
 import { QueryFailedError } from "typeorm";
 import { createAgencyEntity } from "../services/agency.service.js";
 import { validateCreateAgencyRequest } from "../helpers/agency.helper.js";
+import { sendAgencyCreatedEmail } from "../services/nodemailer/createAgency.service.js";
 
 /**
  *  Create a new agency along with the first agent (admin) for that agency.
@@ -80,6 +84,18 @@ export const createNewAgencyWithFirstAgent = async (
     });
 
     await queryRunner.commitTransaction();
+
+    try {
+      await sendAgencyCreatedEmail({
+        to: savedAgency.email,
+        agencyName: savedAgency.name,
+        agencyEmail: savedAgency.email,
+        agentUsername: username,
+        temporaryPassword: temporaryPassword,
+      });
+    } catch (mailError) {
+      console.error("Failed to send agency created email:", mailError);
+    }
 
     return res.status(201).json(
       buildCreateAgencyResponse({

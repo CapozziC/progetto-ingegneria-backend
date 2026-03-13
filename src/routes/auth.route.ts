@@ -9,6 +9,7 @@ import {
   logoutAgent,
   changePasswordFirstLogin,
   getAllAgency,
+  forgotAgentPassword,
 } from "../controllers/auth.agent.controller.js";
 import { authenticationMiddlewareAccount } from "../middleware/auth.account.middleware.js";
 import {
@@ -19,14 +20,14 @@ import { validateBody } from "../middleware/validate.middleware.js";
 import {
   changePasswordAgentSchema,
   loginAgentSchema,
-  loginAccountSchema,
   registerAccountSchema,
   createNewAgencyWithFirstAgentSchema,
 } from "../validations/auth.validation.js";
 import { uploadLogo } from "../config/multer.config.js";
 import express from "express";
 import { RequestAccount, RequestAgent } from "../types/express.js";
-import { requireAccount,requireAgent } from "../middleware/require.middleware.js";
+import { requireAccount,requireAgent, resetAgentPassword } from "../middleware/require.middleware.js";
+import { verifyResetToken } from "../middleware/reset.middleware.js";
 
 // Create a router instance
 const router = express.Router();
@@ -36,7 +37,7 @@ router.post(
   validateBody(registerAccountSchema),
   registerAccount,
 );
-router.post("/account/login", validateBody(loginAccountSchema), loginAccount);
+router.post("/account/login", loginAccount);
 router.post("/agent/login", validateBody(loginAgentSchema), loginAgent);
 router.post("/agent/logout", authenticationMiddlewareAgent, logoutAgent);
 router.post("/account/logout", authenticationMiddlewareAccount, logoutAccount);
@@ -54,6 +55,9 @@ router.post(
 );
 
 router.get("/agencies", getAllAgency);
+
+router.post("/agent/forgot-password", forgotAgentPassword);
+router.post("/agent/reset-password", verifyResetToken, resetAgentPassword);
 
 //Rotta protetta per  verificare se l'account è autenticato
 router.get("/account", authenticationMiddlewareAccount, (req, res) => {
