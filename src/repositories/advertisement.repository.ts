@@ -410,10 +410,39 @@ export async function findAdvertisements({
   };
 }
 
+/**
+ * Search for an advertisement by its ID, along with its related real estate, photos, points of interest (POIs), and agent information.
+ * This function queries the database for the advertisement with the specified ID and retrieves its details,
+ * including the associated real estate, photos, POIs, and agent information. If the advertisement is not found, it returns null.
+ * @param advertisementId The unique identifier of the advertisement to search for
+ * @returns A Promise that resolves to the advertisement object with its related details, or null if not found
+ */
 export async function searchAdvertisementById(advertisementId: number) {
   return await AdvertisementRepository.findOne({
     where: {
       id: advertisementId,
+    },
+    relations: {
+      agent: true,
+    },
+  });
+}
+/**
+ * Find an advertisement by its ID and agent ID within a transaction
+ * @param advertisementId The unique identifier of the advertisement to find
+ * @param manager The EntityManager to use for the transaction
+ * @param agentId The unique identifier of the agent to find
+ * @returns A Promise that resolves to the advertisement object with its related details, or null if not found
+ */
+export async function transactionFindAdvertisementAgentId(
+  manager: EntityManager,
+  advertisementId: number,
+  agentId: number,
+) {
+  return manager.getRepository(Advertisement).findOne({
+    where: {
+      id: advertisementId,
+      agent: { id: agentId },
     },
     relations: {
       agent: true,

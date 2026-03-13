@@ -21,6 +21,8 @@ import {
 } from "../mappers/advertisement.response.js";
 import { attachNearbyPoisToAdvertisement } from "../services/advertisement.location.service.js";
 import { updateAdvertisementByAgent } from "../services/advertisement.service.js";
+import { parsePositiveInt } from "../utils/parse.utils.js";
+import { replaceAdvertisementPhoto } from "../services/photo.service.js";
 
 /**
  * Create an advertisement with its related real estate and photos in a single transaction
@@ -170,6 +172,68 @@ export const updateAgentAdvertisement = async (
 
     console.error("updateAgentAdvertisement error:", err);
     return res.status(500).json({ error: "Internal server error" });
+  }
+};
+/**
+ * Replace a photo of an advertisement if it belongs to the authenticated agent, in a single transaction
+ * @param req RequestAgent with file containing the new photo and params containing advertisementId and photoId
+ * @param res Response with updated photo or error message
+ * @returns JSON with updated photo or error message
+ */
+export const replaceAgentAdvertisementPhotoAgent = async (
+  req: RequestAgent,
+  res: Response,
+) => {
+  try {
+    const agent = requireAgent(req, res);
+    if (!agent) return;
+
+    const advertisementId = parsePositiveInt(req.params.advertisementId);
+    const photoId = parsePositiveInt(req.params.photoId);
+
+    if (!advertisementId || !photoId) {
+      return res.status(400).json({
+        error: "Invalid advertisementId or photoId",
+      });
+    }
+
+    if (!req.file) {
+      return res.status(400).json({
+        error: "New photo file is required",
+      });
+    }
+
+    const baseUrl = `${req.protocol}://${req.get("host")}`;
+
+    const updatedPhoto = await replaceAdvertisementPhoto({
+      agentId: agent.id,
+      advertisementId,
+      photoId,
+      file: req.file,
+      baseUrl,
+    });
+
+    return res.status(200).json({
+      message: "Photo replaced successfully",
+      photo: updatedPhoto,
+    });
+  } catch (error) {
+    if (error instanceof Error && error.message === "ADVERTISEMENT_NOT_FOUND") {
+      return res.status(404).json({
+        error: "Advertisement not found",
+      });
+    }
+
+    if (error instanceof Error && error.message === "PHOTO_NOT_FOUND") {
+      return res.status(404).json({
+        error: "Photo not found",
+      });
+    }
+
+    console.error(error);
+    return res.status(500).json({
+      error: "Internal server error",
+    });
   }
 };
 /**

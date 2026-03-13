@@ -1,7 +1,7 @@
 import express from "express";
 const router = express.Router();
 import { authenticationMiddlewareAgent } from "../middleware/auth.agent.middleware.js";
-import { uploadPhotos } from "../config/multer.config.js";
+import { uploadPhotos, uploadSinglePhoto } from "../config/multer.config.js";
 import { parseJsonFields } from "../utils/parse.utils.js";
 import {
   validateBody,
@@ -17,6 +17,7 @@ import {
 import {
   createAdvertisementWithRealEstateAndPhotosTx,
   deleteAgentAdvertisement,
+  replaceAgentAdvertisementPhotoAgent,
   updateAgentAdvertisement,
 } from "../controllers/advertisement.controller.js";
 import {
@@ -42,6 +43,13 @@ router.patch(
   validateBody(updateAdvertisementSchema),
   validateParams(advertisementParamsSchema),
   updateAgentAdvertisement,
+);
+
+router.put(
+  "/agent/advertisements/:advertisementId/photos/:photoId",
+  authenticationMiddlewareAgent,
+  uploadSinglePhoto,
+  replaceAgentAdvertisementPhotoAgent,
 );
 
 router.delete(

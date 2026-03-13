@@ -85,4 +85,11 @@ export const uploadLogo = multer({
   limits: { fileSize: 2 * 1024 * 1024 },
 }).single("logo");
 
-
+/** * Multer middleware for handling single photo uploads. Accepts a single file with the field name "photo".
+ * The file is stored in the "tmp/photos" directory with a unique name. Only JPEG, PNG, and HEIC formats are allowed, and the maximum file size is 8MB.
+ */
+export const uploadSinglePhoto = multer({
+  storage: photosStorage,
+  fileFilter,
+  limits: { fileSize: 8 * 1024 * 1024 },
+}).single("photo");
