@@ -5,6 +5,7 @@ import { findAdvertisements } from "../repositories/advertisement.repository.js"
 import { LocationInfo, LocationMode } from "../types/advertisement.type.js";
 import { buildAdvertisementTitle } from "../helpers/advertisement-title.helper.js";
 
+
 /**
  * Builds a response object for advertisements based on the provided result, location mode, and location information. The function takes the result of a findAdvertisements query, which includes an array of advertisement items, and maps each advertisement to include a title generated from its real estate details. The response object includes the location mode, location information, and the modified result with advertisement items that now contain titles. This function is intended to be used as a mapper to format the response for advertisement-related API endpoints.
  * @param result - The result of a findAdvertisements query, containing an array of advertisement items and other pagination information.
@@ -54,6 +55,7 @@ export const buildCreateAdvertisementResponse = ({
       type: advertisement.type,
       status: advertisement.status,
       agentId: advertisement.agent.id,
+      createdAt: advertisement.createdAt,
       realEstateId: advertisement.realEstate.id,
     },
     realEstate,

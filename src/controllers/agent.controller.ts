@@ -199,18 +199,14 @@ export const updateAgentPassword = async (req: RequestAgent, res: Response) => {
         .json({ error: "Forbidden: cannot change another agent's password" });
     }
 
-    const { currentPassword, newPassword, confirmPassword } = req.body;
-    if (!currentPassword || !newPassword || !confirmPassword) {
+    const { currentPassword, newPassword } = req.body;
+    if (!currentPassword || !newPassword) {
       return res.status(400).json({
         error:
-          "Current password, new password and confirm password are required",
+          "Current password and new password are required",
       });
     }
-    if (newPassword !== confirmPassword) {
-      return res
-        .status(400)
-        .json({ error: "New password and confirm password do not match" });
-    }
+
 
     if (newPassword.length < 8) {
       return res
@@ -254,7 +250,7 @@ export const deleteAgent = async (req: RequestAgent, res: Response) => {
     }
     if (agentIdToDelete === admin.id) {
       return res.status(400).json({ error: "Admin cannot delete themselves" });
-    }
+    } 
 
     const agentToDelete = await findAgentCreatedByAdmin(
       agentIdToDelete,

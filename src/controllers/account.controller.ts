@@ -283,11 +283,10 @@ export const updatePasswordAccount = async (
       });
     }
 
-    const { currentPassword, newPassword, confirmPassword } = req.body;
-
-    if (newPassword !== confirmPassword) {
+    const { currentPassword, newPassword } = req.body;
+    if (!currentPassword || !newPassword) {
       return res.status(400).json({
-        error: "New password and confirm password do not match",
+        error: "Current password and new password are required",
       });
     }
 
