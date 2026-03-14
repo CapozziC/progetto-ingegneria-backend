@@ -28,9 +28,8 @@ import { RequestAgent } from "../types/express.js";
 import { Type } from "../entities/refreshToken.js";
 import { Agent } from "../entities/agent.js";
 import { revokeRefreshToken } from "../services/auth.service.js";
-import {sendAgentForgotPasswordEmail} from "../services/nodemailer/agentForgotPassword.service.js"
+import { sendAgentForgotPasswordEmail } from "../services/nodemailer/agentForgotPassword.service.js";
 import { RequestWithResetToken } from "../types/auth.type.js";
-
 
 /**
  * Login an agent with the provided agency ID, username and password.
@@ -84,7 +83,16 @@ export const loginAgent = async (req: Request, res: Response) => {
 
       return res.status(200).json({
         message: "Password change required",
-        isPasswordChange: false, 
+        isPasswordChange: false,
+        agent: {
+          id: agent.id,
+          username: agent.username,
+          agency: agent.agency,
+          firstName: agent.firstName,
+          lastName: agent.lastName,
+          phoneNumber: agent.phoneNumber,
+          createdAt: agent.createdAt,
+        },
       });
     }
 
@@ -191,7 +199,6 @@ export const changePasswordFirstLogin = async (
         error: "currentPassword and newPassword are required",
       });
     }
-    
 
     if (newPassword.length < 8) {
       return res
