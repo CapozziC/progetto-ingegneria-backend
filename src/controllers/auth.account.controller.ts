@@ -99,6 +99,7 @@ export const registerAccount = async (req: RequestAccount, res: Response) => {
       email: savedAccount.email,
       firstName: savedAccount.firstName,
       lastName: savedAccount.lastName,
+      createdAt: savedAccount.createdAt,
     });
   } catch (error) {
     console.error("Registration error:", error);
@@ -126,7 +127,7 @@ export const loginAccount = async (req: RequestAccount, res: Response) => {
     const account = await findAccountByEmail(email);
 
     if (!account) {
-      return res.status(401).json({ error: "Account doesn't exist" });
+      return res.status(401).json({ error: "credenziali errate" });
     }
     if (!account.password) {
       return res
@@ -183,6 +184,7 @@ export const loginAccount = async (req: RequestAccount, res: Response) => {
       email: account.email,
       firstName: account.firstName,
       lastName: account.lastName,
+      createdAt: account.createdAt,
     });
   } catch (error) {
     console.error("Login error:", error);

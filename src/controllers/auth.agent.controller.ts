@@ -66,7 +66,7 @@ export const loginAgent = async (req: Request, res: Response) => {
     const isPasswordValid = await bcrypt.compare(password, agent.password);
 
     if (!isPasswordValid) {
-      return res.status(401).json({ error: "Invalid password" });
+      return res.status(401).json({ error: "credenziali errate" });
     }
 
     if (!agent.isPasswordChange) {
