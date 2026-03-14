@@ -18,12 +18,12 @@ export const transporter = nodemailer.createTransport({
   },
 });
 
-/*transporter
+transporter
   .verify()
   .then(() => console.log("SMTP ok"))
-  .catch((err) => console.error("SMTP non disponibile:", err));*/
+  .catch((err) => console.error("SMTP non disponibile:", err));
 
-async function testMail() {
+/*async function testMail() {
   try {
     await transporter.verify();
     console.log("SMTP ok");
@@ -41,4 +41,4 @@ async function testMail() {
   }
 }
 
-testMail();
+testMail();*/
