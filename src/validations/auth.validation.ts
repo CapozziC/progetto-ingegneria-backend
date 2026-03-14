@@ -9,7 +9,6 @@ export const loginAgentSchema = Joi.object({
 export const changePasswordAgentSchema = Joi.object({
   currentPassword: Joi.string().trim().min(8).max(255).required(),
   newPassword: Joi.string().trim().min(8).max(255).required(),
-  confirmPassword: Joi.string().trim().min(8).max(255).required(),
 });
 
 export const registerAccountSchema = Joi.object({

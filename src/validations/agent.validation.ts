@@ -65,11 +65,7 @@ export const updatePasswordAgentBodySchema = Joi.object({
     "string.min": "New password must be at least 8 characters long",
     "string.max": "New password cannot be longer than 100 characters",
     "any.required": "New password is required",
-  }),
-  confirmPassword: Joi.string().required().messages({
-    "string.base": "Confirm password must be a string",
-    "any.required": "Confirm password is required",
-  }),
+  })
 }).unknown(false);
 
 
