@@ -32,7 +32,7 @@ export function newAgencyCreationTemplate({
         </ul>
 
         <p>
-        Per garantire la sicurezza del tuo account ti consigliamo di cambiare
+        Per garantire la sicurezza del tuo account devi cambiare
         la password temporanea al primo accesso.
         </p>
 

@@ -10,7 +10,7 @@ username,
     html: `
       <p>Ciao ${username},</p>
       <p>Benvenuto in DietiEstates25! Siamo entusiasti di averti a bordo come nostro nuovo agente.</p>
-      <p>Per accedere al tuo account, utilizza le seguenti credenziali temporanee:</p>
+      <p>Per accedere al tuo account, utilizza le seguenti credenziali:</p>
       <ul>
         <li><strong>Username:</strong> ${username}</li>
         <li><strong>Password Temporanea:</strong> ${temporaryPassword}</li>
@@ -25,7 +25,7 @@ username,
 
 Benvenuto in DietiEstates25! Siamo entusiasti di averti a bordo come nostro nuovo agente.
 
-Per accedere al tuo account, utilizza le seguenti credenziali temporanee:
+Per accedere al tuo account, utilizza le seguenti credenziali:
 - username: ${username}
 - Password Temporanea: ${temporaryPassword}
 
