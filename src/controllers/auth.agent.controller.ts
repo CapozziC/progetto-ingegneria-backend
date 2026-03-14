@@ -184,16 +184,14 @@ export const changePasswordFirstLogin = async (
       return res.status(400).json({ error: "Password change is not required" });
     }
 
-    const { currentPassword, newPassword, confirmPassword } = req.body;
+    const { currentPassword, newPassword } = req.body;
 
-    if (!currentPassword || !newPassword || !confirmPassword) {
+    if (!currentPassword || !newPassword) {
       return res.status(400).json({
-        error: "currentPassword, newPassword, confirmPassword are required",
+        error: "currentPassword and newPassword are required",
       });
     }
-    if (newPassword !== confirmPassword) {
-      return res.status(400).json({ error: "Passwords do not match" });
-    }
+    
 
     if (newPassword.length < 8) {
       return res
