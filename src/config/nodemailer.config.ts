@@ -6,9 +6,11 @@ export const transporter = nodemailer.createTransport({
   secure: false, // usa STARTTLS
   auth: {
     user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
+    pass: process.env.EMAIL_PASSWORD,
   },
 });
 
-await transporter.verify();
-console.log("Nodemailer transporter is ready to send emails");
+transporter
+  .verify()
+  .then(() => console.log("SMTP ok"))
+  .catch((err) => console.error("SMTP non disponibile:", err));
