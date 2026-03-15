@@ -31,40 +31,41 @@ import express from "express";
 import { RequestAccount, RequestAgent } from "../types/express.js";
 import { requireAccount,requireAgent } from "../middleware/require.middleware.js";
 import { verifyResetToken } from "../middleware/reset.middleware.js";
+import { googleAuthAccount } from "../controllers/auth.google.account.controller.js";
 
 // Create a router instance
 const router = express.Router();
 
+//ACCOUNT AUTH ROUTES
 router.post(
   "/account/register",
   validateBody(registerAccountSchema),
   registerAccount,
 );
 router.post("/account/login", loginAccount);
-router.post("/agent/login", validateBody(loginAgentSchema), loginAgent);
-router.post("/agent/logout", authenticationMiddlewareAgent, logoutAgent);
+router.post("/account/google", googleAuthAccount);
+router.post("/account/forgot-password", forgotAccountPassword);
+router.post("/account/reset-password", verifyResetToken, resetAccountPassword);
 router.post("/account/logout", authenticationMiddlewareAccount, logoutAccount);
-router.post(
-  "/agency/create",
-  uploadLogo,
-  validateBody(createNewAgencyWithFirstAgentSchema),
-  createNewAgencyWithFirstAgent,
-);
+//AGENT AUTH ROUTES
+router.post("/agent/login", validateBody(loginAgentSchema), loginAgent);
+router.get("/agencies", getAllAgency);
 router.post(
   "/agent/login/change_password",
   validateBody(changePasswordAgentSchema),
   authAgentFirstLoginOnly,
   changePasswordFirstLogin,
 );
-
-router.get("/agencies", getAllAgency);
-
 router.post("/agent/forgot-password", forgotAgentPassword);
 router.post("/agent/reset-password", verifyResetToken, resetAgentPassword);
-
-router.post("/account/forgot-password", forgotAccountPassword);
-router.post("/account/reset-password", verifyResetToken, resetAccountPassword);
-
+router.post("/agent/logout", authenticationMiddlewareAgent, logoutAgent);
+//AGENCY AUTH ROUTES
+router.post(
+  "/agency/create",
+  uploadLogo,
+  validateBody(createNewAgencyWithFirstAgentSchema),
+  createNewAgencyWithFirstAgent,
+);
 //Rotta protetta per  verificare se l'account è autenticato
 router.get("/account", authenticationMiddlewareAccount, (req, res) => {
   const account = requireAccount(req as RequestAccount, res);

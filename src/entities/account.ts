@@ -41,7 +41,7 @@ export class Account {
   email?: string;
 
   @Column({ type: "varchar", length: 255, nullable: true })
-  password?: string;
+  password?: string | null;
 
   @Column({
     type: "enum",
