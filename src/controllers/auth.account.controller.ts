@@ -138,7 +138,7 @@ export const loginAccount = async (req: RequestAccount, res: Response) => {
     const isPasswordValid = await bcrypt.compare(password, account.password);
 
     if (!isPasswordValid) {
-      return res.status(401).json({ error: "Invalid password" });
+      return res.status(401).json({ error: "credenziali errate" });
     }
 
     const accessToken = generateAccessToken(

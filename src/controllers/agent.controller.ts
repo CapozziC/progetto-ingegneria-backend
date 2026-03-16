@@ -8,6 +8,7 @@ import {
   findAgentCreatedByAdmin,
   updateAgentPhoneNumber,
   findAgentById,
+  findAgentsCreatedByAgent,
 } from "../repositories/agent.repository.js";
 import { AppDataSource } from "../data-source.js";
 import {
@@ -372,6 +373,39 @@ export const getAgentNegotiations = async (
     return res
       .status(500)
       .json({ error: "Failed to fetch agent negotiations" });
+  }
+};
+/**
+ * Get all agents created by the authenticated admin
+ * @param req   RequestAgent with authenticated admin agent in req.agent
+ * @param res   Response with list of agents created by the authenticated admin or error message
+ * @returns   JSON with list of agents created by the authenticated admin or error message
+ * Only authenticated admin agents can access this information.
+ */
+
+export const getAllAgentCreatedByLoggedAdmin = async (
+  req: RequestAgent,
+  res: Response,
+) => {
+  const admin = requireAdmin(req, res);
+  if (!admin) return;
+  try {
+    const agents = await findAgentsCreatedByAgent(admin.id);
+    return res.status(200).json({
+      items: agents.map((a) => ({
+        id: a.id,
+        firstName: a.firstName,
+        lastName: a.lastName,
+        username: a.username,
+        phoneNumber: a.phoneNumber,
+        isAdmin: a.isAdmin,
+        createdAt: a.createdAt,
+      })),
+      count: agents.length,
+    });
+  } catch (error) {
+    console.error("Error fetching agents created by admin:", error);
+    return res.status(500).json({ error: "Internal server error" });
   }
 };
 

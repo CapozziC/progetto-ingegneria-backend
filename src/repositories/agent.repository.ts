@@ -27,7 +27,7 @@ export const saveAgent = async (agent: Agent): Promise<Agent> => {
 /**
  * Find an agent by their username. This function queries the database for an agent with the specified username and returns it if found. If no agent is found with the given username, it returns null.
  * @param username The username of the agent to find
- * @returns A Promise that resolves to the Agent object if found, or null if not found  
+ * @returns A Promise that resolves to the Agent object if found, or null if not found
  */
 export const findAgentByUsername = async (
   username: string,
@@ -134,12 +134,44 @@ export const updateAgentPhoneNumber = async (
 ): Promise<void> => {
   await AgentRepository.update({ id: agentId }, { phoneNumber });
 };
-
+/**
+ *  Update the password of an agent. This function takes the unique identifier of the agent and the new password, and updates the corresponding record in the database with the new password. It returns a Promise that resolves when the update is complete.
+ * @param agentId The unique identifier of the agent whose password is to be updated
+ * @param newPassword The new password to set for the agent
+ * @returns A Promise that resolves when the update is complete
+ */
 export const agentUpdatePassword = async (
   agentId: number,
   newPassword: string,
 ): Promise<void> => {
   await AgentRepository.update({ id: agentId }, { password: newPassword });
+};
+/**
+ * Find agents created by a specific administrator within a specific agency. This function queries the database for agents that were created by the specified administrator and belong to the given agency ID, and returns an array of matching Agent objects. If no agents are found with the given criteria, it returns an empty array.
+ * @param administratorId The unique identifier of the administrator who created the agents
+ * @returns A Promise that resolves to an array of Agent objects that match the criteria, or an empty array if no matches are found
+ */
+export const findAgentsCreatedByAgent = async (
+  administratorId: number,
+): Promise<Agent[]> => {
+  const agentRepository = AppDataSource.getRepository(Agent);
+
+  const agents = await agentRepository.find({
+    where: {
+      administrator: {
+        id: administratorId,
+      },
+    },
+    relations: {
+      administrator: true,
+      agency: true,
+    },
+    order: {
+      createdAt: "DESC",
+    },
+  });
+
+  return agents;
 };
 
 /**

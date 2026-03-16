@@ -22,6 +22,7 @@ import {
   getAgentProfile,
   updateAgentPassword,
   deleteFirstAgentAndAgency,
+  getAllAgentCreatedByLoggedAdmin,
 } from "../controllers/agent.controller.js";
 import { getAppointmentsForAgent } from "../controllers/appointment.controller.js";
 
@@ -33,6 +34,7 @@ router.post(
   validateBody(createAgentSchema),
   createNewAgent,
 );
+
 router.delete(
   "/delete/:agentId",
   authenticationMiddlewareAgent,
@@ -58,6 +60,8 @@ router.patch(
   validateBody(updatePhoneNumberSchema),
   updatePhoneNumberAgent,
 );
+
+router.get("/agents", authenticationMiddlewareAgent, getAllAgentCreatedByLoggedAdmin);
 
 router.patch(
   "/:agentId/password",
