@@ -72,6 +72,11 @@ export const getAllAdvertisements = async (
     }
 
     const filters = parseAdvertisementFilters(req);
+    const page = Math.max(Number(req.query.page) || 1, 1);
+    const limit = Math.max(Number(req.query.limit) || 10, 1);
+
+    const take = limit;
+    const skip = (page - 1) * limit;
 
     let location;
     try {
@@ -93,8 +98,8 @@ export const getAllAdvertisements = async (
     }
 
     const result = await findAdvertisements({
-      take: normalizePagination(filters.take, 10, 1),
-      skip: normalizePagination(filters.skip, 0, 0),
+      take,
+      skip,
       status: filters.status,
       type: filters.type,
       housingType: filters.housingType,
@@ -120,16 +125,24 @@ export const getAllAdvertisements = async (
       terrace: filters.terrace,
       garden: filters.garden,
     });
+    const response = buildAdvertisementResponse(
+      result,
+      location.mode,
+      location.locationInfo,
+    );
 
-    return res
-      .status(200)
-      .json(
-        buildAdvertisementResponse(
-          result,
-          location.mode,
-          location.locationInfo,
-        ),
-      );
+    const totalPages = Math.ceil(result.total / take);
+    return res.status(200).json({
+      ...response,
+      pagination: {
+        page,
+        limit: take,
+        total: result.total,
+        totalPages,
+        hasNextPage: page < totalPages,
+        hasPrevPage: page > 1,
+      },
+    });
   } catch (error) {
     console.error("GET ALL ADVERTISEMENTS ERROR:", error);
     return res.status(500).json({ error: "Internal server error" });
