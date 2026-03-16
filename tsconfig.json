@@ -15,7 +15,7 @@
     // "types": [],
     // For nodejs:
     "lib": ["esnext"],
-    "types": ["node", "express"],
+    "types": ["node", "express", "jest"],
 
     // Other Outputs
     "sourceMap": true,
