@@ -1,6 +1,6 @@
 import { jest } from "@jest/globals";
 import request from "supertest";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 
 import { makeAgent } from "../../mocks/agent.mock.js";
 import { validLoginAgentPayload } from "../../mocks/login.payload.mock.js";
@@ -19,7 +19,7 @@ const mockedSaveAgent = jest.fn<() => Promise<Agent>>();
 
 const mockedGenerateAccessToken = jest.fn<(payload: unknown) => string>();
 const mockedGenerateRefreshToken = jest.fn<(payload: unknown) => string>();
-const mockedGenerateResetToken = jest.fn<(payload: unknown) => string>();
+
 const mockedHashRefreshToken = jest.fn<(token: string) => string>();
 const mockedVerifyAccessToken = jest.fn<(token: string) => unknown>();
 const mockedVerifyRefreshToken = jest.fn<(token: string) => unknown>();
@@ -50,7 +50,6 @@ jest.unstable_mockModule(
 jest.unstable_mockModule("../../../src/utils/auth.utils.js", () => ({
   generateAccessToken: mockedGenerateAccessToken,
   generateRefreshToken: mockedGenerateRefreshToken,
-  generateResetToken: mockedGenerateResetToken,
   hashRefreshToken: mockedHashRefreshToken,
   verifyAccessToken: mockedVerifyAccessToken,
   verifyRefreshToken: mockedVerifyRefreshToken,

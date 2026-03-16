@@ -3,3 +3,8 @@ export const validLoginAgentPayload = {
   username: "mario",
   password: "Password123",
 };
+
+export const validLoginAccountPayload = {
+  email: "luciaverdi@example.com",
+  password: "Password1234",
+};
