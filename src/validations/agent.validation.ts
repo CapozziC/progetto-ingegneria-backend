@@ -26,7 +26,7 @@ export const createAgentSchema = Joi.object({
 }).unknown(false);
 
 export const deleteAgentParamsSchema = Joi.object({
-  id: Joi.number().integer().positive().required().messages({
+  agentId: Joi.number().integer().positive().required().messages({
     "number.base": "Agent ID must be a number",
     "number.integer": "Agent ID must be an integer",
     "number.positive": "Agent ID must be positive",

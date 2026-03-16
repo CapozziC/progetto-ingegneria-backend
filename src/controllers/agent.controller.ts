@@ -30,6 +30,7 @@ import {
 import { buildAdvertisementTitle } from "../helpers/advertisement-title.helper.js";
 import { agentUpdatePassword } from "../repositories/agent.repository.js";
 import { sendAgentCreatedEmail } from "../services/nodemailer/createAgent.service.js";
+import { Agency } from "../entities/agency.js";
 
 /**
  * Get the profile of the authenticated agent, including their ID, name, username, phone number, admin status, and associated agency information. The function checks for the authenticated agent in the request, retrieves their full details from the database using their ID, and returns a structured JSON response containing the agent's profile information. If the agent is not authenticated or if there is an error during retrieval, it returns an appropriate error response.
@@ -136,8 +137,6 @@ export const createNewAgent = async (req: RequestAgent, res: Response) => {
   }
 };
 
-
-
 /**
  * Update the phone number of the authenticated agent. The new phone number is provided in the request body. The function validates the input and updates the agent's phone number in the database. Only authenticated agents can update their phone number.
  * @param req RequestAgent with authenticated agent in req.agent and new phone number in req.body.phoneNumber
@@ -202,11 +201,9 @@ export const updateAgentPassword = async (req: RequestAgent, res: Response) => {
     const { currentPassword, newPassword } = req.body;
     if (!currentPassword || !newPassword) {
       return res.status(400).json({
-        error:
-          "Current password and new password are required",
+        error: "Current password and new password are required",
       });
     }
-
 
     if (newPassword.length < 8) {
       return res
@@ -235,13 +232,13 @@ export const updateAgentPassword = async (req: RequestAgent, res: Response) => {
 /**
  * Delete an agent created by the authenticated admin, reassigning all their advertisements to the admin,
  * in a single transaction. Only admin agents can delete agents, and they cannot delete themselves.
- * @param req RequestAgent with authenticated admin agent in req.agent and agent id to delete in req.params.id
+ * @param req RequestAgent with authenticated admin agent in req.agent and agent id to delete in req.params.agentId
  * @param res Response with success message or error message
  * @returns JSON with success message or error message
  */
 export const deleteAgent = async (req: RequestAgent, res: Response) => {
   try {
-    const agentIdToDelete = parsePositiveInt(req.params.id);
+    const agentIdToDelete = parsePositiveInt(req.params.agentId);
     const admin = requireAdmin(req, res);
     if (!admin) return;
 
@@ -250,7 +247,7 @@ export const deleteAgent = async (req: RequestAgent, res: Response) => {
     }
     if (agentIdToDelete === admin.id) {
       return res.status(400).json({ error: "Admin cannot delete themselves" });
-    } 
+    }
 
     const agentToDelete = await findAgentCreatedByAdmin(
       agentIdToDelete,
@@ -423,5 +420,100 @@ export const getAgentNegotiationByAdvertisementAndAccount = async (
     return res
       .status(500)
       .json({ error: "Failed to fetch agent negotiation detail" });
+  }
+};
+/**
+ * Delete the first agent created by the authenticated admin, along with their agency, only if that agent is the founder of the agency and there are no other agents in the agency. This operation is performed in a single transaction to ensure data integrity. Only admin agents can perform this operation, and they cannot delete themselves.
+ * @param req RequestAgent with authenticated admin agent in req.agent and agent id to delete in req.params.agentId
+ * @param res Response with success message or error message
+ * @returns JSON with success message or error message
+ */
+export const deleteFirstAgentAndAgency = async (
+  req: RequestAgent,
+  res: Response,
+) => {
+  const agentIdToDelete = parsePositiveInt(req.params.agentId);
+  const admin = requireAdmin(req, res);
+  if (!admin) return;
+
+  if (!agentIdToDelete) {
+    return res.status(400).json({ error: "Agent id to delete is required" });
+  }
+
+  if (agentIdToDelete === admin.id) {
+    return res.status(400).json({ error: "Admin cannot delete themselves" });
+  }
+
+  try {
+    await AppDataSource.transaction(async (manager) => {
+      const agentRepo = manager.getRepository(Agent);
+      const agencyRepo = manager.getRepository(Agency);
+
+      const agentToDelete = await agentRepo.findOne({
+        where: { id: agentIdToDelete },
+        relations: {
+          agency: true,
+          administrator: true,
+        },
+        lock: { mode: "pessimistic_write" },
+      });
+
+      if (!agentToDelete) {
+        throw new Error("AGENT_NOT_FOUND");
+      }
+
+      if (!agentToDelete.agency) {
+        throw new Error("AGENCY_NOT_FOUND");
+      }
+
+      // controllo che sia il fondatore
+      if (agentToDelete.administrator !== null) {
+        throw new Error("NOT_FOUNDER");
+      }
+
+      // controllo che non ci siano altri agenti nell'agenzia
+      const agentsInAgency = await agentRepo.count({
+        where: {
+          agency: { id: agentToDelete.agency.id },
+        },
+      });
+
+      if (agentsInAgency > 1) {
+        throw new Error("AGENCY_HAS_OTHER_AGENTS");
+      }
+
+      // cascade sull'agente
+      await agencyRepo.delete({ id: agentToDelete.agency.id });
+    });
+
+    return res.status(200).json({
+      message: "First agent and agency deleted successfully",
+    });
+  } catch (error) {
+    console.error("Error deleting first agent and agency:", error);
+
+    if (error instanceof Error) {
+      if (error.message === "AGENT_NOT_FOUND") {
+        return res.status(404).json({ error: "Agent not found" });
+      }
+
+      if (error.message === "AGENCY_NOT_FOUND") {
+        return res.status(404).json({ error: "Agency not found" });
+      }
+
+      if (error.message === "NOT_FOUNDER") {
+        return res.status(400).json({
+          error: "Only the founder agent can be deleted with the agency",
+        });
+      }
+
+      if (error.message === "AGENCY_HAS_OTHER_AGENTS") {
+        return res.status(400).json({
+          error: "Cannot delete agency because other agents still belong to it",
+        });
+      }
+    }
+
+    return res.status(500).json({ error: "Internal server error" });
   }
 };

@@ -21,6 +21,7 @@ import {
   updatePhoneNumberAgent,
   getAgentProfile,
   updateAgentPassword,
+  deleteFirstAgentAndAgency,
 } from "../controllers/agent.controller.js";
 import { getAppointmentsForAgent } from "../controllers/appointment.controller.js";
 
@@ -33,11 +34,19 @@ router.post(
   createNewAgent,
 );
 router.delete(
-  "/delete/:id",
+  "/delete/:agentId",
   authenticationMiddlewareAgent,
   validateParams(deleteAgentParamsSchema),
   deleteAgent,
 );
+
+router.delete(
+  "/delete/:agentId/founder",
+  authenticationMiddlewareAgent,
+  validateParams(deleteAgentParamsSchema),
+  deleteFirstAgentAndAgency,
+);
+
 router.get(
   "/advertisements",
   authenticationMiddlewareAgent,
