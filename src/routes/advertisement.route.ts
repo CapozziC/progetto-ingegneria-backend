@@ -62,12 +62,12 @@ router.delete(
 
 // Routes for appointments
 router.get(
-  "/:id/available-days",
+  "/available_days/:id",
   authenticationMiddlewareAccount,
   getAvailableDays,
 );
 router.get(
-  "/:id/available-days/:day",
+  "/available_slots/:id/:day",
   authenticationMiddlewareAccount,
   getAvailableSlotsByDay,
 );
