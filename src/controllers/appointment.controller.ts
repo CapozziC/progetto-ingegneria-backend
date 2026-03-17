@@ -52,6 +52,12 @@ export const getAvailableDays = async (req: RequestAccount, res: Response) => {
     // Convertiamo in UTC per la query DB
     const fromUTC = startRome.toUTC().toJSDate();
     const toUTC = endRome.toUTC().toJSDate();
+     console.log("query.day =", req.query.day);
+    console.log("fromRome =", startRome.toISO());
+    console.log("toRome =", endRome.toISO());
+    console.log("fromUTC =", fromUTC);
+    console.log("toUTC =", toUTC);
+
 
     const allSlots = await getAvailableSlotsForAdvertisement(
       advertisementId,
