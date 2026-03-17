@@ -19,10 +19,12 @@ import {
   deleteAgentAdvertisement,
   replaceAgentAdvertisementPhotoAgent,
   updateAgentAdvertisement,
+  
 } from "../controllers/advertisement.controller.js";
 import {
   getAvailableDays,
   createAppointment,
+  getAvailableSlotsByDay,
 } from "../controllers/appointment.controller.js";
 import { authenticationMiddlewareAccount } from "../middleware/auth.account.middleware.js";
 import { createOfferByAccount } from "../controllers/offer.controller.js";
@@ -60,11 +62,8 @@ router.delete(
 );
 
 // Routes for appointments
-router.get(
-  "/available_days/:id",
-  authenticationMiddlewareAccount,
-  getAvailableDays,
-);
+router.get("/advertisement/:id/available-days", getAvailableDays);
+router.get("/advertisement/:id/available-days/:day", getAvailableSlotsByDay);
 
 router.post(
   "/create_appointments/:id",

@@ -1,11 +1,6 @@
 import { Response } from "express";
 import { DateTime } from "luxon";
-import {
-  parseISODate,
-  todayRome,
-  toHoursByDayRome,
-  dayKeyRome,
-} from "../utils/date.utils.js";
+import { parseISODate, todayRome, dayKeyRome } from "../utils/date.utils.js";
 import { getAvailableSlotsForAdvertisement } from "../services/slots.service.js";
 import { RequestAccount, RequestAgent } from "../types/express.js";
 import {
@@ -45,19 +40,11 @@ export const getAvailableDays = async (req: RequestAccount, res: Response) => {
       return res.status(400).json({ error: "Invalid advertisement id" });
     }
 
-    // OGGI Europe/Rome
-    const startRome = todayRome();
+    const startRome = todayRome().startOf("day");
     const endRome = startRome.plus({ days: 14 });
 
-    // Convertiamo in UTC per la query DB
     const fromUTC = startRome.toUTC().toJSDate();
     const toUTC = endRome.toUTC().toJSDate();
-     console.log("query.day =", req.query.day);
-    console.log("fromRome =", startRome.toISO());
-    console.log("toRome =", endRome.toISO());
-    console.log("fromUTC =", fromUTC);
-    console.log("toUTC =", toUTC);
-
 
     const allSlots = await getAvailableSlotsForAdvertisement(
       advertisementId,
@@ -65,43 +52,76 @@ export const getAvailableDays = async (req: RequestAccount, res: Response) => {
       toUTC,
     );
 
-    const days = toHoursByDayRome(allSlots);
-
-    // Se l'utente ha cliccato un giorno
-    const dayParam = typeof req.query.day === "string" ? req.query.day : null;
-
-    if (!dayParam) {
-      return res.json({
-        advertisementId,
-        from: startRome.toFormat("yyyy-LL-dd"),
-        to: endRome.toFormat("yyyy-LL-dd"),
-        days,
-      });
-    }
-
-    const selected = DateTime.fromISO(dayParam, { zone: "Europe/Rome" });
-    if (!selected.isValid) {
-      return res.status(400).json({ error: "Invalid day format (YYYY-MM-DD)" });
-    }
-
-    const selectedKey = selected.toFormat("yyyy-LL-dd");
-
-    const slotsForDay = allSlots
-      .filter((s) => dayKeyRome(s) === selectedKey)
-      .map((s) =>
-        DateTime.fromJSDate(s, { zone: "utc" }).setZone("Europe/Rome").toISO(),
-      );
+    const uniqueDays = [...new Set(allSlots.map((slot) => dayKeyRome(slot)))];
 
     return res.json({
       advertisementId,
       from: startRome.toFormat("yyyy-LL-dd"),
       to: endRome.toFormat("yyyy-LL-dd"),
-      days,
-      day: selectedKey,
-      slots: slotsForDay,
+      days: uniqueDays,
     });
   } catch (e) {
-    console.error("getAvailability error:", e);
+    console.error("getAvailableDays error:", e);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+};
+/**
+ * Get the available appointment slots for a specific advertisement on a specific day (in Europe/Rome timezone)
+ * The day is specified as a path parameter in the format YYYY-MM-DD
+ * @param req  RequestAccount with authenticated account in req.account, advertisement id in req.params.id and day in req.params.day (format YYYY-MM-DD)
+ * @param res  Response with available appointment slots for the specified advertisement and day or error message
+ * @returns  JSON with available appointment slots for the specified advertisement and day or error message
+ * The available appointment slots are returned as an array of hours (in format HH:mm) in Europe/Rome timezone
+ */
+export const getAvailableSlotsByDay = async (
+  req: RequestAccount,
+  res: Response,
+) => {
+  try {
+    const account = requireAccount(req, res);
+    if (!account) return;
+
+    const advertisementId = parsePositiveInt(req.params.id);
+    if (!advertisementId) {
+      return res.status(400).json({ error: "Invalid advertisement id" });
+    }
+
+    const dayParam =
+      typeof req.query.day === "string" ? req.query.day : undefined;
+    if (!dayParam) {
+      return res.status(400).json({ error: "Missing day parameter" });
+    }
+    const selected = DateTime.fromISO(dayParam, { zone: "Europe/Rome" });
+
+    if (!selected.isValid) {
+      return res.status(400).json({ error: "Invalid day format (YYYY-MM-DD)" });
+    }
+
+    const dayStartRome = selected.startOf("day");
+    const dayEndRome = dayStartRome.plus({ days: 1 });
+
+    const fromUTC = dayStartRome.toUTC().toJSDate();
+    const toUTC = dayEndRome.toUTC().toJSDate();
+
+    const allSlots = await getAvailableSlotsForAdvertisement(
+      advertisementId,
+      fromUTC,
+      toUTC,
+    );
+
+    const slots = allSlots.map((slot) =>
+      DateTime.fromJSDate(slot, { zone: "utc" })
+        .setZone("Europe/Rome")
+        .toFormat("HH:mm"),
+    );
+
+    return res.json({
+      advertisementId,
+      day: dayStartRome.toFormat("yyyy-LL-dd"),
+      slots,
+    });
+  } catch (e) {
+    console.error("getAvailableSlotsByDay error:", e);
     return res.status(500).json({ error: "Internal server error" });
   }
 };
