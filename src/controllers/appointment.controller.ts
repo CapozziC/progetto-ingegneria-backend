@@ -312,7 +312,7 @@ export const getAppointmentsForAgent = async (
           advertisement: {
             id: a.advertisementId,
             previewPhoto,
-            address: a.advertisement?.realEstate?.addressFormatted ?? null,
+            addressFormatted: a.advertisement?.realEstate?.addressFormatted ?? null,
           },
 
           account: {
