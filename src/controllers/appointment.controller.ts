@@ -86,8 +86,10 @@ export const getAvailableSlotsByDay = async (
       return res.status(400).json({ error: "Invalid advertisement id" });
     }
 
-    const dayParam =
-      typeof req.query.day === "string" ? req.query.day : undefined;
+    const dayParam = Array.isArray(req.params.day)
+      ? req.params.day[0]
+      : req.params.day;
+
     if (!dayParam) {
       return res.status(400).json({ error: "Missing day parameter" });
     }
