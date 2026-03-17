@@ -473,9 +473,8 @@ export const deleteFirstAgentAndAgency = async (
   if (!agentIdToDelete) {
     return res.status(400).json({ error: "Agent id to delete is required" });
   }
-
-  if (agentIdToDelete === admin.id) {
-    return res.status(400).json({ error: "Admin cannot delete themselves" });
+  if (agentIdToDelete !== admin.id) {
+    return res.status(403).json({ error: "Cannot delete another agent" });
   }
 
   try {
