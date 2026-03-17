@@ -62,7 +62,7 @@ router.delete(
 
 // Routes for appointments
 router.get("/:id/available-days", getAvailableDays);
-router.get("/advertisement/:id/available-days/:day", getAvailableSlotsByDay);
+router.get("/:id/available-days/:day", getAvailableSlotsByDay);
 
 router.post(
   "/create_appointments/:id",
