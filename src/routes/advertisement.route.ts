@@ -73,7 +73,7 @@ router.get(
 );
 
 router.post(
-  "/create_appointments/:id",
+  "/create_appointment/:id",
   authenticationMiddlewareAccount,
   validateBody(createAppointmentBodySchema),
   validateParams(advertisementParamsSchema),

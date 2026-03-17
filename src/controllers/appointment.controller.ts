@@ -1,6 +1,6 @@
 import { Response } from "express";
 import { DateTime } from "luxon";
-import { parseISODate, todayRome, dayKeyRome } from "../utils/date.utils.js";
+import {  todayRome, dayKeyRome } from "../utils/date.utils.js";
 import { getAvailableSlotsForAdvertisement } from "../services/slots.service.js";
 import { RequestAccount, RequestAgent } from "../types/express.js";
 import {
@@ -174,12 +174,27 @@ export const createAppointment = async (req: RequestAccount, res: Response) => {
       return res.status(400).json({ error: "Invalid advertisement id" });
     }
 
-    const appointmentAt = parseISODate(req.body?.appointmentAt);
-    if (!appointmentAt) {
+    const { date, time } = req.body;
+
+    if (!date || !time) {
       return res.status(400).json({
-        error: "appointmentAt must be a valid ISO date string",
+        error: "date and time are required",
       });
     }
+
+    // combina date + time in Europe/Rome
+    const dtRome = DateTime.fromISO(`${date}T${time}`, {
+      zone: "Europe/Rome",
+    });
+
+    if (!dtRome.isValid) {
+      return res.status(400).json({
+        error: "Invalid date or time format",
+      });
+    }
+
+    // converti in UTC per il DB
+    const appointmentAt = dtRome.toUTC().toJSDate();
     if (!isValidHourlySlotRome(appointmentAt)) {
       return res.status(400).json({
         error:
