@@ -170,11 +170,22 @@ export const advertisementParamsSchema = Joi.object({
 });
 
 export const createAppointmentBodySchema = Joi.object({
-  appointmentAt: Joi.string().isoDate().required().messages({
-    "string.base": "Appointment date must be a string",
-    "string.isoDate": "Appointment date must be in ISO format",
-    "any.required": "Appointment date is required",
-  }),
+  date: Joi.string()
+    .pattern(/^\d{4}-\d{2}-\d{2}$/)
+    .required()
+    .messages({
+      "string.base": "Appointment date must be a string",
+      "string.pattern": "Appointment date must be in YYYY-MM-DD format",
+      "any.required": "Appointment date is required",
+    }),
+  time: Joi.string()
+    .pattern(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/)
+    .required()
+    .messages({
+      "string.base": "Appointment time must be a string",
+      "string.pattern": "Appointment time must be in HH:mm format",
+      "any.required": "Appointment time is required",
+    }),
 });
 
 export const createOfferByAccountBodySchema = Joi.object({
