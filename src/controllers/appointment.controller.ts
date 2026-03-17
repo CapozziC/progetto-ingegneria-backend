@@ -12,7 +12,10 @@ import {
   existingRequestedAppointment,
 } from "../repositories/appointment.repository.js";
 import { Appointment, Status } from "../entities/appointment.js";
-import { findAdvertisementOwnerId } from "../repositories/advertisement.repository.js";
+import {
+  findAdvertisementOwnerId,
+  searchAdvertisementById,
+} from "../repositories/advertisement.repository.js";
 import { isValidHourlySlotRome } from "../services/slots.service.js";
 import { QueryFailedError } from "typeorm";
 import {
@@ -38,6 +41,10 @@ export const getAvailableDays = async (req: RequestAccount, res: Response) => {
     const advertisementId = parsePositiveInt(req.params.id);
     if (!advertisementId) {
       return res.status(400).json({ error: "Invalid advertisement id" });
+    }
+    const advertisement = await searchAdvertisementById(advertisementId);
+    if (!advertisement) {
+      return res.status(404).json({ error: "Advertisement not found" });
     }
 
     const startRome = todayRome().startOf("day");
@@ -84,6 +91,11 @@ export const getAvailableSlotsByDay = async (
     const advertisementId = parsePositiveInt(req.params.id);
     if (!advertisementId) {
       return res.status(400).json({ error: "Invalid advertisement id" });
+    }
+
+    const advertisement = await searchAdvertisementById(advertisementId);
+    if (!advertisement) {
+      return res.status(404).json({ error: "Advertisement not found" });
     }
 
     const dayParam = Array.isArray(req.params.day)
