@@ -473,6 +473,7 @@ export const deleteFirstAgentAndAgency = async (
   if (!agentIdToDelete) {
     return res.status(400).json({ error: "Agent id to delete is required" });
   }
+
   if (agentIdToDelete !== admin.id) {
     return res.status(403).json({ error: "Cannot delete another agent" });
   }
@@ -482,13 +483,23 @@ export const deleteFirstAgentAndAgency = async (
       const agentRepo = manager.getRepository(Agent);
       const agencyRepo = manager.getRepository(Agency);
 
+      // 1) lock SOLO sulla riga agent, senza relazioni
+      const lockedAgent = await agentRepo.findOne({
+        where: { id: agentIdToDelete },
+        lock: { mode: "pessimistic_write" },
+      });
+
+      if (!lockedAgent) {
+        throw new Error("AGENT_NOT_FOUND");
+      }
+
+      // 2) leggo le relazioni con una query separata, senza lock
       const agentToDelete = await agentRepo.findOne({
         where: { id: agentIdToDelete },
         relations: {
           agency: true,
           administrator: true,
         },
-        lock: { mode: "pessimistic_write" },
       });
 
       if (!agentToDelete) {
@@ -515,7 +526,8 @@ export const deleteFirstAgentAndAgency = async (
         throw new Error("AGENCY_HAS_OTHER_AGENTS");
       }
 
-      // cascade sull'agente
+      // eliminando l'agenzia, grazie al cascade onDelete sull'agent,
+      // viene eliminato anche l'agente fondatore
       await agencyRepo.delete({ id: agentToDelete.agency.id });
     });
 
