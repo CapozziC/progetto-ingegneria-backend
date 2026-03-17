@@ -19,7 +19,6 @@ import {
   deleteAgentAdvertisement,
   replaceAgentAdvertisementPhotoAgent,
   updateAgentAdvertisement,
-  
 } from "../controllers/advertisement.controller.js";
 import {
   getAvailableDays,
@@ -62,7 +61,7 @@ router.delete(
 );
 
 // Routes for appointments
-router.get("/advertisement/:id/available-days", getAvailableDays);
+router.get("/:id/available-days", getAvailableDays);
 router.get("/advertisement/:id/available-days/:day", getAvailableSlotsByDay);
 
 router.post(
