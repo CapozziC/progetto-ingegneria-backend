@@ -22,7 +22,10 @@ import {
 import { generateTemporaryPassword } from "../utils/password.utils.js";
 import { Advertisement } from "../entities/advertisement.js";
 import { Agent } from "../entities/agent.js";
-import { findAdvertisementsByAgentId } from "../repositories/advertisement.repository.js";
+import {
+  findAdvertisementByIdAndAgentId,
+  findAdvertisementsByAgentId,
+} from "../repositories/advertisement.repository.js";
 import { parsePositiveInt } from "../utils/parse.utils.js";
 import {
   findAgentNegotiations,
@@ -339,6 +342,35 @@ export const getAgentAdvertisements = async (
     return res.status(500).json({ error: "Internal server error" });
   }
 };
+
+export const getAgentAdvertisementById = async (
+  req: RequestAgent,
+  res: Response,
+) => {
+  try {
+    const agent = requireAgent(req, res);
+    if (!agent) return;
+
+    const advertisementId = parsePositiveInt(req.params.advertisementId);
+    if (!advertisementId) {
+      return res.status(400).json({ error: "Invalid advertisement id" });
+    }
+
+    const advertisement = await findAdvertisementByIdAndAgentId(
+      agent.id,
+      advertisementId,
+    );
+    if (!advertisement) {
+      return res.status(404).json({ error: "Advertisement not found" });
+    }
+
+    return res.status(200).json(advertisement);
+  } catch (error) {
+    console.error("Error fetching advertisement by ID:", error);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+};
+
 /**
  * Get all negotiations of the authenticated agent, with pagination support (take, skip).
  * Each negotiation includes the related advertisement with a title built from rooms, address and housing type

@@ -23,6 +23,7 @@ import {
   updateAgentPassword,
   deleteFirstAgentAndAgency,
   getAllAgentCreatedByLoggedAdmin,
+  getAgentAdvertisementById,
 } from "../controllers/agent.controller.js";
 import { getAppointmentsForAgent } from "../controllers/appointment.controller.js";
 
@@ -54,6 +55,13 @@ router.get(
   authenticationMiddlewareAgent,
   getAgentAdvertisements,
 );
+
+router.get(
+  "/advertisements/:advertisementId",
+  authenticationMiddlewareAgent,
+  getAgentAdvertisementById,
+);
+
 router.patch(
   "/me/phoneNumber",
   authenticationMiddlewareAgent,
@@ -61,7 +69,11 @@ router.patch(
   updatePhoneNumberAgent,
 );
 
-router.get("/agents", authenticationMiddlewareAgent, getAllAgentCreatedByLoggedAdmin);
+router.get(
+  "/agents",
+  authenticationMiddlewareAgent,
+  getAllAgentCreatedByLoggedAdmin,
+);
 
 router.patch(
   "/:agentId/password",

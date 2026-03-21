@@ -2,7 +2,6 @@ import { Response } from "express";
 import { RequestAgent } from "../types/express.js";
 import { RequestAccount } from "../types/express.js";
 
-
 export const requireAgent = (req: RequestAgent, res: Response) => {
   const agent = req.agent;
   if (!agent) {
@@ -15,7 +14,10 @@ export const requireAgent = (req: RequestAgent, res: Response) => {
 export const requireAdmin = (req: RequestAgent, res: Response) => {
   const agent = requireAgent(req, res);
   console.log("Authenticated agent:", agent);
-  if (!agent) return null;
+  if (!agent) {
+    res.status(401).json({ error: "Unauthorized: agent not logged in" });
+    return null;
+  }
 
   if (!agent.isAdmin) {
     res
@@ -41,5 +43,3 @@ export const requireAccount = (req: RequestAccount, res: Response) => {
   }
   return account;
 };
-
-

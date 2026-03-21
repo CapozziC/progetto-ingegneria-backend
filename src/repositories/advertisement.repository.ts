@@ -37,6 +37,27 @@ export async function findAdvertisementsByAgentId(agentId: number) {
     },
   });
 }
+
+export async function findAdvertisementByIdAndAgentId(
+  advertisementId: number,
+  agentId: number,
+) {
+  return AdvertisementRepository.findOne({
+    where: {
+      id: advertisementId,
+      agent: { id: agentId },
+    },
+    relations: {
+      realEstate: true,
+      photos: true,
+      pois: true,
+    },
+    order: {
+      createdAt: "DESC",
+      photos: { position: "ASC" },
+    },
+  });
+}
 /**
  * Find the owner (agent) ID of a specific advertisement. This function queries the database for the advertisement with the given ID and retrieves the ID of the agent who created it. If the advertisement is not found or does not have an associated agent, it returns null.
  * @param advertisementId  The unique identifier of the advertisement whose owner ID to find
