@@ -365,8 +365,8 @@ export const getAgentAdvertisementById = async (
     }
 
     const advertisement = await findAdvertisementByIdAndAgentId(
-      agent.id,
       advertisementId,
+      agent.id
     );
     console.log("Fetched advertisement:", advertisement);
     if (!advertisement) {
