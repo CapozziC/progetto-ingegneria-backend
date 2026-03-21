@@ -342,6 +342,13 @@ export const getAgentAdvertisements = async (
     return res.status(500).json({ error: "Internal server error" });
   }
 };
+/**
+ * Get a specific advertisement by its ID for the authenticated agent
+ * @param req   RequestAgent with authenticated agent in req.agent and advertisement id in req.params.advertisementId
+ * @param res   Response with the advertisement details or error message
+ * @returns   JSON with the advertisement details or error message
+ * Only authenticated agents can access their advertisements, and they can only access advertisements that belong to them.
+ */
 
 export const getAgentAdvertisementById = async (
   req: RequestAgent,
@@ -364,7 +371,11 @@ export const getAgentAdvertisementById = async (
       return res.status(404).json({ error: "Advertisement not found" });
     }
 
-    return res.status(200).json(advertisement);
+    return res.status(200).json({
+      ...advertisement,
+      previewPhoto: advertisement.photos?.[0]?.url ?? null,
+      photos: undefined,
+    });
   } catch (error) {
     console.error("Error fetching advertisement by ID:", error);
     return res.status(500).json({ error: "Internal server error" });

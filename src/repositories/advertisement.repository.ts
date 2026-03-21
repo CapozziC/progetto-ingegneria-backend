@@ -37,7 +37,12 @@ export async function findAdvertisementsByAgentId(agentId: number) {
     },
   });
 }
-
+/**
+ *  Find a specific advertisement by its ID and the ID of the agent who created it. This function queries the database for an advertisement that matches both the provided advertisement ID and agent ID. It retrieves the advertisement along with its related real estate, photos, and points of interest (POIs). If no matching advertisement is found, it returns null.
+ * @param advertisementId   The unique identifier of the advertisement to find
+ * @param agentId The unique identifier of the agent who created the advertisement
+ * @returns   A Promise that resolves to the advertisement object with its related details, or null if not found
+ */
 export async function findAdvertisementByIdAndAgentId(
   advertisementId: number,
   agentId: number,
