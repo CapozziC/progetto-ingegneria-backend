@@ -359,6 +359,7 @@ export const getAgentAdvertisementById = async (
     if (!agent) return;
 
     const advertisementId = parsePositiveInt(req.params.advertisementId);
+    console.log("Parsed advertisementId:", advertisementId);
     if (!advertisementId) {
       return res.status(400).json({ error: "Invalid advertisement id" });
     }
@@ -367,6 +368,7 @@ export const getAgentAdvertisementById = async (
       agent.id,
       advertisementId,
     );
+    console.log("Fetched advertisement:", advertisement);
     if (!advertisement) {
       return res.status(404).json({ error: "Advertisement not found" });
     }
