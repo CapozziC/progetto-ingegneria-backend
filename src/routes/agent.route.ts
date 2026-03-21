@@ -57,7 +57,7 @@ router.get(
 );
 
 router.get(
-  "/advertisements/:advertisementId",
+  "/advertisement/:advertisementId",
   authenticationMiddlewareAgent,
   getAgentAdvertisementById,
 );

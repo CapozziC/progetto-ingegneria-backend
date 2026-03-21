@@ -11,7 +11,10 @@ import {
   getAllAdvertisements,
   updatePasswordAccount,
 } from "../controllers/account.controller.js";
-import { validateParams, validateBody } from "../middleware/validate.middleware.js";
+import {
+  validateParams,
+  validateBody,
+} from "../middleware/validate.middleware.js";
 import {
   deleteAccountSchema,
   updatePasswordBodySchema,
@@ -37,7 +40,7 @@ router.get(
 );
 
 router.get(
-  "/advertisements/:advertisementId",
+  "/advertisement/:advertisementId",
   authenticationMiddlewareAccount,
   getAdvertisementById,
 );
@@ -59,7 +62,7 @@ router.patch(
   validateParams(updatePasswordParamsSchema),
   validateBody(updatePasswordBodySchema),
   updatePasswordAccount,
-);  
+);
 router.delete(
   "/delete/:accountId",
   authenticationMiddlewareAccount,
