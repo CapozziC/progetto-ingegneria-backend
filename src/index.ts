@@ -10,6 +10,7 @@ import appointmentRoutes from "./routes/appointment.route.js";
 import accountRoutes from "./routes/account.route.js";
 import uploadRoutes from "./routes/upload.route.js";
 import offerRoutes from "./routes/offer.route.js";
+import { verifySmtpConnection } from "./config/nodemailer.config.js";
 
 try {
   // Initialize database connection
@@ -54,6 +55,9 @@ try {
   app.listen(port, "0.0.0.0", () => {
     console.log(`Example app listening on port ${port}`);
   });
+
+  // Verify SMTP connection
+  await verifySmtpConnection();
 } catch (error) {
   console.log(error);
 }

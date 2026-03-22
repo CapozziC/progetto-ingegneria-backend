@@ -16,6 +16,13 @@ const mockedFindAgentsByAgencyIdAndUsername =
 const mockedFindAgentById = jest.fn<() => Promise<Agent | null>>();
 const mockedFindAgentByUsername = jest.fn<() => Promise<Agent | null>>();
 const mockedSaveAgent = jest.fn<() => Promise<Agent>>();
+const mockedAgentUpdatePassword = jest.fn<() => Promise<Agent>>();
+const mockedCreateAgent = jest.fn<() => Agent>();
+const mockedFindAgentsByAgencyAndUsernamePrefix =
+  jest.fn<() => Promise<Agent[]>>();
+const mockedFindAgentCreatedByAdmin = jest.fn<() => Promise<Agent | null>>();
+const mockedFindAgentsCreatedByAgent = jest.fn<() => Promise<Agent[]>>();
+const mockedUpdateAgentPhoneNumber = jest.fn<() => Promise<Agent>>();
 
 const mockedGenerateAccessToken = jest.fn<(payload: unknown) => string>();
 const mockedGenerateRefreshToken = jest.fn<(payload: unknown) => string>();
@@ -23,6 +30,7 @@ const mockedGenerateRefreshToken = jest.fn<(payload: unknown) => string>();
 const mockedHashRefreshToken = jest.fn<(token: string) => string>();
 const mockedVerifyAccessToken = jest.fn<(token: string) => unknown>();
 const mockedVerifyRefreshToken = jest.fn<(token: string) => unknown>();
+const mockedGenerateResetToken = jest.fn<(payload: unknown) => string>();
 const mockedFindRefreshTokenBySubject =
   jest.fn<() => Promise<RefreshToken | null>>();
 
@@ -44,6 +52,12 @@ jest.unstable_mockModule(
     findAgentById: mockedFindAgentById,
     findAgentByUsername: mockedFindAgentByUsername,
     saveAgent: mockedSaveAgent,
+    agentUpdatePassword: mockedAgentUpdatePassword,
+    createAgent: mockedCreateAgent,
+    findAgentCreatedByAdmin: mockedFindAgentCreatedByAdmin,
+    findAgentsByAgencyAndUsernamePrefix:mockedFindAgentsByAgencyAndUsernamePrefix,
+    findAgentsCreatedByAgent: mockedFindAgentsCreatedByAgent,
+    updateAgentPhoneNumber: mockedUpdateAgentPhoneNumber,
   }),
 );
 
@@ -53,6 +67,7 @@ jest.unstable_mockModule("../../../src/utils/auth.utils.js", () => ({
   hashRefreshToken: mockedHashRefreshToken,
   verifyAccessToken: mockedVerifyAccessToken,
   verifyRefreshToken: mockedVerifyRefreshToken,
+  generateResetToken: mockedGenerateResetToken,
 }));
 
 jest.unstable_mockModule("../../../src/utils/cookie.utils.js", () => ({

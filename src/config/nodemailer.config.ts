@@ -12,7 +12,11 @@ export const transporter = nodemailer.createTransport({
   },
 });
 
-transporter
-  .verify()
-  .then(() => console.log("SMTP ok"))
-  .catch((err) => console.error("SMTP non disponibile:", err));
+export const verifySmtpConnection = async () => {
+  try {
+    await transporter.verify();
+    console.log("SMTP ok");
+  } catch (err) {
+    console.error("SMTP non disponibile:", err);
+  }
+};
