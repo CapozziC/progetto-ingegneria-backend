@@ -87,6 +87,7 @@ export const loginAgent = async (req: Request, res: Response) => {
         agent: {
           id: agent.id,
           username: agent.username,
+          isAdmin: agent.isAdmin,
           agency: agent.agency,
           firstName: agent.firstName,
           lastName: agent.lastName,
@@ -140,6 +141,7 @@ export const loginAgent = async (req: Request, res: Response) => {
       firstName: agent.firstName,
       lastName: agent.lastName,
       phoneNumber: agent.phoneNumber,
+      isAdmin: agent.isAdmin,
       createdAt: agent.createdAt,
     });
   } catch (error) {
