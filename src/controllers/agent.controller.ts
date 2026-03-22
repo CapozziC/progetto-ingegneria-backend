@@ -332,7 +332,8 @@ export const getAgentAdvertisements = async (
         status: a.status,
         agentId: a.agent?.id ?? agent.id,
         realEstate: a.realEstate,
-        photos: (a.photos ?? []).sort((x, y) => x.position - y.position),
+        previewPhoto: a.photos?.[0]?.url ?? null,
+        photos: undefined,
         pois: a.pois ?? [],
       })),
       count: advertisements.length,
@@ -366,18 +367,14 @@ export const getAgentAdvertisementById = async (
 
     const advertisement = await findAdvertisementByIdAndAgentId(
       advertisementId,
-      agent.id
+      agent.id,
     );
     console.log("Fetched advertisement:", advertisement);
     if (!advertisement) {
       return res.status(404).json({ error: "Advertisement not found" });
     }
 
-    return res.status(200).json({
-      ...advertisement,
-      previewPhoto: advertisement.photos?.[0]?.url ?? null,
-      photos: undefined,
-    });
+    return res.status(200).json(advertisement);
   } catch (error) {
     console.error("Error fetching advertisement by ID:", error);
     return res.status(500).json({ error: "Internal server error" });
