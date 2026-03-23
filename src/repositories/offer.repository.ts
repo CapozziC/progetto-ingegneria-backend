@@ -86,7 +86,9 @@ export async function findAccountNegotiations({
         price: number;
         type: string;
         status: string;
-        realEstate: string | null;
+        realEstate: {
+          addressFormatted: string | null;
+        };
       };
       agent: {
         firstName: string | null;
@@ -118,7 +120,10 @@ export async function findAccountNegotiations({
           price: offer.advertisement.price,
           type: offer.advertisement.type,
           status: offer.advertisement.status,
-          realEstate: offer.advertisement.realEstate.addressFormatted || null,
+          realEstate: {
+            addressFormatted:
+              offer.advertisement.realEstate.addressFormatted || null,
+          },
         },
         agent: offer.advertisement.agent
           ? {
@@ -185,7 +190,9 @@ export async function findAccountNegotiationDetail({
       price: advertisement.price,
       type: advertisement.type,
       status: advertisement.status,
-      realEstate: advertisement.realEstate.addressFormatted || null,
+      realEstate: {
+        addressFormatted: advertisement.realEstate.addressFormatted || null,
+      },
     },
     agent: advertisement.agent
       ? {
@@ -363,7 +370,9 @@ export async function findAgentNegotiations({
         price: number;
         type: string;
         status: string;
-        realEstate: string | null;
+        realEstate: {
+          addressFormatted: string | null;
+        };
       };
       account: {
         firstName: string | null;
@@ -395,7 +404,10 @@ export async function findAgentNegotiations({
           price: offer.advertisement.price,
           type: offer.advertisement.type,
           status: offer.advertisement.status,
-          realEstate: offer.advertisement.realEstate.addressFormatted || null,
+          realEstate: {
+            addressFormatted:
+              offer.advertisement.realEstate.addressFormatted || null,
+          },
         },
         account: offer.account
           ? {
@@ -462,7 +474,9 @@ export async function findAgentNegotiationDetail({
       price: advertisement.price,
       type: advertisement.type,
       status: advertisement.status,
-      realEstate: advertisement.realEstate.addressFormatted || null,
+      realEstate: {
+        addressFormatted: advertisement.realEstate.addressFormatted || null,
+      },
     },
     account: first.account
       ? {
