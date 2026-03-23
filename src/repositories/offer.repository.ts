@@ -381,6 +381,7 @@ export async function findAgentNegotiations({
         firstName: string | null;
         lastName: string | null;
         email: string | null;
+        id: number;
       } | null;
       updatedAt: string;
     }
@@ -414,6 +415,7 @@ export async function findAgentNegotiations({
         },
         account: offer.account
           ? {
+              id: offer.account.id,
               firstName: offer.account.firstName ?? null,
               lastName: offer.account.lastName ?? null,
               email: offer.account.email ?? null,
@@ -483,6 +485,7 @@ export async function findAgentNegotiationDetail({
     },
     account: first.account
       ? {
+          id: first.account.id,
           firstName: first.account.firstName ?? null,
           lastName: first.account.lastName ?? null,
           email: first.account.email ?? null,
