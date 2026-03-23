@@ -91,6 +91,7 @@ export async function findAccountNegotiations({
         };
       };
       agent: {
+        id: number;
         firstName: string | null;
         lastName: string | null;
         phoneNumber: string | null;
@@ -127,6 +128,7 @@ export async function findAccountNegotiations({
         },
         agent: offer.advertisement.agent
           ? {
+              id: offer.advertisement.agent.id,
               firstName: offer.advertisement.agent.firstName ?? null,
               lastName: offer.advertisement.agent.lastName ?? null,
               phoneNumber: offer.advertisement.agent.phoneNumber ?? null,
@@ -196,6 +198,7 @@ export async function findAccountNegotiationDetail({
     },
     agent: advertisement.agent
       ? {
+          id: advertisement.agent.id,
           firstName: advertisement.agent.firstName ?? null,
           lastName: advertisement.agent.lastName ?? null,
           phoneNumber: advertisement.agent.phoneNumber ?? null,
