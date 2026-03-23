@@ -26,7 +26,7 @@ router.patch(
 );
 
 router.patch(
-  "/agents/:id/cancel",
+  "/accounts/:id/cancel",
   authenticationMiddlewareAccount,
   validateParams(AppointmentParamsSchema),
   accountCancelAppointment,

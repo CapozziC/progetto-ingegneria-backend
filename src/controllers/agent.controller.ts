@@ -399,14 +399,10 @@ export const getAgentNegotiations = async (
   const agent = requireAgent(req, res);
   if (!agent) return res.status(401).json({ error: "Unauthorized" });
 
-  const take = Number(req.query.take ?? 20);
-  const skip = Number(req.query.skip ?? 0);
 
   try {
     const result = await findAgentNegotiations({
       agentId: agent.id,
-      take: Number.isFinite(take) && take > 0 ? take : 20,
-      skip: Number.isFinite(skip) && skip >= 0 ? skip : 0,
     });
 
     return res.json(result);

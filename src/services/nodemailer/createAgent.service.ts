@@ -7,7 +7,12 @@ export async function sendAgentCreatedEmail(params: {
   username: string;
   temporaryPassword: string;
 }) {
-  const loginUrl = `${process.env.FRONTEND_URL}/login`;
+  const loginUrl = process.env.FRONTEND_URL_LOGIN;
+  if (!loginUrl) {
+    throw new Error(
+      "FRONTEND_URL_LOGIN is not defined in environment variables",
+    );
+  }
   const emailContent = newAgentCreationTemplate({
     firstName: params.firstName,
     username: params.username,

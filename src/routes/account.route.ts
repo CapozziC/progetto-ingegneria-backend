@@ -24,7 +24,7 @@ import {
 router.get("/me/info", authenticationMiddlewareAccount, getAccountProfile);
 
 router.get(
-  "/me/appointments",
+  "/appointments",
   authenticationMiddlewareAccount,
   getAppointmentsForAccount,
 );

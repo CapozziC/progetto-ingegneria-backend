@@ -83,8 +83,6 @@ export type CounterAgentOfferAsAccountResult = {
 
 export type FindAccountNegotiationsParams = {
   accountId: number;
-  take: number;
-  skip: number;
 };
 
 /**
@@ -98,8 +96,6 @@ export type FindAccountNegotiationDetailParams = {
 
 export type FindAgentNegotiationsParams = {
   agentId: number;
-  take: number;
-  skip: number;
 };
 
 export type FindAgentNegotiationDetailParams = {

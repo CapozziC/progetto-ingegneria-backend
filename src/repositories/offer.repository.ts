@@ -6,7 +6,8 @@ import {
   FindAccountNegotiationsParams,
   FindAccountNegotiationDetailParams,
   FindAgentNegotiationsParams,
-FindAgentNegotiationDetailParams} from "../types/offer.type.js";
+  FindAgentNegotiationDetailParams,
+} from "../types/offer.type.js";
 
 export const OfferRepository = AppDataSource.getRepository(Offer);
 
@@ -53,14 +54,12 @@ export const existPendingOfferByAdvertisementIdAndAccountId = async (
  */
 export async function findAccountNegotiations({
   accountId,
-  take,
-  skip,
 }: FindAccountNegotiationsParams) {
   const offers = await AppDataSource.getRepository(Offer)
     .createQueryBuilder("offer")
     .leftJoinAndSelect("offer.advertisement", "adv")
-    .leftJoinAndSelect("adv.realEstate", "re")
-    .leftJoinAndSelect("adv.photos", "photos")
+    .leftJoin("adv.realEstate", "re")
+    .addSelect(["re.addressFormatted"])
     .leftJoin("adv.agent", "agent")
     .addSelect(["agent.firstName", "agent.lastName", "agent.phoneNumber"])
     .where("offer.accountId = :accountId", { accountId })
@@ -87,13 +86,7 @@ export async function findAccountNegotiations({
         price: number;
         type: string;
         status: string;
-        previewPhoto: string | null;
-        realEstate: {
-          size: number;
-          rooms: number;
-          floor: number;
-          housingType: string;
-        } | null;
+        realEstate: string | null;
       };
       agent: {
         firstName: string | null;
@@ -125,15 +118,7 @@ export async function findAccountNegotiations({
           price: offer.advertisement.price,
           type: offer.advertisement.type,
           status: offer.advertisement.status,
-          previewPhoto: offer.advertisement.photos?.[0]?.url ?? null,
-          realEstate: offer.advertisement.realEstate
-            ? {
-                size: offer.advertisement.realEstate.size,
-                rooms: offer.advertisement.realEstate.rooms,
-                floor: offer.advertisement.realEstate.floor,
-                housingType: offer.advertisement.realEstate.housingType,
-              }
-            : null,
+          realEstate: offer.advertisement.realEstate.addressFormatted || null,
         },
         agent: offer.advertisement.agent
           ? {
@@ -150,17 +135,12 @@ export async function findAccountNegotiations({
     }
   }
 
-  const items = Array.from(grouped.values())
-    .sort(
-      (a, b) =>
-        new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
-    )
-    .slice(skip, skip + take);
+  const items = Array.from(grouped.values()).sort(
+    (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
+  );
 
   return {
     total: grouped.size,
-    take,
-    skip,
     items,
   };
 }
@@ -180,8 +160,8 @@ export async function findAccountNegotiationDetail({
   const offers = await AppDataSource.getRepository(Offer)
     .createQueryBuilder("offer")
     .leftJoinAndSelect("offer.advertisement", "adv")
-    .leftJoinAndSelect("adv.realEstate", "re")
-    .leftJoinAndSelect("adv.photos", "photos")
+    .leftJoin("adv.realEstate", "re")
+    .addSelect(["re.addressFormatted"])
     .leftJoin("adv.agent", "agent")
     .addSelect(["agent.firstName", "agent.lastName", "agent.phoneNumber"])
     .where("offer.accountId = :accountId", { accountId })
@@ -205,28 +185,7 @@ export async function findAccountNegotiationDetail({
       price: advertisement.price,
       type: advertisement.type,
       status: advertisement.status,
-      previewPhoto: advertisement.photos?.[0]?.url ?? null,
-      realEstate: advertisement.realEstate
-        ? {
-            size: advertisement.realEstate.size,
-            rooms: advertisement.realEstate.rooms,
-            floor: advertisement.realEstate.floor,
-            elevator: advertisement.realEstate.elevator,
-            airConditioning: advertisement.realEstate.airConditioning,
-            heating: advertisement.realEstate.heating,
-            concierge: advertisement.realEstate.concierge,
-            parking: advertisement.realEstate.parking,
-            garage: advertisement.realEstate.garage,
-            furnished: advertisement.realEstate.furnished,
-            solarPanels: advertisement.realEstate.solarPanels,
-            balcony: advertisement.realEstate.balcony,
-            terrace: advertisement.realEstate.terrace,
-            garden: advertisement.realEstate.garden,
-            housingType: advertisement.realEstate.housingType,
-            energyClass: advertisement.realEstate.energyClass,
-            sizeLabel: `${advertisement.realEstate.size} m²`,
-          }
-        : null,
+      realEstate: advertisement.realEstate.addressFormatted || null,
     },
     agent: advertisement.agent
       ? {
@@ -366,16 +325,20 @@ export async function findLatestPendingAgentOfferForNegotiation(
  */
 export async function findAgentNegotiations({
   agentId,
-  take,
-  skip,
 }: FindAgentNegotiationsParams) {
   const offers = await AppDataSource.getRepository(Offer)
     .createQueryBuilder("offer")
-    .leftJoinAndSelect("offer.advertisement", "adv")
-    .leftJoinAndSelect("adv.realEstate", "re")
-    .leftJoinAndSelect("adv.photos", "photos")
+    .leftJoin("offer.advertisement", "adv")
+    .addSelect(["adv.id", "adv.price", "adv.status"])
+    .leftJoin("adv.realEstate", "re")
+    .addSelect(["re.addressFormatted"])
     .leftJoin("offer.account", "account")
-    .addSelect(["account.firstName", "account.lastName", "account.email"])
+    .addSelect([
+      "account.id",
+      "account.firstName",
+      "account.lastName",
+      "account.email",
+    ])
     .where("offer.agentId = :agentId", { agentId })
     .orderBy("offer.createdAt", "DESC")
     .addOrderBy("offer.id", "DESC")
@@ -400,13 +363,7 @@ export async function findAgentNegotiations({
         price: number;
         type: string;
         status: string;
-        previewPhoto: string | null;
-        realEstate: {
-          size: number;
-          rooms: number;
-          floor: number;
-          housingType: string;
-        } | null;
+        realEstate: string | null;
       };
       account: {
         firstName: string | null;
@@ -438,15 +395,7 @@ export async function findAgentNegotiations({
           price: offer.advertisement.price,
           type: offer.advertisement.type,
           status: offer.advertisement.status,
-          previewPhoto: offer.advertisement.photos?.[0]?.url ?? null,
-          realEstate: offer.advertisement.realEstate
-            ? {
-                size: offer.advertisement.realEstate.size,
-                rooms: offer.advertisement.realEstate.rooms,
-                floor: offer.advertisement.realEstate.floor,
-                housingType: offer.advertisement.realEstate.housingType,
-              }
-            : null,
+          realEstate: offer.advertisement.realEstate.addressFormatted || null,
         },
         account: offer.account
           ? {
@@ -463,17 +412,12 @@ export async function findAgentNegotiations({
     }
   }
 
-  const items = Array.from(grouped.values())
-    .sort(
-      (a, b) =>
-        new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
-    )
-    .slice(skip, skip + take);
+  const items = Array.from(grouped.values()).sort(
+    (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
+  );
 
   return {
     total: grouped.size,
-    take,
-    skip,
     items,
   };
 }
@@ -493,8 +437,8 @@ export async function findAgentNegotiationDetail({
   const offers = await AppDataSource.getRepository(Offer)
     .createQueryBuilder("offer")
     .leftJoinAndSelect("offer.advertisement", "adv")
-    .leftJoinAndSelect("adv.realEstate", "re")
-    .leftJoinAndSelect("adv.photos", "photos")
+    .leftJoin("adv.realEstate", "re")
+    .addSelect(["re.addressFormatted"])
     .leftJoin("offer.account", "account")
     .addSelect(["account.firstName", "account.lastName", "account.email"])
     .where("offer.agentId = :agentId", { agentId })
@@ -518,27 +462,7 @@ export async function findAgentNegotiationDetail({
       price: advertisement.price,
       type: advertisement.type,
       status: advertisement.status,
-      previewPhoto: advertisement.photos?.[0]?.url ?? null,
-      realEstate: advertisement.realEstate
-        ? {
-            size: advertisement.realEstate.size,
-            rooms: advertisement.realEstate.rooms,
-            floor: advertisement.realEstate.floor,
-            elevator: advertisement.realEstate.elevator,
-            airConditioning: advertisement.realEstate.airConditioning,
-            heating: advertisement.realEstate.heating,
-            concierge: advertisement.realEstate.concierge,
-            parking: advertisement.realEstate.parking,
-            garage: advertisement.realEstate.garage,
-            furnished: advertisement.realEstate.furnished,
-            solarPanels: advertisement.realEstate.solarPanels,
-            balcony: advertisement.realEstate.balcony,
-            terrace: advertisement.realEstate.terrace,
-            garden: advertisement.realEstate.garden,
-            housingType: advertisement.realEstate.housingType,
-            energyClass: advertisement.realEstate.energyClass,
-          }
-        : null,
+      realEstate: advertisement.realEstate.addressFormatted || null,
     },
     account: first.account
       ? {

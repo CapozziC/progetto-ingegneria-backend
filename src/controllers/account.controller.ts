@@ -166,14 +166,9 @@ export const getAccountNegotiations = async (
   const account = requireAccount(req, res);
   if (!account) return res.status(401).json({ error: "Unauthorized" });
 
-  const take = Number(req.query.take ?? 10);
-  const skip = Number(req.query.skip ?? 0);
-
   try {
     const result = await findAccountNegotiations({
       accountId: account.id,
-      take: Number.isFinite(take) && take > 0 ? take : 10,
-      skip: Number.isFinite(skip) && skip >= 0 ? skip : 0,
     });
 
     return res.json(result);
