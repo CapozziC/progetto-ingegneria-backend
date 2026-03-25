@@ -1,6 +1,6 @@
 import { EntityManager } from "typeorm";
 import { AppDataSource } from "../data-source.js";
-import { Advertisement } from "../entities/advertisement.js";
+import { Advertisement, Status } from "../entities/advertisement.js";
 import { RealEstate } from "../entities/realEstate.js";
 import { Logo } from "../entities/logo.js";
 import { In } from "typeorm";
@@ -283,7 +283,9 @@ export async function findAdvertisements({
     .addSelect(["pois.name", "pois.type", "pois.id"]);
 
   if (status) {
-    qb.andWhere("adv.status = :status", { status });
+    qb.andWhere("adv.status = :status", {
+      status: Status.ACTIVE,
+    });
   }
 
   if (type) {
