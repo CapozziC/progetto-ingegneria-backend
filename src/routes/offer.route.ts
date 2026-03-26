@@ -42,21 +42,21 @@ router.post(
 );
 // Routes for accounts to accept/reject/counter agent offers
 router.post(
-  "/accounts/:offerId/accept",
+  "/accounts/:id/accept",
   authenticationMiddlewareAccount,
   validateParams(OfferParamsSchema),
   accountAcceptAgentOffer,
 );
 
 router.post(
-  "/accounts/:offerId/reject",
+  "/accounts/:id/reject",
   authenticationMiddlewareAccount,
   validateParams(OfferParamsSchema),
   accountRejectAgentOffer,
 );
 
 router.post(
-  "/account/advertisements/:advertisementId/offers/agent/counter",
+  "/accounts/:advertisementId/offer/counter",
   authenticationMiddlewareAccount,
   validateParams(OfferParamsSchema),
   validateBody(counterOfferBodySchema),
