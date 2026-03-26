@@ -61,7 +61,12 @@ export async function findAccountNegotiations({
     .leftJoin("adv.realEstate", "re")
     .addSelect(["re.addressFormatted"])
     .leftJoin("adv.agent", "agent")
-    .addSelect(["agent.firstName", "agent.lastName", "agent.phoneNumber"])
+    .addSelect([
+      "agent.id",
+      "agent.firstName",
+      "agent.lastName",
+      "agent.phoneNumber",
+    ])
     .where("offer.accountId = :accountId", { accountId })
     .orderBy("offer.createdAt", "DESC")
     .addOrderBy("offer.id", "DESC")
