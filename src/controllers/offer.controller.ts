@@ -14,6 +14,7 @@ import {
   existPendingOfferByAdvertisementIdAndAccountId,
   findOfferByIdForAgent,
   saveOffer,
+  findAdvertisementWithOfferId,
 } from "../repositories/offer.repository.js";
 import { Status as AdvStatus, Type } from "../entities/advertisement.js";
 import { Status as AppStatus } from "../entities/appointment.js";
@@ -286,7 +287,12 @@ export const accountAcceptAgentOffer = async (
     const account = requireAccount(req, res);
     if (!account) return;
 
-    const advertisementId = parsePositiveInt(req.params.advertisementId);
+    const offerId = parsePositiveInt(req.params.id);
+    if (!offerId) {
+      return res.status(400).json({ error: "Invalid offer id" });
+    }
+
+    const advertisementId = await findAdvertisementWithOfferId(offerId);
     if (!advertisementId) {
       return res.status(400).json({ error: "Invalid advertisement id" });
     }
@@ -355,7 +361,11 @@ export const accountRejectAgentOffer = async (
     const account = requireAccount(req, res);
     if (!account) return;
 
-    const advertisementId = parsePositiveInt(req.params.advertisementId);
+    const offerId = parsePositiveInt(req.params.id);
+    if (!offerId) {
+      return res.status(400).json({ error: "Invalid offer id" });
+    }
+    const advertisementId = await findAdvertisementWithOfferId(offerId);
     if (!advertisementId) {
       return res.status(400).json({ error: "Invalid advertisement id" });
     }

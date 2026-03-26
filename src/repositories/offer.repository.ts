@@ -505,3 +505,14 @@ export async function findAgentNegotiationDetail({
     })),
   };
 }
+
+export const findAdvertisementWithOfferId = async (
+  offerId: number,
+): Promise<number | null> => {
+  const offer = await AppDataSource.getRepository(Offer)
+    .createQueryBuilder("offer")
+    .leftJoinAndSelect("offer.advertisement", "adv")
+    .where("offer.id = :offerId", { offerId })
+    .getOne();
+  return offer ? offer.advertisementId : null;
+};
