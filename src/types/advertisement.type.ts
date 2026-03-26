@@ -42,6 +42,7 @@ export type AdvertisementFilters = {
   balcony?: boolean;
   terrace?: boolean;
   garden?: boolean;
+  energyClass?: string;
 };
 
 export type BuildAdvertisementTitleParams = {

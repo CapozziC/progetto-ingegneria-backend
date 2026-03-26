@@ -233,6 +233,7 @@ type FindAdvertisementsParams = {
   terrace?: boolean;
   housingType?: string;
   garden?: boolean;
+  energyClass?: string;
 };
 
 export async function findAdvertisements({
@@ -261,6 +262,7 @@ export async function findAdvertisements({
   terrace,
   garden,
   housingType,
+  energyClass,
 }: FindAdvertisementsParams) {
   const qb = AppDataSource.getRepository(Advertisement)
     .createQueryBuilder("adv")
@@ -315,6 +317,9 @@ export async function findAdvertisements({
   }
   if (floor !== undefined) {
     qb.andWhere("re.floor = :floor", { floor });
+  }
+  if (energyClass) {
+    qb.andWhere("re.energyClass = :energyClass", { energyClass });
   }
 
   const booleanFilters = {

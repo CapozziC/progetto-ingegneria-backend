@@ -30,23 +30,23 @@ export const parseJsonFields =
 
 /**
  * Parses a value as a positive integer.
- * @param value  The value to parse, which can be of any type. The function will attempt to convert it to a number 
+ * @param value  The value to parse, which can be of any type. The function will attempt to convert it to a number
  * and check if it's a positive integer.
- * @returns A positive integer if the value can be successfully parsed as such; 
- * otherwise, it returns null. This function is useful for validating query parameters 
- * or request body fields that are expected to be positive integers 
-*/
+ * @returns A positive integer if the value can be successfully parsed as such;
+ * otherwise, it returns null. This function is useful for validating query parameters
+ * or request body fields that are expected to be positive integers
+ */
 export const parsePositiveInt = (value: unknown): number | null => {
   const n = Number(value);
   return Number.isInteger(n) && n > 0 ? n : null;
 };
 
 /** Parses a value as a Status enum member.
- * @param raw The value to parse, which can be of any type. The function will check if it's a string 
+ * @param raw The value to parse, which can be of any type. The function will check if it's a string
  * and if it matches one of the valid Status enum members.
- * @returns A Status enum member if the value is a valid string representation of a Status; 
- * returns undefined if the value is null or undefined (indicating that the field was not provided); 
- * returns null if the value is provided but is not a valid Status string. 
+ * @returns A Status enum member if the value is a valid string representation of a Status;
+ * returns undefined if the value is null or undefined (indicating that the field was not provided);
+ * returns null if the value is provided but is not a valid Status string.
  * This function is useful for validating query parameters or request body fields that are expected to be of type Status.
  */
 export const parseStatus = (raw: unknown): Status | undefined | null => {
@@ -58,11 +58,11 @@ export const parseStatus = (raw: unknown): Status | undefined | null => {
 
 /**
  * Parses a value as a non-empty string. This function checks if the provided value is of type string and is not just whitespace.
- * If the value is a valid non-empty string, it returns the trimmed version of the string; otherwise, it returns undefined. 
- * This is useful for validating input fields that are expected to contain meaningful text. 
- * @param value The value to parse, which can be of any type. The function will check if it's a string 
+ * If the value is a valid non-empty string, it returns the trimmed version of the string; otherwise, it returns undefined.
+ * This is useful for validating input fields that are expected to contain meaningful text.
+ * @param value The value to parse, which can be of any type. The function will check if it's a string
  * and if it contains non-whitespace characters.
- * @returns A trimmed string if the value is a valid non-empty string; otherwise, it returns undefined. 
+ * @returns A trimmed string if the value is a valid non-empty string; otherwise, it returns undefined.
  * This allows the caller to easily check if a valid string was provided or not.
  */
 export const parseString = (value: unknown): string | undefined => {
@@ -76,7 +76,7 @@ export const parseString = (value: unknown): string | undefined => {
  * If the value is a valid number string, it returns the corresponding number; otherwise, it returns undefined.
  * This is useful for validating input fields that are expected to contain numeric values, such as query parameters or request body fields.
  * @param value The value to parse, which can be of any type. The function will check if it's a string and if it can be converted to a finite number.
- * @returns A number if the value is a valid number string; otherwise, it returns undefined. 
+ * @returns A number if the value is a valid number string; otherwise, it returns undefined.
  * This allows the caller to easily check if a valid number was provided or not.
  */
 export const parseNumber = (value: unknown): number | undefined => {
@@ -106,7 +106,7 @@ export const parseBooleanQueryParam = (value: unknown): boolean | undefined => {
  * @param value The value to normalize, which can be of any type. The function will check if it's a finite number and if it's greater than or equal to the specified minimum.
  * @param fallback The fallback value to return if the provided value is not valid. This should be a number that makes sense in the context of pagination (e.g., 10 for "take" or 0 for "skip").
  * @param min The minimum acceptable value for the pagination parameter. This defaults to 0, meaning that negative numbers are not considered valid.
- * @returns The normalized pagination value if the provided value is valid; otherwise, it returns the fallback value. 
+ * @returns The normalized pagination value if the provided value is valid; otherwise, it returns the fallback value.
  * This allows the caller to ensure that pagination parameters are always within acceptable bounds.
  */
 export const normalizePagination = (
@@ -153,5 +153,6 @@ export const parseAdvertisementFilters = (
     balcony: parseBooleanQueryParam(req.query.balcony),
     terrace: parseBooleanQueryParam(req.query.terrace),
     garden: parseBooleanQueryParam(req.query.garden),
+    energyClass: parseString(req.query.energyClass),
   };
 };

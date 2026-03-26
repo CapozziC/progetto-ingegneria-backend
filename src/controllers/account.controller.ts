@@ -123,6 +123,7 @@ export const getAllAdvertisements = async (
       balcony: filters.balcony,
       terrace: filters.terrace,
       garden: filters.garden,
+      energyClass: filters.energyClass,
     });
     const response = buildAdvertisementResponse(
       result,
