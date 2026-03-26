@@ -210,7 +210,6 @@ export async function findAdvertisementStatusById(
 type FindAdvertisementsParams = {
   take: number;
   skip: number;
-  status?: string;
   type?: string;
   lat?: number;
   lon?: number;
@@ -239,7 +238,6 @@ type FindAdvertisementsParams = {
 export async function findAdvertisements({
   take,
   skip,
-  status,
   type,
   lat,
   lon,
@@ -282,11 +280,9 @@ export async function findAdvertisements({
     .leftJoin("adv.pois", "pois")
     .addSelect(["pois.name", "pois.type", "pois.id"]);
 
-  if (status) {
-    qb.andWhere("adv.status = :status", {
-      status: Status.ACTIVE,
-    });
-  }
+  qb.andWhere("adv.status = :status", {
+    status: Status.ACTIVE,
+  });
 
   if (type) {
     qb.andWhere("adv.type = :type", { type });

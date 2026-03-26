@@ -100,7 +100,6 @@ export const getAllAdvertisements = async (
     const result = await findAdvertisements({
       take,
       skip,
-      status: filters.status,
       type: filters.type,
       housingType: filters.housingType,
       lat: location.lat,

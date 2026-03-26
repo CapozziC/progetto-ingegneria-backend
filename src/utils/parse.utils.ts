@@ -129,7 +129,6 @@ export const parseAdvertisementFilters = (
   return {
     take: parseNumber(req.query.take) ?? 10,
     skip: parseNumber(req.query.skip) ?? 0,
-    status: parseString(req.query.status),
     type: parseString(req.query.type),
     housingType: parseString(req.query.housingType),
     city: parseString(req.query.city),
