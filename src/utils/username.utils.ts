@@ -22,19 +22,22 @@ export const normalizeUsernameBase = (firstName: string, lastName: string) => {
  */
 
 export const nextUsernameFromExisting = (base: string, usernames: string[]) => {
-  // accetta: base, base1, base2, ...
   let max = -1;
+
+  const regex = new RegExp(String.raw`^${base}(\d+)$`);
 
   for (const u of usernames) {
     if (u === base) {
       max = Math.max(max, 0);
       continue;
     }
-    const m = u.match(new RegExp(`^${base}(\\d+)$`));
-    if (m) max = Math.max(max, Number(m[1]));
+
+    const match = regex.exec(u);
+
+    if (match) {
+      max = Math.max(max, Number(match[1]));
+    }
   }
 
-  // se max = -1 => nessuno esiste, uso base
-  // se max = 0 => esiste base, prossimo è base1
   return max < 0 ? base : `${base}${max + 1}`;
 };

@@ -1,10 +1,7 @@
 import { AppDataSource } from "../data-source.js";
-import { Offer } from "../entities/offer.js";
-import { Advertisement } from "../entities/advertisement.js";
-import { Appointment } from "../entities/appointment.js";
-import { Type, Status as AdvStatus } from "../entities/advertisement.js";
-import { Status } from "../entities/offer.js";
-import { Status as AppStatus } from "../entities/appointment.js";
+import { Offer, Status } from "../entities/offer.js";
+import { Type, Status as AdvStatus,Advertisement } from "../entities/advertisement.js";
+import { Status as AppStatus , Appointment} from "../entities/appointment.js";
 import { Not, In } from "typeorm";
 import {
   AcceptOfferByAgentParams,
