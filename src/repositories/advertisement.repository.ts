@@ -3,6 +3,7 @@ import { AppDataSource } from "../data-source.js";
 import { Advertisement, Status } from "../entities/advertisement.js";
 import { RealEstate } from "../entities/realEstate.js";
 import { Logo } from "../entities/logo.js";
+import { FindAdvertisementsParams } from "../types/advertisement.type.js";
 import { In } from "typeorm";
 export const AdvertisementRepository =
   AppDataSource.getRepository(Advertisement);
@@ -192,7 +193,12 @@ export function advRepo(manager?: EntityManager) {
     ? manager.getRepository(Advertisement)
     : AdvertisementRepository;
 }
-
+/**
+ * Find the status of an advertisement by its ID within a transaction. This function queries the database for the advertisement with the specified ID and retrieves its status. If the advertisement is not found, it returns null.
+ * @param advertisementId The unique identifier of the advertisement whose status to find
+ * @param manager The EntityManager to use for the transaction
+ * @returns A Promise that resolves to the status of the advertisement, or null if not found
+ */
 export async function findAdvertisementStatusById(
   advertisementId: number,
   manager: EntityManager,
@@ -207,34 +213,14 @@ export async function findAdvertisementStatusById(
 
   return advertisement?.status ?? null;
 }
-type FindAdvertisementsParams = {
-  take: number;
-  skip: number;
-  type?: string;
-  lat?: number;
-  lon?: number;
-  radiusMeters: number;
-  minPrice?: number;
-  maxPrice?: number;
-  minSize?: number;
-  maxSize?: number;
-  rooms?: number;
-  floor?: number;
-  bathrooms?: number;
-  elevator?: boolean;
-  airConditioning?: boolean;
-  heating?: boolean;
-  concierge?: boolean;
-  parking?: boolean;
-  garage?: boolean;
-  furnished?: boolean;
-  solarPanels?: boolean;
-  balcony?: boolean;
-  terrace?: boolean;
-  housingType?: string;
-  garden?: boolean;
-  energyClass?: string;
-};
+
+export type AdvertisementSortBy =
+  | "nearest"
+  | "farthest"
+  | "price_asc"
+  | "price_desc"
+  | "newest"
+  | "oldest";
 
 export async function findAdvertisements({
   take,
@@ -263,6 +249,7 @@ export async function findAdvertisements({
   garden,
   housingType,
   energyClass,
+  sortBy,
 }: FindAdvertisementsParams) {
   const qb = AppDataSource.getRepository(Advertisement)
     .createQueryBuilder("adv")
@@ -342,12 +329,13 @@ export async function findAdvertisements({
     }
   }
 
-  if (
+   const hasCoordinates =
     lat !== undefined &&
     lon !== undefined &&
     Number.isFinite(lat) &&
-    Number.isFinite(lon)
-  ) {
+    Number.isFinite(lon);
+
+  if (hasCoordinates) {
     qb.andWhere(
       `
       ST_DWithin(
@@ -368,15 +356,49 @@ export async function findAdvertisements({
       `,
       "distance",
     );
-
-    qb.orderBy("distance", "ASC");
-  } else {
-    qb.orderBy("adv.id", "DESC");
   }
+
+  switch (sortBy) {
+    case "nearest":
+      if (hasCoordinates) {
+        qb.orderBy("distance", "ASC");
+      } else {
+        qb.orderBy("adv.createdAt", "DESC");
+      }
+      break;
+
+    case "farthest":
+      if (hasCoordinates) {
+        qb.orderBy("distance", "DESC");
+      } else {
+        qb.orderBy("adv.createdAt", "DESC");
+      }
+      break;
+
+    case "price_asc":
+      qb.orderBy("adv.price", "ASC");
+      break;
+
+    case "price_desc":
+      qb.orderBy("adv.price", "DESC");
+      break;
+
+    case "oldest":
+      qb.orderBy("adv.createdAt", "ASC");
+      break;
+
+    case "newest":
+    default:
+      qb.orderBy("adv.createdAt", "DESC");
+      break;
+  }
+
+  qb.addOrderBy("adv.id", "DESC");
 
   qb.take(take).skip(skip);
 
   const [items, total] = await qb.getManyAndCount();
+
   const agencyIds = [
     ...new Set(
       items

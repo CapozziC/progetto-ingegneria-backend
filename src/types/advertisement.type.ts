@@ -1,5 +1,6 @@
 import { RealEstate } from "../entities/realEstate.js";
 import { Advertisement } from "../entities/advertisement.js";
+import { AdvertisementSortBy } from "../repositories/advertisement.repository.js";
 export type LocationMode = "coords" | "city" | "ip" | "none";
 
 export type LocationInfo =
@@ -43,6 +44,7 @@ export type AdvertisementFilters = {
   terrace?: boolean;
   garden?: boolean;
   energyClass?: string;
+  sortBy?: AdvertisementSortBy;
 };
 
 export type BuildAdvertisementTitleParams = {
@@ -54,7 +56,7 @@ export type BuildAdvertisementTitleParams = {
 };
 
 /**
- * Type representing the body of a request to update an advertisement, which can include any combination of updatable fields from both the Advertisement and RealEstate entities. 
+ * Type representing the body of a request to update an advertisement, which can include any combination of updatable fields from both the Advertisement and RealEstate entities.
  * This type is defined as a Partial of the intersection of AdvertisementUpdatableFields and RealEstateUpdatableFields, allowing for flexibility in updating only the desired fields while ensuring type safety.
  */
 type AdvertisementUpdatableFields = Pick<
@@ -100,4 +102,34 @@ export type UpdateAdvertisementByAgentParams = {
   advertisementId: number;
   agentId: number;
   value: UpdateAdvertisementBody;
+};
+
+export type FindAdvertisementsParams = {
+  take: number;
+  skip: number;
+  type?: string;
+  lat?: number;
+  lon?: number;
+  radiusMeters: number;
+  minPrice?: number;
+  maxPrice?: number;
+  minSize?: number;
+  maxSize?: number;
+  rooms?: number;
+  floor?: number;
+  bathrooms?: number;
+  elevator?: boolean;
+  airConditioning?: boolean;
+  heating?: boolean;
+  concierge?: boolean;
+  parking?: boolean;
+  garage?: boolean;
+  furnished?: boolean;
+  solarPanels?: boolean;
+  balcony?: boolean;
+  terrace?: boolean;
+  housingType?: string;
+  garden?: boolean;
+  energyClass?: string;
+  sortBy?: AdvertisementSortBy;
 };

@@ -123,9 +123,33 @@ export const normalizePagination = (
  * @param req The request object containing the query parameters.
  * @returns The parsed advertisement filters.
  */
+export type AdvertisementSortBy =
+  | "nearest"
+  | "farthest"
+  | "price_asc"
+  | "price_desc"
+  | "newest"
+  | "oldest";
+
+const allowedSorts: AdvertisementSortBy[] = [
+  "nearest",
+  "farthest",
+  "price_asc",
+  "price_desc",
+  "newest",
+  "oldest",
+];
+
 export const parseAdvertisementFilters = (
   req: RequestAccount,
 ): AdvertisementFilters => {
+  const rawSort = parseString(req.query.sortBy);
+
+  const sortBy =
+    rawSort && allowedSorts.includes(rawSort as AdvertisementSortBy)
+      ? (rawSort as AdvertisementSortBy)
+      : undefined;
+
   return {
     take: parseNumber(req.query.take) ?? 10,
     skip: parseNumber(req.query.skip) ?? 0,
@@ -134,7 +158,7 @@ export const parseAdvertisementFilters = (
     city: parseString(req.query.city),
     qLat: parseNumber(req.query.lat),
     qLon: parseNumber(req.query.lon),
-    radiusMeters: parseNumber(req.query.radiusMeters) ?? 200_000,
+    radiusMeters: parseNumber(req.query.radiusMeters) ?? 500_000,
     minPrice: parseNumber(req.query.minPrice),
     maxPrice: parseNumber(req.query.maxPrice),
     minSize: parseNumber(req.query.minSize),
@@ -154,5 +178,6 @@ export const parseAdvertisementFilters = (
     terrace: parseBooleanQueryParam(req.query.terrace),
     garden: parseBooleanQueryParam(req.query.garden),
     energyClass: parseString(req.query.energyClass),
+    sortBy, // ← aggiunto qui
   };
 };

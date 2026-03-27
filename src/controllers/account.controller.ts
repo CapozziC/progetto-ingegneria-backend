@@ -72,6 +72,7 @@ export const getAllAdvertisements = async (
     }
 
     const filters = parseAdvertisementFilters(req);
+
     const page = Math.max(Number(req.query.page) || 1, 1);
     const limit = Math.max(Number(req.query.limit) || 10, 1);
 
@@ -97,6 +98,19 @@ export const getAllAdvertisements = async (
       throw error;
     }
 
+    const hasCoordinates =
+      Number.isFinite(location.lat) && Number.isFinite(location.lon);
+
+    let sortBy = filters.sortBy;
+
+    if (!sortBy) {
+      sortBy = hasCoordinates ? "nearest" : "newest";
+    }
+
+    if ((sortBy === "nearest" || sortBy === "farthest") && !hasCoordinates) {
+      sortBy = "newest";
+    }
+
     const result = await findAdvertisements({
       take,
       skip,
@@ -104,7 +118,7 @@ export const getAllAdvertisements = async (
       housingType: filters.housingType,
       lat: location.lat,
       lon: location.lon,
-      radiusMeters: normalizePagination(filters.radiusMeters, 200_000, 1),
+      radiusMeters: normalizePagination(filters.radiusMeters, 500_000, 1),
       minPrice: filters.minPrice,
       maxPrice: filters.maxPrice,
       minSize: filters.minSize,
@@ -124,7 +138,9 @@ export const getAllAdvertisements = async (
       terrace: filters.terrace,
       garden: filters.garden,
       energyClass: filters.energyClass,
+      sortBy,
     });
+
     const response = buildAdvertisementResponse(
       result,
       location.mode,
@@ -132,8 +148,11 @@ export const getAllAdvertisements = async (
     );
 
     const totalPages = Math.ceil(result.total / take);
+
     return res.status(200).json({
       ...response,
+      appliedSortBy: sortBy,
+      locationMode: location.mode,
       pagination: {
         page,
         limit: take,
