@@ -34,7 +34,9 @@ import {
 import { buildAdvertisementTitle } from "../helpers/advertisement-title.helper.js";
 import { agentUpdatePassword } from "../repositories/agent.repository.js";
 import { sendAgentCreatedEmail } from "../services/nodemailer/createAgent.service.js";
-import { Agency } from "../entities/agency.js";
+import { deleteFounderAndAgencyTransaction } from "../services/agency.service.js";
+import { validateDeleteFounderRequest } from "../helpers/agent.helper.js";
+import { mapDeleteFounderError } from "../mappers/agent.mapper.js";
 
 /**
  * Get the profile of the authenticated agent, including their ID, name, username, phone number, admin status, and associated agency information. The function checks for the authenticated agent in the request, retrieves their full details from the database using their ID, and returns a structured JSON response containing the agent's profile information. If the agent is not authenticated or if there is an error during retrieval, it returns an appropriate error response.
@@ -399,7 +401,6 @@ export const getAgentNegotiations = async (
   const agent = requireAgent(req, res);
   if (!agent) return res.status(401).json({ error: "Unauthorized" });
 
-
   try {
     const result = await findAgentNegotiations({
       agentId: agent.id,
@@ -504,70 +505,15 @@ export const deleteFirstAgentAndAgency = async (
   req: RequestAgent,
   res: Response,
 ) => {
-  const agentIdToDelete = parsePositiveInt(req.params.agentId);
-  const admin = requireAdmin(req, res);
-  if (!admin) return;
-
-  if (!agentIdToDelete) {
-    return res.status(400).json({ error: "Agent id to delete is required" });
+  const validated = validateDeleteFounderRequest(req, res);
+  if (!validated) {
+    return;
   }
 
-  if (agentIdToDelete !== admin.id) {
-    return res.status(403).json({ error: "Cannot delete another agent" });
-  }
+  const { agentIdToDelete } = validated;
 
   try {
-    await AppDataSource.transaction(async (manager) => {
-      const agentRepo = manager.getRepository(Agent);
-      const agencyRepo = manager.getRepository(Agency);
-
-      // 1) lock SOLO sulla riga agent, senza relazioni
-      const lockedAgent = await agentRepo.findOne({
-        where: { id: agentIdToDelete },
-        lock: { mode: "pessimistic_write" },
-      });
-
-      if (!lockedAgent) {
-        throw new Error("AGENT_NOT_FOUND");
-      }
-
-      // 2) leggo le relazioni con una query separata, senza lock
-      const agentToDelete = await agentRepo.findOne({
-        where: { id: agentIdToDelete },
-        relations: {
-          agency: true,
-          administrator: true,
-        },
-      });
-
-      if (!agentToDelete) {
-        throw new Error("AGENT_NOT_FOUND");
-      }
-
-      if (!agentToDelete.agency) {
-        throw new Error("AGENCY_NOT_FOUND");
-      }
-
-      // controllo che sia il fondatore
-      if (agentToDelete.administrator !== null) {
-        throw new Error("NOT_FOUNDER");
-      }
-
-      // controllo che non ci siano altri agenti nell'agenzia
-      const agentsInAgency = await agentRepo.count({
-        where: {
-          agency: { id: agentToDelete.agency.id },
-        },
-      });
-
-      if (agentsInAgency > 1) {
-        throw new Error("AGENCY_HAS_OTHER_AGENTS");
-      }
-
-      // eliminando l'agenzia, grazie al cascade onDelete sull'agent,
-      // viene eliminato anche l'agente fondatore
-      await agencyRepo.delete({ id: agentToDelete.agency.id });
-    });
+    await deleteFounderAndAgencyTransaction(agentIdToDelete);
 
     return res.status(200).json({
       message: "First agent and agency deleted successfully",
@@ -575,28 +521,7 @@ export const deleteFirstAgentAndAgency = async (
   } catch (error) {
     console.error("Error deleting first agent and agency:", error);
 
-    if (error instanceof Error) {
-      if (error.message === "AGENT_NOT_FOUND") {
-        return res.status(404).json({ error: "Agent not found" });
-      }
-
-      if (error.message === "AGENCY_NOT_FOUND") {
-        return res.status(404).json({ error: "Agency not found" });
-      }
-
-      if (error.message === "NOT_FOUNDER") {
-        return res.status(400).json({
-          error: "Only the founder agent can be deleted with the agency",
-        });
-      }
-
-      if (error.message === "AGENCY_HAS_OTHER_AGENTS") {
-        return res.status(400).json({
-          error: "Cannot delete agency because other agents still belong to it",
-        });
-      }
-    }
-
-    return res.status(500).json({ error: "Internal server error" });
+    const mappedError = mapDeleteFounderError(error);
+    return res.status(mappedError.status).json(mappedError.body);
   }
 };

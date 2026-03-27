@@ -1,6 +1,13 @@
 import { Like, Repository } from "typeorm";
 import { Agent } from "../entities/agent.js";
-import { normalizeUsernameBase,nextUsernameFromExisting } from "../utils/username.utils.js";
+import {
+  normalizeUsernameBase,
+  nextUsernameFromExisting,
+} from "../utils/username.utils.js";
+import { RequestAgent } from "../types/express.js";
+import { requireAdmin } from "../middleware/require.middleware.js";
+import { parsePositiveInt } from "../utils/parse.utils.js";
+import { Response } from "express";
 
 /**
  * Generates a unique username for the first agent of a newly created agency based on the agent's first name and last name. The function normalizes the base username by combining the first name and last name, and then checks the database for existing usernames that start with the same base. It retrieves all existing usernames for agents in the same agency that match the base pattern and then generates a new username by appending a number to the base if necessary to ensure uniqueness. The generated username is returned as a string.
@@ -29,4 +36,36 @@ export const generateFirstAgentUsername = async (
   const existingUsernames = existingAgents.map((agent) => agent.username);
 
   return nextUsernameFromExisting(usernameBase, existingUsernames);
+};
+
+/**
+ *  Validates a request to delete a founder agent by checking if the requester is an admin and if the agent ID to delete is valid and corresponds to the requester. The function takes an Express request and response object, checks if the requester is an admin using the requireAdmin middleware, and then validates the agent ID provided in the request parameters. If the requester is not an admin, if the agent ID is not a positive integer, or if the agent ID does not match the requester's ID, the function sends an appropriate error response and returns null. If all validations pass, it returns an object containing the admin information and the agent ID to delete.
+ * @param req - The Express request object containing the parameters and user information for validation
+ * @param res - The Express response object used to send error responses if validation fails
+ * @returns An object containing the admin information and the agent ID to delete if validation is successful; otherwise, null if validation fails
+ */
+export const validateDeleteFounderRequest = (
+  req: RequestAgent,
+  res: Response,
+): {
+  admin: NonNullable<ReturnType<typeof requireAdmin>>;
+  agentIdToDelete: number;
+} | null => {
+  const admin = requireAdmin(req, res);
+  if (!admin) {
+    return null;
+  }
+
+  const agentIdToDelete = parsePositiveInt(req.params.agentId);
+  if (!agentIdToDelete) {
+    res.status(400).json({ error: "Agent id to delete is required" });
+    return null;
+  }
+
+  if (agentIdToDelete !== admin.id) {
+    res.status(403).json({ error: "Cannot delete another agent" });
+    return null;
+  }
+
+  return { admin, agentIdToDelete };
 };
