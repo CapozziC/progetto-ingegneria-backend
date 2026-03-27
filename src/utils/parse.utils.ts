@@ -131,14 +131,14 @@ export type AdvertisementSortBy =
   | "newest"
   | "oldest";
 
-const allowedSorts: AdvertisementSortBy[] = [
+const allowedSorts = new Set<AdvertisementSortBy>([
   "nearest",
   "farthest",
   "price_asc",
   "price_desc",
   "newest",
   "oldest",
-];
+]);
 
 export const parseAdvertisementFilters = (
   req: RequestAccount,
@@ -146,7 +146,7 @@ export const parseAdvertisementFilters = (
   const rawSort = parseString(req.query.sortBy);
 
   const sortBy =
-    rawSort && allowedSorts.includes(rawSort as AdvertisementSortBy)
+    rawSort && allowedSorts.has(rawSort as AdvertisementSortBy)
       ? (rawSort as AdvertisementSortBy)
       : undefined;
 
@@ -178,6 +178,6 @@ export const parseAdvertisementFilters = (
     terrace: parseBooleanQueryParam(req.query.terrace),
     garden: parseBooleanQueryParam(req.query.garden),
     energyClass: parseString(req.query.energyClass),
-    sortBy, // ← aggiunto qui
+    sortBy,
   };
 };

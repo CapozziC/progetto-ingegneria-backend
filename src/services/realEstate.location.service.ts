@@ -10,12 +10,16 @@ export const resolveRealEstateLocation = async (
     location?: { lng: number; lat: number };
   },
 ): Promise<void> => {
-  const addressText =
-    typeof reDto.address === "string" && reDto.address.trim()
-      ? reDto.address.trim()
-      : typeof reDto.addressInput === "string" && reDto.addressInput.trim()
-        ? reDto.addressInput.trim()
-        : "";
+  let addressText = "";
+
+  if (typeof reDto.address === "string" && reDto.address.trim()) {
+    addressText = reDto.address.trim();
+  } else if (
+    typeof reDto.addressInput === "string" &&
+    reDto.addressInput.trim()
+  ) {
+    addressText = reDto.addressInput.trim();
+  }
 
   if (addressText) {
     const geo = await forwardGeocodeAddress(addressText);

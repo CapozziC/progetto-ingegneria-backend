@@ -17,7 +17,7 @@ export const verifyGoogleToken = async (
 
   const payload = ticket.getPayload();
 
-  if (!payload || !payload.sub) {
+  if (!payload?.sub) {
     throw new Error("Invalid Google token payload");
   }
 
