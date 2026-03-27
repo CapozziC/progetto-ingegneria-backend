@@ -168,19 +168,23 @@ export const authAgentFirstLoginOnly = async (
 ) => {
   const accessToken = req.cookies?.accessToken as string | undefined;
   console.log("Access token:", accessToken);
-  if (!accessToken)
+
+  if (!accessToken) {
     return res.status(401).json({ error: "Missing access token" });
+  }
 
   try {
     const payload = verifyAccessToken(accessToken);
 
     if (payload.type !== Type.AGENT) {
-      res.clearCookie("accessToken");
+      clearAuthCookies(res);
       return res.status(403).json({ error: "Forbidden" });
     }
 
     const agent = await findAgentById(payload.subjectId);
-    if (!agent) return res.status(401).json({ error: "Agent not found" });
+    if (!agent) {
+      return res.status(401).json({ error: "Agent not found" });
+    }
 
     if (agent.isPasswordChange) {
       return res.status(403).json({ error: "Password change not required" });
@@ -189,11 +193,16 @@ export const authAgentFirstLoginOnly = async (
     req.agent = agent;
     return next();
   } catch (err) {
-    if (err instanceof InvalidTokenError) clearAuthCookies(res);
-    return res.status(401).json({ error: "Invalid access token" });
+    if (err instanceof InvalidTokenError) {
+      clearAuthCookies(res);
+      return res.status(401).json({ error: "Invalid access token" });
+    }
 
-    if (err instanceof ExpiredTokenError) clearAuthCookies(res);
-    return res.status(401).json({ error: "Access token expired" });
+    if (err instanceof ExpiredTokenError) {
+      clearAuthCookies(res);
+      return res.status(401).json({ error: "Access token expired" });
+    }
+
     return res.status(401).json({ error: "Unauthorized" });
   }
 };
