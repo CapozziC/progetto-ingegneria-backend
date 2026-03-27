@@ -24,6 +24,14 @@ import {
 import { sendAccountForgotPasswordEmail } from "../services/nodemailer/accountForgotPassword.service.js";
 import { RequestWithResetToken } from "../types/auth.type.js";
 
+const ACCESS_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET;
+const REFRESH_TOKEN_SECRET = process.env.REFRESH_TOKEN_SECRET;
+const RESET_TOKEN_SECRET = process.env.RESET_TOKEN_SECRET;
+
+if (!ACCESS_TOKEN_SECRET || !REFRESH_TOKEN_SECRET || !RESET_TOKEN_SECRET) {
+  throw new Error("Missing token secrets in environment variables");
+}
+
 /**
  * Register a new account with the provided first name, last name, email and password. The password is hashed before saving. If registration is successful, an access token and a refresh token are generated and sent as httpOnly cookies.
  * @param req RequestAccount with body containing firstName, lastName, email and password for the new account to register
@@ -58,13 +66,13 @@ export const registerAccount = async (req: RequestAccount, res: Response) => {
 
     const accessToken = generateAccessToken(
       { subjectId: savedAccount.id, type: Type.ACCOUNT },
-      process.env.ACCESS_TOKEN_SECRET!,
+      ACCESS_TOKEN_SECRET,
       "20m",
     );
 
     const refreshToken = generateRefreshToken(
       { subjectId: savedAccount.id, type: Type.ACCOUNT },
-      process.env.REFRESH_TOKEN_SECRET!,
+      REFRESH_TOKEN_SECRET,
       "5d",
     );
 
@@ -143,13 +151,13 @@ export const loginAccount = async (req: RequestAccount, res: Response) => {
 
     const accessToken = generateAccessToken(
       { subjectId: account.id, type: Type.ACCOUNT },
-      process.env.ACCESS_TOKEN_SECRET!,
+      ACCESS_TOKEN_SECRET,
       "20m",
     );
 
     const refreshToken = generateRefreshToken(
       { subjectId: account.id, type: Type.ACCOUNT },
-      process.env.REFRESH_TOKEN_SECRET!,
+      REFRESH_TOKEN_SECRET,
       "3d",
     );
 
@@ -239,7 +247,7 @@ export const forgotAccountPassword = async (
 
     const resetToken = generateResetToken(
       { subjectId: account.id, type: Type.ACCOUNT },
-      process.env.RESET_TOKEN_SECRET!,
+      RESET_TOKEN_SECRET,
       "10m",
     );
 

@@ -9,6 +9,7 @@ import {
   updateAgentPhoneNumber,
   findAgentById,
   findAgentsCreatedByAgent,
+  agentUpdatePassword,
 } from "../repositories/agent.repository.js";
 import { AppDataSource } from "../data-source.js";
 import {
@@ -32,7 +33,6 @@ import {
   findAgentNegotiationDetail,
 } from "../repositories/offer.repository.js";
 import { buildAdvertisementTitle } from "../helpers/advertisement-title.helper.js";
-import { agentUpdatePassword } from "../repositories/agent.repository.js";
 import { sendAgentCreatedEmail } from "../services/nodemailer/createAgent.service.js";
 import { deleteFounderAndAgencyTransaction } from "../services/agency.service.js";
 import { validateDeleteFounderRequest } from "../helpers/agent.helper.js";

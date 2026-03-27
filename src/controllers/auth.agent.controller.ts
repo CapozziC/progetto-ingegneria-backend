@@ -31,6 +31,13 @@ import { revokeRefreshToken } from "../services/auth.service.js";
 import { sendAgentForgotPasswordEmail } from "../services/nodemailer/agentForgotPassword.service.js";
 import { RequestWithResetToken } from "../types/auth.type.js";
 
+const ACCESS_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET;
+const REFRESH_TOKEN_SECRET = process.env.REFRESH_TOKEN_SECRET;
+const RESET_TOKEN_SECRET = process.env.RESET_TOKEN_SECRET;
+
+if (!ACCESS_TOKEN_SECRET || !REFRESH_TOKEN_SECRET || !RESET_TOKEN_SECRET) {
+  throw new Error("Missing token secrets in environment variables");
+}
 /**
  * Login an agent with the provided agency ID, username and password.
  * If the credentials are valid, an access token and a refresh token are generated and sent as httpOnly cookies.
@@ -75,7 +82,7 @@ export const loginAgent = async (req: Request, res: Response) => {
           subjectId: agent.id,
           type: Type.AGENT,
         },
-        process.env.ACCESS_TOKEN_SECRET!,
+        ACCESS_TOKEN_SECRET,
         "10m",
       );
 
@@ -99,13 +106,13 @@ export const loginAgent = async (req: Request, res: Response) => {
 
     const accessToken = generateAccessToken(
       { subjectId: agent.id, type: Type.AGENT },
-      process.env.ACCESS_TOKEN_SECRET!,
+      ACCESS_TOKEN_SECRET,
       "20m",
     );
 
     const refreshToken = generateRefreshToken(
       { subjectId: agent.id, type: Type.AGENT },
-      process.env.REFRESH_TOKEN_SECRET!,
+      REFRESH_TOKEN_SECRET,
       "6d",
     );
 
@@ -242,13 +249,13 @@ export const changePasswordFirstLogin = async (
 
     const accessToken = generateAccessToken(
       { subjectId: freshAgent.id, type: Type.AGENT },
-      process.env.ACCESS_TOKEN_SECRET!,
+      ACCESS_TOKEN_SECRET,
       "20m",
     );
 
     const refreshToken = generateRefreshToken(
       { subjectId: freshAgent.id, type: Type.AGENT },
-      process.env.REFRESH_TOKEN_SECRET!,
+      REFRESH_TOKEN_SECRET,
       "6d",
     );
 
@@ -307,7 +314,7 @@ export const forgotAgentPassword = async (req: Request, res: Response) => {
 
     const resetToken = generateResetToken(
       { subjectId: agent.id, type: Type.AGENT },
-      process.env.RESET_TOKEN_SECRET!,
+      RESET_TOKEN_SECRET,
       "10m",
     );
 

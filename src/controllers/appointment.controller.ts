@@ -1,7 +1,7 @@
 import { Response } from "express";
 import { DateTime } from "luxon";
 import { todayRome, dayKeyRome } from "../utils/date.utils.js";
-import { getAvailableSlotsForAdvertisement } from "../services/slots.service.js";
+import { getAvailableSlotsForAdvertisement,isValidHourlySlotRome } from "../services/slots.service.js";
 import { RequestAccount, RequestAgent } from "../types/express.js";
 import {
   findAppointmentByIdForAgent,
@@ -16,7 +16,6 @@ import {
   findAdvertisementOwnerId,
   searchAdvertisementById,
 } from "../repositories/advertisement.repository.js";
-import { isValidHourlySlotRome } from "../services/slots.service.js";
 import { QueryFailedError } from "typeorm";
 import {
   requireAccount,

@@ -14,13 +14,15 @@ import {
   buildAdvertisementEntity,
 } from "../mappers/advertisement.mapper.js";
 import { resolveRealEstateLocation } from "../services/realEstate.location.service.js";
-import { saveAdvertisementPhotos } from "../services/advertisement.service.js";
+import {
+  saveAdvertisementPhotos,
+  updateAdvertisementByAgent,
+} from "../services/advertisement.service.js";
 import {
   buildCreateAdvertisementResponse,
   buildUpdatedAdvertisementResponse,
 } from "../mappers/advertisement.response.js";
 import { attachNearbyPoisToAdvertisement } from "../services/advertisement.location.service.js";
-import { updateAdvertisementByAgent } from "../services/advertisement.service.js";
 import { parsePositiveInt } from "../utils/parse.utils.js";
 import { replaceAdvertisementPhoto } from "../services/photo.service.js";
 

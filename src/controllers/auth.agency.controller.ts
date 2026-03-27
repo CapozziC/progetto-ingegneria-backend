@@ -9,14 +9,16 @@ import { deleteUploadedFilesSafe } from "./upload.controller.js";
 import {
   ensureAgencyDoesNotExist,
   createAgencyLogo,
+  validateCreateAgencyRequest,
 } from "../helpers/agency.helper.js";
 import { generateFirstAgentUsername } from "../helpers/agent.helper.js";
-import { createFirstAgentEntity } from "../services/agency.service.js";
+import {
+  createFirstAgentEntity,
+  createAgencyEntity,
+} from "../services/agency.service.js";
 import { buildCreateAgencyResponse } from "../mappers/agency.response.js";
 import { extractCreateAgencyPayload } from "../types/agency.type.js";
 import { QueryFailedError } from "typeorm";
-import { createAgencyEntity } from "../services/agency.service.js";
-import { validateCreateAgencyRequest } from "../helpers/agency.helper.js";
 import { sendAgencyCreatedEmail } from "../services/nodemailer/createAgency.service.js";
 
 /**

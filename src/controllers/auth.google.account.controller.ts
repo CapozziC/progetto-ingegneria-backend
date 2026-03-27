@@ -4,6 +4,11 @@ import { AppDataSource } from "../data-source.js";
 import { Account, Provider } from "../entities/account.js";
 import { verifyGoogleToken } from "../services/google/google.service.js";
 
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) {
+  throw new Error("JWT_SECRET not configured");
+}
+
 export const googleAuthAccount = async (req: Request, res: Response) => {
   try {
     const { token } = req.body as { token?: string };
@@ -64,7 +69,7 @@ export const googleAuthAccount = async (req: Request, res: Response) => {
       await accountRepository.save(account);
     }
 
-    const secret = process.env.JWT_SECRET;
+    const secret = JWT_SECRET;
     if (!secret) {
       throw new Error("JWT_SECRET not configured");
     }
