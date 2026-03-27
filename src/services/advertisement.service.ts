@@ -10,8 +10,8 @@ import { UpdateAdvertisementByAgentParams } from "../types/advertisement.type.js
 import { Photo } from "../entities/photo.js";
 import { extToPhotoFormatEnum } from "../helpers/file.helper.js";
 import { QueryRunner } from "typeorm";
-import path from "path";
-import fs from "fs/promises";
+import path from "node:path";
+import fs from "node:fs/promises";
 
 export const updateAdvertisementByAgent = async ({
   advertisementId,

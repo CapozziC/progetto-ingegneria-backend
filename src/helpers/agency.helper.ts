@@ -2,7 +2,7 @@ import { Repository } from "typeorm";
 import { Request } from "express";
 import { Agency } from "../entities/agency.js";
 import { Logo } from "../entities/logo.js";
-import path from "path";
+import path from "node:path";
 import { extToLogoFormat } from "../helpers/file.helper.js";
 
 /**

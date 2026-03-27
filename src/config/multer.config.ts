@@ -1,7 +1,7 @@
 import multer from "multer";
-import path from "path";
-import crypto from "crypto";
-import fs from "fs";
+import path from "node:path";
+import crypto from "node:crypto";
+import fs from "node:fs";
 
 /**
  * Multer configuration for handling file uploads, specifically for photos and logos.

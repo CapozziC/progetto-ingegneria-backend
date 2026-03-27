@@ -1,6 +1,6 @@
 import { Response } from "express";
 import { DateTime } from "luxon";
-import {  todayRome, dayKeyRome } from "../utils/date.utils.js";
+import { todayRome, dayKeyRome } from "../utils/date.utils.js";
 import { getAvailableSlotsForAdvertisement } from "../services/slots.service.js";
 import { RequestAccount, RequestAgent } from "../types/express.js";
 import {
@@ -283,7 +283,13 @@ export const getAppointmentsForAgent = async (
       const f = new Date(from);
       const t = new Date(to);
 
-      if (isNaN(f.getTime()) || isNaN(t.getTime()) || f >= t) {
+      const fromTime = f.getTime();
+      const toTime = t.getTime();
+
+      const isInvalidRange =
+        Number.isNaN(fromTime) || Number.isNaN(toTime) || fromTime >= toTime;
+
+      if (isInvalidRange) {
         return res.status(400).json({
           error: "Invalid date range",
         });
@@ -291,6 +297,10 @@ export const getAppointmentsForAgent = async (
 
       parsedFrom = f;
       parsedTo = t;
+    } else if (from !== undefined || to !== undefined) {
+      return res.status(400).json({
+        error: "Both from and to must be provided as ISO date strings",
+      });
     }
 
     const appointments = await findAppointmentsByAgentId(agent.id, {
@@ -312,7 +322,8 @@ export const getAppointmentsForAgent = async (
           advertisement: {
             id: a.advertisementId,
             previewPhoto,
-            addressFormatted: a.advertisement?.realEstate?.addressFormatted ?? null,
+            addressFormatted:
+              a.advertisement?.realEstate?.addressFormatted ?? null,
           },
 
           account: {

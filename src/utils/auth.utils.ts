@@ -1,5 +1,5 @@
 import jwt, { Secret, SignOptions } from "jsonwebtoken";
-import crypto from "crypto";
+import crypto from "node:crypto";
 import { Payload } from "../types/auth.type.js";
 import { InvalidTokenError, ExpiredTokenError } from "./error.utils.js";
 

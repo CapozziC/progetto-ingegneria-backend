@@ -324,7 +324,7 @@ export const updatePasswordAccount = async (
     }
 
     const fullAccount = await findAccountById(account.id);
-    if (!fullAccount || !fullAccount.password) {
+    if (!fullAccount?.password) {
       return res.status(404).json({
         error: "Account not found or password not set",
       });
