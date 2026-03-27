@@ -29,7 +29,13 @@ ensureDir(logosDir);
  * Rejects any files that do not match the allowed MIME types.
  */
 const fileFilter: multer.Options["fileFilter"] = (_req, file, cb) => {
-  const allowed = ["image/jpeg", "image/png", "image/heic"];
+  const allowed = [
+    "image/jpeg",
+    "image/png",
+    "image/heic",
+    "image/heif",
+    "image/jpg",
+  ];
   if (!allowed.includes(file.mimetype))
     return cb(new Error("Unsupported file type"));
   cb(null, true);
