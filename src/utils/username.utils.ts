@@ -7,9 +7,10 @@
 export const normalizeUsernameBase = (firstName: string, lastName: string) => {
   const base = `${firstName}${lastName}`
     .toLowerCase()
-    .normalize("NFD") // separa accenti
-    .replace(/[\u0300-\u036f]/g, "") // rimuove accenti
-    .replace(/[^a-z0-9]/g, ""); // toglie spazi/simboli
+    .normalize("NFD")
+    .replaceAll(/[\u0300-\u036f]/g, "") // rimuove accenti
+    .replaceAll(/[^a-z0-9]/g, ""); // rimuove simboli
+
   return base;
 };
 

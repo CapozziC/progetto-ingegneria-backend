@@ -18,7 +18,7 @@ export function parseISODate(value: unknown): Date | null {
  * @returns True if the value is a valid Date object, false otherwise
  */
 export function isValidDate(value: unknown): value is Date {
-  return value instanceof Date && !isNaN(value.getTime());
+  return value instanceof Date && !Number.isNaN(value.getTime());
 }
 
 /**
