@@ -17,7 +17,12 @@ import { InvalidTokenError, ExpiredTokenError } from "../utils/error.utils.js";
 import { Type } from "../entities/refreshToken.js";
 import { RequestAccount } from "../types/express.js";
 import { revokeRefreshToken } from "../services/auth.service.js";
+const ACCESS_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET;
+const REFRESH_TOKEN_SECRET = process.env.REFRESH_TOKEN_SECRET;
 
+if (!ACCESS_TOKEN_SECRET || !REFRESH_TOKEN_SECRET) {
+  throw new Error("Missing token secrets in environment variables");
+}
 /**
  * Account authentication middleware.
  *
@@ -121,13 +126,13 @@ export const authenticationMiddlewareAccount = async (
 
     const newAccessToken = generateAccessToken(
       { subjectId: account.id, type: Type.ACCOUNT },
-      process.env.ACCESS_TOKEN_SECRET!,
+      ACCESS_TOKEN_SECRET,
       "20m",
     );
 
     const newRefreshToken = generateRefreshToken(
       { subjectId: account.id, type: Type.ACCOUNT },
-      process.env.REFRESH_TOKEN_SECRET!,
+      REFRESH_TOKEN_SECRET,
       "3d",
     );
 

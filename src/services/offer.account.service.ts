@@ -1,19 +1,26 @@
-import { Offer } from "../entities/offer.js";
-import { Advertisement } from "../entities/advertisement.js";
-import { Appointment } from "../entities/appointment.js";
+import {
+  Advertisement,
+  Type,
+  Status as AdvStatus,
+} from "../entities/advertisement.js";
+import { Appointment, Status as AppStatus } from "../entities/appointment.js";
 import { AppDataSource } from "../data-source.js";
 import { In, Not } from "typeorm";
-import { Type } from "../entities/advertisement.js";
-import { Status as AdvStatus } from "../entities/advertisement.js";
-import { Status as AppStatus } from "../entities/appointment.js";
-import { Status } from "../entities/offer.js";
-import { OfferMadeBy } from "../entities/offer.js";
+import { Status, Offer, OfferMadeBy } from "../entities/offer.js";
 import {
   AcceptAgentOfferAsAccountParams,
   AcceptAgentOfferAsAccountResult,
   CounterAgentOfferAsAccountParams,
   CounterAgentOfferAsAccountResult,
 } from "../types/offer.type.js";
+
+/**
+ * Accepts an offer made by an agent for a specific account and advertisement.
+ * @param param0  - An object containing the advertisement ID and account ID.
+ * @returns   An object containing details about the accepted offer and the updated advertisement status.
+ * @throws  Will throw an error if the advertisement is not found, not for sale, or not active, if the agent offer is not found, or if the offer price is invalid.
+ * @description This function performs a series of operations within a database transaction to ensure data integrity. It first retrieves the relevant advertisement and agent offer, checks their validity, updates the offer status to accepted, marks the advertisement as sold, rejects any other pending offers for the same advertisement, and cancels any related appointments. Finally, it commits the transaction and returns the result.
+ */
 export async function acceptAgentOfferAsAccount({
   advertisementId,
   accountId,
@@ -108,7 +115,13 @@ export async function acceptAgentOfferAsAccount({
     await queryRunner.release();
   }
 }
-
+/**
+ * Counters an agent's offer for a specific account and advertisement by creating a new offer with the provided price and rejecting the previous agent offer.
+ * @param param0  - An object containing the advertisement ID, account ID, and the new price for the counteroffer.
+ * @returns   An object containing details about the rejected agent offer and the new counteroffer.
+ * @throws  Will throw an error if the agent offer is not found or if there is an issue with the database transaction.
+ * @description This function performs a series of operations within a database transaction to ensure data integrity. It first retrieves the latest pending agent offer for the specified advertisement and account, checks its existence, updates its status to rejected, creates a new offer as a counteroffer from the account, saves it to the database, commits the transaction, and returns details about both the rejected offer and the new counteroffer.
+ */
 export async function counterAgentOfferAsAccount({
   advertisementId,
   accountId,

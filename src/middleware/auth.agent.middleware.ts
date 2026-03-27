@@ -18,6 +18,12 @@ import { setAuthCookies, clearAuthCookies } from "../utils/cookie.utils.js";
 import { revokeRefreshToken } from "../services/auth.service.js";
 import { ExpiredTokenError, InvalidTokenError } from "../utils/error.utils.js";
 
+const ACCESS_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET;
+const REFRESH_TOKEN_SECRET = process.env.REFRESH_TOKEN_SECRET;
+
+if (!ACCESS_TOKEN_SECRET || !REFRESH_TOKEN_SECRET) {
+  throw new Error("Missing token secrets in environment variables");
+}
 /**
  * Agent authentication middleware.
  *
@@ -123,13 +129,13 @@ export const authenticationMiddlewareAgent = async (
 
     const newAccessToken = generateAccessToken(
       { subjectId: agent.id, type: Type.AGENT },
-      process.env.ACCESS_TOKEN_SECRET!,
+      ACCESS_TOKEN_SECRET,
       "20m",
     );
 
     const newRefreshToken = generateRefreshToken(
       { subjectId: agent.id, type: Type.AGENT },
-      process.env.REFRESH_TOKEN_SECRET!,
+      REFRESH_TOKEN_SECRET,
       "6d",
     );
 

@@ -1,7 +1,6 @@
 import { EntityManager } from "typeorm";
 import { AppDataSource } from "../data-source.js";
-import { Offer } from "../entities/offer.js";
-import { Status, OfferMadeBy } from "../entities/offer.js";
+import { Status, OfferMadeBy, Offer } from "../entities/offer.js";
 import {
   FindAccountNegotiationsParams,
   FindAccountNegotiationDetailParams,

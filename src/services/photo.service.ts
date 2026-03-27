@@ -3,8 +3,7 @@ import {
   getRelativePathFromUrl,
 } from "../helpers/file.helper.js";
 import { ReplaceAdvertisementPhotoParams } from "../types/photo.type.js";
-import { transactionFindPhotoByIdAndAdvertisementId } from "../repositories/photo.repository.js";
-import { savePhoto } from "../repositories/photo.repository.js";
+import { transactionFindPhotoByIdAndAdvertisementId,savePhoto } from "../repositories/photo.repository.js";
 import { AppDataSource } from "../data-source.js";
 import path from "node:path";
 import fs from "node:fs/promises";

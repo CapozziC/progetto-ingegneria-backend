@@ -1,10 +1,10 @@
-import { EntityManager } from "typeorm";
+import { EntityManager,In } from "typeorm";
 import { AppDataSource } from "../data-source.js";
 import { Advertisement, Status } from "../entities/advertisement.js";
 import { RealEstate } from "../entities/realEstate.js";
 import { Logo } from "../entities/logo.js";
 import { FindAdvertisementsParams } from "../types/advertisement.type.js";
-import { In } from "typeorm";
+
 export const AdvertisementRepository =
   AppDataSource.getRepository(Advertisement);
 

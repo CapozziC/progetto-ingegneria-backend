@@ -16,8 +16,12 @@ import {
   saveOffer,
   findAdvertisementWithOfferId,
 } from "../repositories/offer.repository.js";
-import { Status as AdvStatus, Type, Advertisement} from "../entities/advertisement.js";
-import { Status as AppStatus,Appointment} from "../entities/appointment.js";
+import {
+  Status as AdvStatus,
+  Type,
+  Advertisement,
+} from "../entities/advertisement.js";
+import { Status as AppStatus, Appointment } from "../entities/appointment.js";
 import { Status, OfferMadeBy, Offer } from "../entities/offer.js";
 import { AppDataSource } from "../data-source.js";
 import { In } from "typeorm";
@@ -450,14 +454,11 @@ export const accountRejectAgentOfferAndCreateCounter = async (
   } catch (error) {
     console.error("Error countering agent offer as account:", error);
 
-    if (error instanceof Error) {
-      switch (error.message) {
-        case "AGENT_OFFER_NOT_FOUND":
-          return res.status(409).json({
-            error:
-              "No pending agent offer found to counter (account can only counter agent offers)",
-          });
-      }
+    if (error instanceof Error && error.message === "AGENT_OFFER_NOT_FOUND") {
+      return res.status(409).json({
+        error:
+          "No pending agent offer found to counter (account can only counter agent offers)",
+      });
     }
 
     return res.status(500).json({ error: "Failed to counter agent offer" });
