@@ -103,7 +103,7 @@ router.get(
   getAgentNegotiations,
 );
 
-router.post(
+router.patch(
   "/:advertisementId/rented",
   authenticationMiddlewareAgent,
   markAdvertisementAsRented,
