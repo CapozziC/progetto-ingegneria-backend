@@ -44,8 +44,8 @@ router.post(
 );
 router.post("/account/login", loginAccount);
 router.post("/account/google", googleAuthAccount);
-router.post("/account/forgot-password", forgotAccountPassword);
-router.post("/account/reset-password", verifyResetToken, resetAccountPassword);
+router.post("/account/forgot_password", forgotAccountPassword);
+router.post("/account/reset_password", verifyResetToken, resetAccountPassword);
 router.post("/account/logout", authenticationMiddlewareAccount, logoutAccount);
 //AGENT AUTH ROUTES
 router.post("/agent/login", validateBody(loginAgentSchema), loginAgent);
@@ -56,8 +56,8 @@ router.post(
   authAgentFirstLoginOnly,
   changePasswordFirstLogin,
 );
-router.post("/agent/forgot-password", forgotAgentPassword);
-router.post("/agent/reset-password", verifyResetToken, resetAgentPassword);
+router.post("/agent/forgot_password", forgotAgentPassword);
+router.post("/agent/reset_password", verifyResetToken, resetAgentPassword);
 router.post("/agent/logout", authenticationMiddlewareAgent, logoutAgent);
 //AGENCY AUTH ROUTES
 router.post(
