@@ -9,7 +9,7 @@ export const verifyResetToken = (
   next: NextFunction,
 ) => {
   try {
-    const { token } = req.body;
+    const { token } = req.body ;
 
     if (!token) {
       return res.status(400).json({ error: "Reset token is required" });
@@ -17,7 +17,7 @@ export const verifyResetToken = (
 
     const payload = jwt.verify(
       token,
-      process.env.REFRESH_TOKEN_SECRET as string,
+      process.env.RESET_TOKEN_SECRET as string,
     ) as {
       subjectId: number;
       type: Type;
