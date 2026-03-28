@@ -26,6 +26,7 @@ import {
   getAgentAdvertisementById,
 } from "../controllers/agent.controller.js";
 import { getAppointmentsForAgent } from "../controllers/appointment.controller.js";
+import { markAdvertisementAsRented } from "../controllers/offer.controller.js";
 
 router.get("/me/info", authenticationMiddlewareAgent, getAgentProfile);
 
@@ -100,6 +101,12 @@ router.get(
   "/negotiations",
   authenticationMiddlewareAgent,
   getAgentNegotiations,
+);
+
+router.post(
+  "/:advertisementId/rented",
+  authenticationMiddlewareAgent,
+  markAdvertisementAsRented,
 );
 
 export default router;
