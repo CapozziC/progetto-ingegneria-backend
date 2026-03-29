@@ -40,6 +40,10 @@ const mockedRequireAdmin =
 const mockedParsePositiveInt = jest.fn<(value: string) => number | null>();
 const mockedParseStatus =
   jest.fn<(value: string) => AppointmentStatus | null>();
+const mockedParseJsonFields =
+  jest.fn<(fields: string[]) => (req: Request, res: Response, next: NextFunction) => void>(
+    () => (_req: Request, _res: Response, next: NextFunction) => next(),
+  );
 //Repository
 const mockedFindAppointmentByIdForAgent =
   jest.fn<
@@ -61,6 +65,7 @@ const mockedFindAppointmentsByAccount =
   jest.fn<(accountId: number) => Promise<Appointment[]>>();
 const mockedFindAppointmentsByAgentId =
   jest.fn<(agentId: number) => Promise<Appointment[]>>();
+
 
 /* ---------------- MOCK MODULES ---------------- */
 
@@ -84,6 +89,7 @@ jest.unstable_mockModule(
 jest.unstable_mockModule("../../../src/utils/parse.utils.ts", () => ({
   parsePositiveInt: mockedParsePositiveInt,
   parseStatus: mockedParseStatus,
+  parseJsonFields: mockedParseJsonFields,
 }));
 
 jest.unstable_mockModule(

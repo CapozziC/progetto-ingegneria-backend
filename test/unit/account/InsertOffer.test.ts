@@ -43,6 +43,8 @@ const mockedParseStatus = jest.fn<(value: string) => unknown>();
 
 const mockedSearchAdvertisementById =
   jest.fn<(advertisementId: number) => Promise<Advertisement | null>>();
+const mockedFindAdvertisementWithOfferId =
+  jest.fn<(offerId: number) => Promise<{ advertisementId: number } | null>>();
 
 const mockedFindAdvertisementOwnerId =
   jest.fn<(advertisementId: number) => Promise<number | null>>();
@@ -141,6 +143,7 @@ jest.unstable_mockModule(
       mockedFindLatestPendingAccountOfferForAdvertisementAndAccount,
     createOffer: mockedCreateOffer,
     saveOffer: mockedSaveOffer,
+    findAdvertisementWithOfferId: mockedFindAdvertisementWithOfferId,
   }),
 );
 

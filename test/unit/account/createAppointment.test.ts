@@ -8,6 +8,7 @@ import { Agency } from "../../../src/entities/agency.ts";
 import { QueryFailedError } from "typeorm";
 
 let account: Account;
+const FUTURE_DATE = "2099-03-25";
 
 /* ---------------- MOCK FUNCTIONS ---------------- */
 //Repository
@@ -191,7 +192,7 @@ describe("POST /advertisement/create_appointment/:id", () => {
 
       const res = await request(testApp)
         .post("/advertisement/create_appointment/abc")
-        .send({ date: "2026-03-25", time: "10:00" });
+        .send({ date: FUTURE_DATE, time: "10:00" });
 
       expect(res.status).toBe(400);
       expect(res.body.error).toBe("Invalid advertisement id");
@@ -203,7 +204,7 @@ describe("POST /advertisement/create_appointment/:id", () => {
 
       const res = await request(testApp)
         .post("/advertisement/create_appointment/12")
-        .send({ date: "2026-03-25" });
+        .send({ date: FUTURE_DATE });
 
       expect(res.status).toBe(400);
       expect(res.body.error).toBe("date and time are required");
@@ -231,7 +232,7 @@ describe("POST /advertisement/create_appointment/:id", () => {
 
       const res = await request(testApp)
         .post("/advertisement/create_appointment/12")
-        .send({ date: "2026-03-25", time: "10:00" });
+        .send({ date: FUTURE_DATE, time: "10:00" });
 
       expect(res.status).toBe(401);
       expect(res.body.error).toBe("Unauthorized: account not logged in");
@@ -245,7 +246,7 @@ describe("POST /advertisement/create_appointment/:id", () => {
 
       const res = await request(testApp)
         .post("/advertisement/create_appointment/12")
-        .send({ date: "2026-03-25", time: "10:00" });
+        .send({ date: FUTURE_DATE, time: "10:00" });
 
       expect(res.status).toBe(404);
       expect(res.body.error).toBe("Advertisement owner  not found");
@@ -283,7 +284,7 @@ describe("POST /advertisement/create_appointment/:id", () => {
 
       const res = await request(testApp)
         .post("/advertisement/create_appointment/12")
-        .send({ date: "2026-03-25", time: "10:00" });
+        .send({ date: FUTURE_DATE, time: "10:00" });
 
       expect(res.status).toBe(409);
       expect(res.body.error).toBe(
@@ -300,7 +301,7 @@ describe("POST /advertisement/create_appointment/:id", () => {
 
       const res = await request(testApp)
         .post("/advertisement/create_appointment/12")
-        .send({ date: "2026-03-25", time: "10:30" });
+        .send({ date: FUTURE_DATE, time: "10:30" });
 
       expect(res.status).toBe(400);
       expect(res.body.error).toBe(
@@ -370,7 +371,7 @@ describe("POST /advertisement/create_appointment/:id", () => {
 
       const res = await request(testApp)
         .post("/advertisement/create_appointment/12")
-        .send({ date: "2026-03-25", time: "10:00" });
+        .send({ date: FUTURE_DATE, time: "10:00" });
 
       expect(res.status).toBe(201);
       expect(res.body).toMatchObject({
@@ -422,7 +423,7 @@ describe("POST /advertisement/create_appointment/:id", () => {
 
       const res = await request(testApp)
         .post("/advertisement/create_appointment/12")
-        .send({ date: "2026-03-25", time: "10:00" });
+        .send({ date: FUTURE_DATE, time: "10:00" });
 
       expect(res.status).toBe(409);
       expect(res.body.error).toBe("Slot already taken");
