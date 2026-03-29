@@ -1,0 +1,9 @@
+sonar.projectKey=CapozziC_progetto-ingegneria-backend
+sonar.organization=capozzic
+
+sonar.sources=src
+sonar.tests=test
+
+sonar.test.inclusions=**/*.test.ts,**/*.spec.ts
+
+sonar.typescript.lcov.reportPaths=coverage/lcov.info
