@@ -5,7 +5,7 @@ export async function sendAccountForgotPasswordEmail(params: {
   firstName: string;
   token: string;
 }) {
-  const resetUrl = `${process.env.FRONTEND_URL_RESET_PASSWORD_ACCOUNT}token=${params.token}`;
+  const resetUrl = `${process.env.FRONTEND_URL_RESET_PASSWORD_ACCOUNT}?token=${params.token}`;
   const emailContent = accountForgotPasswordTemplate({
     firstName: params.firstName,
     resetUrl,
