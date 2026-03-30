@@ -300,10 +300,14 @@ export const getAllAgency = async (req: Request, res: Response) => {
  */
 export const forgotAgentPassword = async (req: Request, res: Response) => {
   try {
-    const { username } = req.body;
+    const { username, agencyId } = req.body;
 
     if (!username) {
       return res.status(400).json({ error: "Username is required" });
+    }
+
+    if (!agencyId) {
+      return res.status(400).json({ error: "Agency ID is required" });
     }
 
     const agent = await findAgentByUsername(username);
