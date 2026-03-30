@@ -11,6 +11,7 @@ import {
   updatePasswordAgentParamsSchema,
   updatePasswordAgentBodySchema,
   updatePhoneNumberSchema,
+  createAccountByAgentSchema,
 } from "../validations/agent.validation.js";
 import {
   createNewAgent,
@@ -24,6 +25,7 @@ import {
   deleteFirstAgentAndAgency,
   getAllAgentCreatedByLoggedAdmin,
   getAgentAdvertisementById,
+  agentCreateAccountForExternalOffer,
 } from "../controllers/agent.controller.js";
 import { getAppointmentsForAgent } from "../controllers/appointment.controller.js";
 import { markAdvertisementAsRented } from "../controllers/offer.controller.js";
@@ -107,6 +109,13 @@ router.patch(
   "/:advertisementId/rented",
   authenticationMiddlewareAgent,
   markAdvertisementAsRented,
+);
+
+router.post(
+  "/account/create",
+  authenticationMiddlewareAgent,
+  validateBody(createAccountByAgentSchema),
+  agentCreateAccountForExternalOffer,
 );
 
 export default router;

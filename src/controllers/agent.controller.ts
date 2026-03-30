@@ -37,6 +37,11 @@ import { sendAgentCreatedEmail } from "../services/nodemailer/createAgent.servic
 import { deleteFounderAndAgencyTransaction } from "../services/agency.service.js";
 import { validateDeleteFounderRequest } from "../helpers/agent.helper.js";
 import { mapDeleteFounderError } from "../mappers/agent.mapper.js";
+import {
+  createAccount,
+  findAccountByEmail,
+  saveAccount,
+} from "../repositories/account.repository.js";
 
 /**
  * Get the profile of the authenticated agent, including their ID, name, username, phone number, admin status, and associated agency information. The function checks for the authenticated agent in the request, retrieves their full details from the database using their ID, and returns a structured JSON response containing the agent's profile information. If the agent is not authenticated or if there is an error during retrieval, it returns an appropriate error response.
@@ -525,3 +530,45 @@ export const deleteFirstAgentAndAgency = async (
     return res.status(mappedError.status).json(mappedError.body);
   }
 };
+/**
+ * Create a new account for an external offer, with the provided first name, last name and email. The account is created without a password and with a flag indicating that the user must change their password at the first login. This function is intended to be used by agents to create accounts for clients who want to make an offer on a property but do not have an account yet. Only authenticated agents can create accounts for external offers.
+ * @param req RequestAgent with authenticated agent in req.agent and firstName, lastName and email of the new account in req.body
+ * @param res Response with success message and id of the created account or error message
+ * @returns JSON with success message and id of the created account or error message
+ * Only authenticated agents can create accounts for external offers.
+ */
+export const agentCreateAccountForExternalOffer = async (
+  req: RequestAgent,
+  res: Response,
+) => {
+  try {
+    const agent = requireAgent(req, res);
+    if (!agent) return;
+
+    const { firstName, lastName, email } = req.body;
+    if (!firstName || !lastName || !email) {
+      return res.status(400).json({ error: "All fields are required" });
+    }
+    const existingAccount = await findAccountByEmail(email);
+    if (existingAccount) {
+      return res
+        .status(409)
+        .json({ error: "Account with this email already exists" });
+    }
+    const newAccount = createAccount({
+      firstName,
+      lastName,
+      email,
+    });
+    await saveAccount(newAccount);
+    return res.status(201).json({
+      message: "Account created successfully for external offer",
+      accountId: newAccount.id,
+    });
+  } catch (error) {
+    console.error("Error creating account for external offer:", error);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+

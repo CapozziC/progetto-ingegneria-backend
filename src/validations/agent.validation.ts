@@ -45,7 +45,6 @@ export const updatePhoneNumberSchema = Joi.object({
     }),
 }).unknown(false);
 
-
 export const updatePasswordAgentParamsSchema = Joi.object({
   agentId: Joi.number().integer().positive().required().messages({
     "number.base": "Agent ID must be a number",
@@ -65,7 +64,24 @@ export const updatePasswordAgentBodySchema = Joi.object({
     "string.min": "New password must be at least 8 characters long",
     "string.max": "New password cannot be longer than 100 characters",
     "any.required": "New password is required",
-  })
+  }),
 }).unknown(false);
 
-
+export const createAccountByAgentSchema = Joi.object({
+  firstName: Joi.string().trim().min(2).max(30).required().messages({
+    "string.base": "First name must be a string",
+    "string.min": "First name must be at least 2 characters long",
+    "string.max": "First name cannot be longer than 30 characters",
+    "any.required": "First name is required",
+  }),
+  lastName: Joi.string().trim().min(2).max(30).required().messages({
+    "string.base": "Last name must be a string",
+    "string.min": "Last name must be at least 2 characters long",
+    "string.max": "Last name cannot be longer than 30 characters",
+    "any.required": "Last name is required",
+  }),
+  email: Joi.string().email().required().messages({
+    "string.email": "Invalid email format",
+    "any.required": "Email is required",
+  }),
+}).unknown(false);
