@@ -568,6 +568,9 @@ export const agentCreateAccountForExternalOffer = async (
     return res.status(201).json({
       message: "Account created successfully for external offer",
       accountId: newAccount.id,
+      firstName: newAccount.firstName,
+      lastName: newAccount.lastName,
+      email: newAccount.email,
     });
   } catch (error) {
     console.error("Error creating account for external offer:", error);
@@ -625,6 +628,10 @@ export const agentCreateExternalOffer = async (
     return res.status(201).json({
       message: "Offer created successfully for external offer",
       offerId: offer.id,
+      advertisementId: offer.advertisementId,
+      accountId: offer.accountId,
+      price: offer.price,
+      status: offer.status,
     });
   } catch (error) {
     console.error("Error creating account for external offer:", error);
