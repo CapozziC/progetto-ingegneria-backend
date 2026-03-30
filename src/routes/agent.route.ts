@@ -26,9 +26,11 @@ import {
   getAllAgentCreatedByLoggedAdmin,
   getAgentAdvertisementById,
   agentCreateAccountForExternalOffer,
+  agentCreateExternalOffer,
 } from "../controllers/agent.controller.js";
 import { getAppointmentsForAgent } from "../controllers/appointment.controller.js";
 import { markAdvertisementAsRented } from "../controllers/offer.controller.js";
+import { createExternalOfferBodySchema } from "../validations/offer.validation.js";
 
 router.get("/me/info", authenticationMiddlewareAgent, getAgentProfile);
 
@@ -116,6 +118,13 @@ router.post(
   authenticationMiddlewareAgent,
   validateBody(createAccountByAgentSchema),
   agentCreateAccountForExternalOffer,
+);
+
+router.post(
+  "/create_external_offer/:advertisementId",
+  authenticationMiddlewareAgent,
+  validateBody(createExternalOfferBodySchema),
+  agentCreateExternalOffer,
 );
 
 export default router;

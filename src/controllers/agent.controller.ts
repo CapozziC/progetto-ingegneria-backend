@@ -21,16 +21,19 @@ import {
   requireAgent,
 } from "../middleware/require.middleware.js";
 import { generateTemporaryPassword } from "../utils/password.utils.js";
-import { Advertisement } from "../entities/advertisement.js";
+import { Advertisement, Type } from "../entities/advertisement.js";
 import { Agent } from "../entities/agent.js";
 import {
   findAdvertisementByIdAndAgentId,
   findAdvertisementsByAgentId,
+  searchAdvertisementById,
 } from "../repositories/advertisement.repository.js";
 import { parsePositiveInt } from "../utils/parse.utils.js";
 import {
   findAgentNegotiations,
   findAgentNegotiationDetail,
+  createOffer,
+  saveOffer,
 } from "../repositories/offer.repository.js";
 import { buildAdvertisementTitle } from "../helpers/advertisement-title.helper.js";
 import { sendAgentCreatedEmail } from "../services/nodemailer/createAgent.service.js";
@@ -42,6 +45,7 @@ import {
   findAccountByEmail,
   saveAccount,
 } from "../repositories/account.repository.js";
+import { OfferMadeBy, Status as OfferStatus } from "../entities/offer.js";
 
 /**
  * Get the profile of the authenticated agent, including their ID, name, username, phone number, admin status, and associated agency information. The function checks for the authenticated agent in the request, retrieves their full details from the database using their ID, and returns a structured JSON response containing the agent's profile information. If the agent is not authenticated or if there is an error during retrieval, it returns an appropriate error response.
@@ -571,4 +575,59 @@ export const agentCreateAccountForExternalOffer = async (
   }
 };
 
+export const agentCreateExternalOffer = async (
+  req: RequestAgent,
+  res: Response,
+) => {
+  try {
+    const agent = requireAgent(req, res);
+    if (!agent) return;
 
+    const advertisementId = parsePositiveInt(req.params.advertisementId);
+    const { email, price } = req.body;
+    if (!advertisementId) {
+      return res.status(400).json({ error: "Invalid advertisement id" });
+    }
+    if (!email || !price) {
+      return res.status(400).json({ error: "All fields are required" });
+    }
+    if (typeof price !== "number" || price <= 0) {
+      return res.status(400).json({ error: "Price must be a positive number" });
+    }
+
+    const externalAccount = await findAccountByEmail(email);
+    if (!externalAccount) {
+      return res.status(404).json({ error: "External account not found" });
+    }
+    const advertisement = await searchAdvertisementById(advertisementId);
+    if (!advertisement) {
+      return res.status(404).json({ error: "Advertisement not found" });
+    }
+    if (advertisement.agent?.id !== agent.id) {
+      return res.status(403).json({
+        error: "Forbidden: cannot create offer for this advertisement",
+      });
+    }
+    if (advertisement.type !== Type.SALE) {
+      return res.status(400).json({
+        error: "Cannot create offer for an advertisement that is not a sale",
+      });
+    }
+    const offer = createOffer({
+      price,
+      advertisementId: advertisement.id,
+      agentId: agent.id,
+      accountId: externalAccount.id,
+      madeBy: OfferMadeBy.AGENT,
+      status: OfferStatus.PENDING,
+    });
+    await saveOffer(offer);
+    return res.status(201).json({
+      message: "Offer created successfully for external offer",
+      offerId: offer.id,
+    });
+  } catch (error) {
+    console.error("Error creating account for external offer:", error);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+};
