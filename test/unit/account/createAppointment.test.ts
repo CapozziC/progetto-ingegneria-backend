@@ -185,7 +185,7 @@ describe("POST /advertisement/create_appointment/:id", () => {
     account = await makeAccount();
   });
 
-  describe("W - wrong input", () => {
+  describe("Validazione input", () => {
     it("should return 400 if advertisement id is invalid", async () => {
       mockedRequireAccount.mockReturnValue(account);
       mockedParsePositiveInt.mockReturnValue(null);
@@ -223,7 +223,7 @@ describe("POST /advertisement/create_appointment/:id", () => {
     });
   });
 
-  describe("C - corner cases", () => {
+  describe("business logic", () => {
     it("should return 401 if requireAccount fails", async () => {
       mockedRequireAccount.mockImplementation((_req, res) => {
         res.status(401).json({ error: "Unauthorized: account not logged in" });
@@ -293,7 +293,7 @@ describe("POST /advertisement/create_appointment/:id", () => {
     });
   });
 
-  describe("E - edge cases", () => {
+  describe("Validazione input", () => {
     it("should return 400 if slot is not a valid Rome hourly slot", async () => {
       mockedRequireAccount.mockReturnValue(account);
       mockedParsePositiveInt.mockReturnValue(12);
@@ -323,7 +323,7 @@ describe("POST /advertisement/create_appointment/:id", () => {
     });
   });
 
-  describe("N - normal case", () => {
+  describe("business logic", () => {
     it("should create appointment successfully", async () => {
       mockedRequireAccount.mockReturnValue(account);
       mockedParsePositiveInt.mockReturnValue(12);

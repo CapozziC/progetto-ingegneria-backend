@@ -9,6 +9,7 @@ import type { Account } from "../../../src/entities/account.js";
 import type { Offer } from "../../../src/entities/offer.js";
 import { Agency } from "../../../src/entities/agency.ts";
 import { Advertisement } from "../../../src/entities/advertisement.js";
+import { Status as OfferStatus } from "../../../src/entities/offer.js";
 
 /* ---------------- SHARED DATA ---------------- */
 
@@ -205,7 +206,7 @@ describe("POST /advertisement/create_offer/:id", () => {
     account = await makeAccount();
   });
 
-  describe("W - wrong input", () => {
+  describe("Validazione input", () => {
     it("should return 400 if advertisement id is invalid", async () => {
       mockedRequireAccount.mockReturnValue(account);
       mockedParsePositiveInt.mockReturnValue(null);
@@ -257,7 +258,7 @@ describe("POST /advertisement/create_offer/:id", () => {
     });
   });
 
-  describe("C - corner cases", () => {
+  describe("business logic", () => {
     it("should return 401 if requireAccount fails", async () => {
       mockedRequireAccount.mockImplementation((_req, res) => {
         res.status(401).json({ error: "Unauthorized: account not logged in" });
@@ -351,7 +352,7 @@ describe("POST /advertisement/create_offer/:id", () => {
     });
   });
 
-  describe("E - edge case", () => {
+  describe("business logic", () => {
     it("should return 409 if advertisement is not for sale", async () => {
       mockedRequireAccount.mockReturnValue(account);
       mockedParsePositiveInt.mockReturnValue(12);
@@ -371,6 +372,73 @@ describe("POST /advertisement/create_offer/:id", () => {
       expect(res.body.error).toBe(
         "Offers can only be made for sale advertisements",
       );
+    });
+  });
+  describe("business logic", () => {
+    it("should create offer successfully", async () => {
+      mockedRequireAccount.mockReturnValue(account);
+      mockedParsePositiveInt.mockReturnValue(12);
+
+      const advertisement = await makeAdvertisement({
+        id: 12,
+        type: Type.SALE,
+        agent: {
+          id: 99,
+          firstName: "Agent",
+          lastName: "Smith",
+          username: "agent.smith",
+          password: "hashedpassword",
+          isAdmin: false,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          phoneNumber: "",
+          isPasswordChange: false,
+          advertisements: [],
+          offers: [],
+          appointments: [],
+          agency: new Agency(),
+          administrator: null,
+          agents: [],
+        },
+      });
+
+      const createdOffer = {
+        id: 55,
+        price: 120000,
+        status: OfferStatus.PENDING,
+        advertisementId: 12,
+        accountId: account.id,
+        agentId: 99,
+      } as Offer;
+
+      mockedSearchAdvertisementById.mockResolvedValue(advertisement);
+      mockedFindAdvertisementOwnerId.mockResolvedValue(99);
+      mockedExistPendingOfferByAdvertisementIdAndAccountId.mockResolvedValue(
+        null,
+      );
+      mockedCreateOffer.mockReturnValue(createdOffer);
+      mockedSaveOffer.mockResolvedValue(createdOffer);
+
+      const res = await request(testApp)
+        .post("/advertisement/create_offer/12")
+        .send({ price: 120000 });
+
+      expect(res.status).toBe(201);
+      expect(res.body.offer).toEqual({
+        id: 55,
+        price: 120000,
+        status: OfferStatus.PENDING,
+        advertisementId: 12,
+        accountId: account.id,
+        agentId: 99,
+      });
+      expect(mockedCreateOffer).toHaveBeenCalledWith({
+        price: 120000,
+        advertisementId: 12,
+        accountId: account.id,
+        agentId: 99,
+      });
+      expect(mockedSaveOffer).toHaveBeenCalledWith(createdOffer);
     });
   });
 });

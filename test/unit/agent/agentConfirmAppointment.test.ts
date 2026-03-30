@@ -117,7 +117,7 @@ describe("PATCH /appointment/agents/:id/confirm", () => {
     jest.clearAllMocks();
   });
 
-  describe("W - wrong input", () => {
+  describe("Validazione input", () => {
     it("should return 400 if appointment id is invalid", async () => {
       mockedRequireAgent.mockReturnValue(agent);
       mockedParsePositiveInt.mockReturnValue(null);
@@ -131,7 +131,7 @@ describe("PATCH /appointment/agents/:id/confirm", () => {
     });
   });
 
-  describe("C - corner cases", () => {
+  describe("business logic", () => {
     it("should return 401 if requireAgent fails", async () => {
       mockedRequireAgent.mockImplementation((_req, res) => {
         res.status(401).json({ error: "Unauthorized: agent not logged in" });
@@ -162,7 +162,7 @@ describe("PATCH /appointment/agents/:id/confirm", () => {
     });
   });
 
-  describe("E - edge case", () => {
+  describe("business logic", () => {
     it("should return 400 if appointment is not in REQUESTED status", async () => {
       mockedRequireAgent.mockReturnValue(agent);
       mockedParsePositiveInt.mockReturnValue(12);
@@ -189,7 +189,7 @@ describe("PATCH /appointment/agents/:id/confirm", () => {
     });
   });
 
-  describe("N - normal case", () => {
+  describe("business logic", () => {
     it("should confirm appointment successfully", async () => {
       mockedRequireAgent.mockReturnValue(agent);
       mockedParsePositiveInt.mockReturnValue(12);
