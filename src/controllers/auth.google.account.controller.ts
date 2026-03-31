@@ -119,7 +119,7 @@ export const googleAuthAccount = async (req: Request, res: Response) => {
         firstName: savedAccount.firstName,
         lastName: savedAccount.lastName,
         email: savedAccount.email,
-        provoider: savedAccount.provider,
+        provider: savedAccount.provider,
         providerAccountId: savedAccount.providerAccountId,
       },
     });
