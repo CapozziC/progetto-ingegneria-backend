@@ -621,7 +621,7 @@ export const agentCreateExternalOffer = async (
       advertisementId: advertisement.id,
       agentId: agent.id,
       accountId: externalAccount.id,
-      madeBy: OfferMadeBy.AGENT,
+      madeBy: OfferMadeBy.ACCOUNT,
       status: OfferStatus.PENDING,
     });
     await saveOffer(offer);
