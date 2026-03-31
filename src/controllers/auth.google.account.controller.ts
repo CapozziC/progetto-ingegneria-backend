@@ -30,6 +30,8 @@ export const googleAuthAccount = async (req: Request, res: Response) => {
       return res.status(400).json({ error: "Google token is required" });
     }
 
+    console.log("Received Google ID token:", idToken);
+
     const googleData = await verifyGoogleToken(idToken);
     const accountRepository = AppDataSource.getRepository(Account);
 
