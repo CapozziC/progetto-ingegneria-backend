@@ -32,15 +32,4 @@ export const counterOfferBodySchema = Joi.object({
   }),
 });
 
-export const createExternalOfferBodySchema = Joi.object({
-  price: Joi.number().positive().required().messages({
-    "number.base": "Price must be a number",
-    "number.positive": "Price must be greater than 0",
-    "any.required": "Price is required",
-  }),
-  email: Joi.string().trim().email().required().messages({
-    "string.base": "Email must be a string",
-    "string.email": "Email must be a valid email address",
-    "any.required": "Email is required",
-  }),
-});
+

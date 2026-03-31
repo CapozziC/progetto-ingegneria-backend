@@ -67,7 +67,7 @@ export const updatePasswordAgentBodySchema = Joi.object({
   }),
 }).unknown(false);
 
-export const createAccountByAgentSchema = Joi.object({
+export const agentCreateAccountAndExternalOfferBodySchema = Joi.object({
   firstName: Joi.string().trim().min(2).max(30).required().messages({
     "string.base": "First name must be a string",
     "string.min": "First name must be at least 2 characters long",
@@ -80,8 +80,14 @@ export const createAccountByAgentSchema = Joi.object({
     "string.max": "Last name cannot be longer than 30 characters",
     "any.required": "Last name is required",
   }),
-  email: Joi.string().email().required().messages({
-    "string.email": "Invalid email format",
+  email: Joi.string().trim().email().required().messages({
+    "string.base": "Email must be a string",
+    "string.email": "Email must be a valid email address",
     "any.required": "Email is required",
+  }),
+  price: Joi.number().positive().required().messages({
+    "number.base": "Price must be a number",
+    "number.positive": "Price must be greater than 0",
+    "any.required": "Price is required",
   }),
 }).unknown(false);

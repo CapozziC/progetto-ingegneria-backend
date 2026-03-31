@@ -23,17 +23,15 @@ import {
 import { generateTemporaryPassword } from "../utils/password.utils.js";
 import { Advertisement, Type } from "../entities/advertisement.js";
 import { Agent } from "../entities/agent.js";
+import { Account } from "../entities/account.js";
 import {
   findAdvertisementByIdAndAgentId,
   findAdvertisementsByAgentId,
-  searchAdvertisementById,
 } from "../repositories/advertisement.repository.js";
 import { parsePositiveInt } from "../utils/parse.utils.js";
 import {
   findAgentNegotiations,
   findAgentNegotiationDetail,
-  createOffer,
-  saveOffer,
 } from "../repositories/offer.repository.js";
 import { buildAdvertisementTitle } from "../helpers/advertisement-title.helper.js";
 import { sendAgentCreatedEmail } from "../services/nodemailer/createAgent.service.js";
@@ -41,11 +39,10 @@ import { deleteFounderAndAgencyTransaction } from "../services/agency.service.js
 import { validateDeleteFounderRequest } from "../helpers/agent.helper.js";
 import { mapDeleteFounderError } from "../mappers/agent.mapper.js";
 import {
-  createAccount,
-  findAccountByEmail,
-  saveAccount,
-} from "../repositories/account.repository.js";
-import { OfferMadeBy, Status as OfferStatus } from "../entities/offer.js";
+  OfferMadeBy,
+  Status as OfferStatus,
+  Offer,
+} from "../entities/offer.js";
 
 /**
  * Get the profile of the authenticated agent, including their ID, name, username, phone number, admin status, and associated agency information. The function checks for the authenticated agent in the request, retrieves their full details from the database using their ID, and returns a structured JSON response containing the agent's profile information. If the agent is not authenticated or if there is an error during retrieval, it returns an appropriate error response.
@@ -534,51 +531,15 @@ export const deleteFirstAgentAndAgency = async (
     return res.status(mappedError.status).json(mappedError.body);
   }
 };
+
 /**
- * Create a new account for an external offer, with the provided first name, last name and email. The account is created without a password and with a flag indicating that the user must change their password at the first login. This function is intended to be used by agents to create accounts for clients who want to make an offer on a property but do not have an account yet. Only authenticated agents can create accounts for external offers.
- * @param req RequestAgent with authenticated agent in req.agent and firstName, lastName and email of the new account in req.body
- * @param res Response with success message and id of the created account or error message
- * @returns JSON with success message and id of the created account or error message
- * Only authenticated agents can create accounts for external offers.
+ * Create a new offer for a specific advertisement, creating a new external account if the provided email does not belong to any existing account. The offer is created by the authenticated agent. The request body must include the first name, last name, email and price for the offer. The function validates the input, checks if the advertisement exists and belongs to the authenticated agent, creates a new account if necessary, and then creates the offer associated with the advertisement, agent and account. Only authenticated agents can create offers for their advertisements.
+ * @param req RequestAgent with authenticated agent in req.agent, advertisement id in req.params.advertisementId and firstName, lastName, email and price in req.body
+ * @param res Response with success message and details of the created offer or error message
+ * @returns JSON with success message and details of the created offer or error message
+ * Only authenticated agents can create offers for their advertisements.
  */
-export const agentCreateAccountForExternalOffer = async (
-  req: RequestAgent,
-  res: Response,
-) => {
-  try {
-    const agent = requireAgent(req, res);
-    if (!agent) return;
-
-    const { firstName, lastName, email } = req.body;
-    if (!firstName || !lastName || !email) {
-      return res.status(400).json({ error: "All fields are required" });
-    }
-    const existingAccount = await findAccountByEmail(email);
-    if (existingAccount) {
-      return res
-        .status(409)
-        .json({ error: "Account with this email already exists" });
-    }
-    const newAccount = createAccount({
-      firstName,
-      lastName,
-      email,
-    });
-    await saveAccount(newAccount);
-    return res.status(201).json({
-      message: "Account created successfully for external offer",
-      accountId: newAccount.id,
-      firstName: newAccount.firstName,
-      lastName: newAccount.lastName,
-      email: newAccount.email,
-    });
-  } catch (error) {
-    console.error("Error creating account for external offer:", error);
-    return res.status(500).json({ error: "Internal server error" });
-  }
-};
-
-export const agentCreateExternalOffer = async (
+export const agentCreateAccountAndExternalOffer = async (
   req: RequestAgent,
   res: Response,
 ) => {
@@ -587,54 +548,116 @@ export const agentCreateExternalOffer = async (
     if (!agent) return;
 
     const advertisementId = parsePositiveInt(req.params.advertisementId);
-    const { email, price } = req.body;
+
     if (!advertisementId) {
       return res.status(400).json({ error: "Invalid advertisement id" });
     }
-    if (!email || !price) {
+
+    const { firstName, lastName, email, price } = req.body as {
+      firstName?: string;
+      lastName?: string;
+      email?: string;
+      price?: number;
+    };
+
+    if (!firstName || !lastName || !email || price === undefined) {
       return res.status(400).json({ error: "All fields are required" });
     }
+
     if (typeof price !== "number" || price <= 0) {
       return res.status(400).json({ error: "Price must be a positive number" });
     }
 
-    const externalAccount = await findAccountByEmail(email);
-    if (!externalAccount) {
-      return res.status(404).json({ error: "External account not found" });
-    }
-    const advertisement = await searchAdvertisementById(advertisementId);
-    if (!advertisement) {
-      return res.status(404).json({ error: "Advertisement not found" });
-    }
-    if (advertisement.agent?.id !== agent.id) {
-      return res.status(403).json({
-        error: "Forbidden: cannot create offer for this advertisement",
+    const result = await AppDataSource.transaction(async (manager) => {
+      const accountRepo = manager.getRepository(Account);
+      const advertisementRepo = manager.getRepository(Advertisement);
+      const offerRepo = manager.getRepository(Offer);
+
+      const advertisement = await advertisementRepo.findOne({
+        where: { id: advertisementId },
+        relations: {
+          agent: true,
+        },
       });
-    }
-    if (advertisement.type !== Type.SALE) {
-      return res.status(400).json({
-        error: "Cannot create offer for an advertisement that is not a sale",
+
+      if (!advertisement) {
+        return { status: 404, body: { error: "Advertisement not found" } };
+      }
+
+      if (advertisement.agent?.id !== agent.id) {
+        return {
+          status: 403,
+          body: {
+            error: "Forbidden: cannot create offer for this advertisement",
+          },
+        };
+      }
+
+      if (advertisement.type !== Type.SALE) {
+        return {
+          status: 400,
+          body: {
+            error:
+              "Cannot create offer for an advertisement that is not a sale",
+          },
+        };
+      }
+
+      let account = await accountRepo.findOne({
+        where: { email },
       });
-    }
-    const offer = createOffer({
-      price,
-      advertisementId: advertisement.id,
-      agentId: agent.id,
-      accountId: externalAccount.id,
-      madeBy: OfferMadeBy.ACCOUNT,
-      status: OfferStatus.PENDING,
+
+      let accountCreated = false;
+
+      if (!account) {
+        account = accountRepo.create({
+          firstName,
+          lastName,
+          email,
+        });
+
+        account = await accountRepo.save(account);
+        accountCreated = true;
+      }
+
+      const offer = offerRepo.create({
+        price,
+        advertisementId: advertisement.id,
+        agentId: agent.id,
+        accountId: account.id,
+        madeBy: OfferMadeBy.ACCOUNT,
+        status: OfferStatus.PENDING,
+      });
+
+      const savedOffer = await offerRepo.save(offer);
+
+      return {
+        status: 201,
+        body: {
+          message: accountCreated
+            ? "External account and offer created successfully"
+            : "Offer created successfully for existing external account",
+          accountCreated,
+          account: {
+            id: account.id,
+            firstName: account.firstName,
+            lastName: account.lastName,
+            email: account.email,
+          },
+          offer: {
+            id: savedOffer.id,
+            advertisementId: savedOffer.advertisementId,
+            accountId: savedOffer.accountId,
+            price: savedOffer.price,
+            status: savedOffer.status,
+          },
+        },
+      };
     });
-    await saveOffer(offer);
-    return res.status(201).json({
-      message: "Offer created successfully for external offer",
-      offerId: offer.id,
-      advertisementId: offer.advertisementId,
-      accountId: offer.accountId,
-      price: offer.price,
-      status: offer.status,
-    });
+
+    return res.status(result.status).json(result.body);
   } catch (error) {
-    console.error("Error creating account for external offer:", error);
+    console.error("Error creating external account and offer:", error);
     return res.status(500).json({ error: "Internal server error" });
   }
 };
