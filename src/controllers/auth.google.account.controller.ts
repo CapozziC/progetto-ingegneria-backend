@@ -121,6 +121,10 @@ export const googleAuthAccount = async (req: Request, res: Response) => {
         email: savedAccount.email,
         provider: savedAccount.provider,
         providerAccountId: savedAccount.providerAccountId,
+        password: !!savedAccount.password,
+        createdAt: savedAccount.createdAt,
+        updatedAt: savedAccount.updatedAt,
+
       },
     });
   } catch (error) {
