@@ -108,6 +108,8 @@ export const registerAccount = async (req: RequestAccount, res: Response) => {
       firstName: savedAccount.firstName,
       lastName: savedAccount.lastName,
       createdAt: savedAccount.createdAt,
+      updatedAt: savedAccount.updatedAt,
+      password: !!savedAccount.password,
     });
   } catch (error) {
     console.error("Registration error:", error);
@@ -193,6 +195,8 @@ export const loginAccount = async (req: RequestAccount, res: Response) => {
       firstName: account.firstName,
       lastName: account.lastName,
       createdAt: account.createdAt,
+      updatedAt: account.updatedAt,
+      password: !!account.password,
     });
   } catch (error) {
     console.error("Login error:", error);

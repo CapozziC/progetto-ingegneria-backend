@@ -347,6 +347,17 @@ export const updatePasswordAccount = async (
 
     return res.status(200).json({
       message: "Password updated successfully",
+      account: {
+        id: fullAccount.id,
+        firstName: fullAccount.firstName,
+        lastName: fullAccount.lastName,
+        email: fullAccount.email,
+        provider: fullAccount.provider,
+        providerAccountId: fullAccount.providerAccountId,
+        password: !!fullAccount.password,
+        createdAt: fullAccount.createdAt,
+        updatedAt: fullAccount.updatedAt,
+      },
     });
   } catch (err) {
     console.error("updatePasswordAccount error:", err);
