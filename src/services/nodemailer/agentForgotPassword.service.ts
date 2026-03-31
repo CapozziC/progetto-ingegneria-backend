@@ -6,7 +6,7 @@ export async function sendAgentForgotPasswordEmail(params: {
   username: string;
   token: string;
 }) {
-  const resetUrl = `${process.env.FRONTEND_URL_RESET_PASSWORD_AGENT}token${params.token}`;
+  const resetUrl = `${process.env.FRONTEND_URL_RESET_PASSWORD_AGENT}${params.token}`;
   const emailContent = agentForgotPasswordTemplate({
     username: params.username,
     resetUrl,
