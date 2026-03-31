@@ -1,12 +1,25 @@
 import { Request, Response } from "express";
-import jwt from "jsonwebtoken";
+
 import { AppDataSource } from "../data-source.js";
 import { Account, Provider } from "../entities/account.js";
 import { verifyGoogleToken } from "../services/google/google.service.js";
+import {
+  generateAccessToken,
+  generateRefreshToken,
+  hashRefreshToken,
+} from "../utils/auth.utils.js";
+import { Type } from "../entities/refreshToken.js";
+import { setAuthCookies } from "../utils/cookie.utils.js";
+import {
+  createRefreshToken,
+  saveRefreshToken,
+} from "../repositories/refreshToken.repository.js";
 
-const JWT_SECRET = process.env.JWT_SECRET;
-if (!JWT_SECRET) {
-  throw new Error("JWT_SECRET not configured");
+const ACCESS_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET;
+const REFRESH_TOKEN_SECRET = process.env.REFRESH_TOKEN_SECRET;
+
+if (!ACCESS_TOKEN_SECRET || !REFRESH_TOKEN_SECRET) {
+  throw new Error("Missing token secrets in environment variables");
 }
 
 export const googleAuthAccount = async (req: Request, res: Response) => {
@@ -65,20 +78,43 @@ export const googleAuthAccount = async (req: Request, res: Response) => {
 
     const savedAccount = await accountRepository.save(account!);
 
-    const appToken = jwt.sign(
-      {
-        subjectId: savedAccount.id,
-        type: "account",
-      },
-      JWT_SECRET,
-      { expiresIn: "7d" },
+    const accessToken = generateAccessToken(
+      { subjectId: savedAccount.id, type: Type.ACCOUNT },
+      ACCESS_TOKEN_SECRET,
+      "20m",
     );
+
+    if (!accessToken) {
+      return res.status(500).json({ error: "Token generation failed" });
+    }
+
+    const refreshToken = generateRefreshToken(
+      { subjectId: savedAccount.id, type: Type.ACCOUNT },
+      REFRESH_TOKEN_SECRET,
+      "7d",
+    );
+    const hashedRefreshToken = hashRefreshToken(refreshToken);
+
+    if (!hashedRefreshToken) {
+      return res.status(500).json({ error: "Refresh token hashing failed" });
+    }
+    const refreshTokenEntry = createRefreshToken({
+      id: hashedRefreshToken,
+      subjectId: savedAccount.id,
+      type: Type.ACCOUNT,
+      expiresAt: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000), // 5 days
+    });
+    const savedRefreshToken = await saveRefreshToken(refreshTokenEntry);
+
+    if (!savedRefreshToken) {
+      return res.status(500).json({ error: "Saving refresh token failed" });
+    }
+    setAuthCookies(res, accessToken, refreshToken);
 
     return res.status(200).json({
       message: isNewAccount
         ? "Google registration successful"
         : "Google login successful",
-      token: appToken,
       account: {
         id: savedAccount.id,
         firstName: savedAccount.firstName,
