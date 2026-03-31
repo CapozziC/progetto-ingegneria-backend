@@ -96,17 +96,33 @@ export const googleAuthAccount = async (req: Request, res: Response) => {
       "7d",
     );
     const hashedRefreshToken = hashRefreshToken(refreshToken);
+    const expiresAt = new Date(Date.now() + 5 * 24 * 60 * 60 * 1000);
 
-    const refreshTokenEntry = createRefreshToken({
-      id: hashedRefreshToken,
-      subjectId: savedAccount.id,
-      type: Type.ACCOUNT,
-      expiresAt: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000), // 5 days
+    const refreshTokenRepository = AppDataSource.getRepository("RefreshToken");
+    const existingRefreshToken = await refreshTokenRepository.findOne({
+      where: {
+        subjectId: savedAccount.id,
+        type: Type.ACCOUNT,
+      },
     });
-    const savedRefreshToken = await saveRefreshToken(refreshTokenEntry);
 
-    if (!savedRefreshToken) {
-      return res.status(500).json({ error: "Saving refresh token failed" });
+    if (existingRefreshToken) {
+      existingRefreshToken.id = hashedRefreshToken;
+      existingRefreshToken.expiresAt = expiresAt;
+      await refreshTokenRepository.save(existingRefreshToken);
+    } else {
+      const refreshTokenEntry = createRefreshToken({
+        id: hashedRefreshToken,
+        subjectId: savedAccount.id,
+        type: Type.ACCOUNT,
+        expiresAt: expiresAt, // 5 days
+      });
+
+      const savedRefreshToken = await saveRefreshToken(refreshTokenEntry);
+
+      if (!savedRefreshToken) {
+        return res.status(500).json({ error: "Saving refresh token failed" });
+      }
     }
     setAuthCookies(res, accessToken, refreshToken);
 
@@ -124,7 +140,6 @@ export const googleAuthAccount = async (req: Request, res: Response) => {
         password: !!savedAccount.password,
         createdAt: savedAccount.createdAt,
         updatedAt: savedAccount.updatedAt,
-
       },
     });
   } catch (error) {
