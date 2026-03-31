@@ -24,13 +24,13 @@ if (!ACCESS_TOKEN_SECRET || !REFRESH_TOKEN_SECRET) {
 
 export const googleAuthAccount = async (req: Request, res: Response) => {
   try {
-    const { Idtoken } = req.body as { Idtoken?: string };
+    const { idToken } = req.body as { idToken?: string };
 
-    if (typeof Idtoken !== "string" || !Idtoken.trim()) {
+    if (typeof idToken !== "string" || !idToken.trim()) {
       return res.status(400).json({ error: "Google token is required" });
     }
 
-    const googleData = await verifyGoogleToken(Idtoken);
+    const googleData = await verifyGoogleToken(idToken);
     const accountRepository = AppDataSource.getRepository(Account);
 
     let account: Account | null = await accountRepository.findOne({
