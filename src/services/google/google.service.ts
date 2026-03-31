@@ -3,7 +3,7 @@ import { GoogleAccountData } from "../../types/google.type.js";
 
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 export const verifyGoogleToken = async (
-  token: string,
+  idtoken: string,
 ): Promise<GoogleAccountData> => {
   const audience = process.env.GOOGLE_CLIENT_ID;
   if (!audience) {
@@ -11,7 +11,7 @@ export const verifyGoogleToken = async (
   }
 
   const ticket = await googleClient.verifyIdToken({
-    idToken: token,
+    idToken: idtoken,
     audience,
   });
 
