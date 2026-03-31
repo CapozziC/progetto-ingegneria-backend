@@ -24,13 +24,13 @@ if (!ACCESS_TOKEN_SECRET || !REFRESH_TOKEN_SECRET) {
 
 export const googleAuthAccount = async (req: Request, res: Response) => {
   try {
-    const { token } = req.body as { token?: string };
+    const { Idtoken } = req.body as { Idtoken?: string };
 
-    if (typeof token !== "string" || !token) {
+    if (typeof Idtoken !== "string" || !Idtoken.trim()) {
       return res.status(400).json({ error: "Google token is required" });
     }
 
-    const googleData = await verifyGoogleToken(token);
+    const googleData = await verifyGoogleToken(Idtoken);
     const accountRepository = AppDataSource.getRepository(Account);
 
     let account: Account | null = await accountRepository.findOne({
@@ -95,9 +95,6 @@ export const googleAuthAccount = async (req: Request, res: Response) => {
     );
     const hashedRefreshToken = hashRefreshToken(refreshToken);
 
-    if (!hashedRefreshToken) {
-      return res.status(500).json({ error: "Refresh token hashing failed" });
-    }
     const refreshTokenEntry = createRefreshToken({
       id: hashedRefreshToken,
       subjectId: savedAccount.id,
