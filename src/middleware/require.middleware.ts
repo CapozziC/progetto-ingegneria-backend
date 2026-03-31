@@ -34,6 +34,7 @@ export const requireAdmin = (req: RequestAgent, res: Response) => {
 
   return agent;
 };
+
 export const requireAccount = (req: RequestAccount, res: Response) => {
   const account = req.account;
   if (!account) {

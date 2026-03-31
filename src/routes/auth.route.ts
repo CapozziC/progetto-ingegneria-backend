@@ -29,9 +29,13 @@ import {
 import { uploadLogo } from "../config/multer.config.js";
 import express from "express";
 import { RequestAccount, RequestAgent } from "../types/express.js";
-import { requireAccount,requireAgent } from "../middleware/require.middleware.js";
+import {
+  requireAccount,
+  requireAgent,
+} from "../middleware/require.middleware.js";
 import { verifyResetToken } from "../middleware/reset.middleware.js";
 import { googleAuthAccount } from "../controllers/auth.google.account.controller.js";
+import { mapAccountToResponse } from "../mappers/account.response.js";
 
 // Create a router instance
 const router = express.Router();
@@ -71,7 +75,7 @@ router.get("/account", authenticationMiddlewareAccount, (req, res) => {
   const account = requireAccount(req as RequestAccount, res);
   if (!account) return;
 
-  return res.json(account);
+  return res.json({ account: mapAccountToResponse(account) });
 });
 
 //Rotta protetta per  verificare se l'agente è autenticato
