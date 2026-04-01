@@ -30,7 +30,6 @@ import {
 import { getAppointmentsForAgent } from "../controllers/appointment.controller.js";
 import { markAdvertisementAsRented } from "../controllers/offer.controller.js";
 
-
 router.get("/me/info", authenticationMiddlewareAgent, getAgentProfile);
 
 router.post(
@@ -113,7 +112,7 @@ router.patch(
 );
 
 router.post(
-  "/create_external_offer/:advertisementId",
+  "/create_external_offer",
   authenticationMiddlewareAgent,
   validateBody(agentCreateAccountAndExternalOfferBodySchema),
   agentCreateAccountAndExternalOffer,
