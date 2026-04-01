@@ -17,7 +17,6 @@ export function isValidHourlySlotRome(d: Date): boolean {
   return isOnTheHour && inWorkingHours && !isWeekend;
 }
 
-
 function generateHourlySlotsRome(fromUTC: Date, toUTC: Date): Date[] {
   const fromRome = DateTime.fromJSDate(fromUTC, { zone: "utc" }).setZone(TZ);
   const toRome = DateTime.fromJSDate(toUTC, { zone: "utc" }).setZone(TZ);
@@ -30,7 +29,7 @@ function generateHourlySlotsRome(fromUTC: Date, toUTC: Date): Date[] {
 
   while (cur < toRome) {
     const isWeekend = cur.weekday === 6 || cur.weekday === 7; // 6 sab, 7 dom
-    const inWorkingHours = cur.hour >= 9 && cur.hour < 18;    // 9..17
+    const inWorkingHours = cur.hour >= 9 && cur.hour < 18; // 9..17
 
     if (!isWeekend && inWorkingHours) {
       // salva in UTC per coerenza DB
@@ -55,18 +54,37 @@ export async function getAvailableSlotsForAdvertisement(
   if (!adv?.agent?.id) return [];
 
   const agentId = adv.agent.id;
+  console.log("\n=== DEBUG SLOTS ===");
+  console.log("agentId:", agentId);
+  console.log("FROM:", from.toISOString());
+  console.log("TO  :", to.toISOString());
 
   // ✅ griglia Rome-safe (ritorna Date in UTC)
   const allSlots = generateHourlySlotsRome(from, to);
+  console.log(
+    "ALL SLOTS:",
+    allSlots.map((s) => s.toISOString()),
+  );
 
   // ✅ appuntamenti presi nel DB tra from/to (UTC)
   const taken = await findTakenAppointmentsForAgent(agentId, from, to);
+  console.log(
+    "TAKEN SLOTS:",
+    taken.map((s) => s.toISOString()),
+  );
 
   // key in UTC (ok)
   const takenSet = new Set(taken.map(toKey));
+  console.log("TAKEN SET:", takenSet);
 
-  return allSlots.filter((s) => !takenSet.has(toKey(s)));
+  const available = allSlots.filter((s) => !takenSet.has(toKey(s)));
+  console.log(
+    "AVAILABLE SLOTS:",
+    available.map((s) => s.toISOString()),
+  );
+  return available;
 }
+
 function toKey(d: Date): string {
   return d.toISOString();
 }
