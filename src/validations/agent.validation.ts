@@ -90,4 +90,10 @@ export const agentCreateAccountAndExternalOfferBodySchema = Joi.object({
     "number.positive": "Price must be greater than 0",
     "any.required": "Price is required",
   }),
+  advertisementId: Joi.number().integer().positive().required().messages({
+    "number.base": "Advertisement ID must be a number",
+    "number.integer": "Advertisement ID must be an integer",
+    "number.positive": "Advertisement ID must be positive",
+    "any.required": "Advertisement ID is required",
+  }),
 }).unknown(false);
