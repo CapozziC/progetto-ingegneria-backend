@@ -17,6 +17,7 @@ import {
   counterOfferParamsSchema,
   OfferParamsSchema,
   counterOfferBodySchema,
+  AccountCounterOfferParamsSchema,
 } from "../validations/offer.validation.js";
 
 const router = express.Router();
@@ -58,7 +59,7 @@ router.post(
 router.post(
   "/accounts/:advertisementId/offer/counter",
   authenticationMiddlewareAccount,
-  validateParams(OfferParamsSchema),
+  validateParams(AccountCounterOfferParamsSchema),
   validateBody(counterOfferBodySchema),
   accountRejectAgentOfferAndCreateCounter,
 );

@@ -24,6 +24,15 @@ export const counterOfferParamsSchema = Joi.object({
   }),
 });
 
+export const AccountCounterOfferParamsSchema = Joi.object({
+  advertisementId: Joi.number().integer().positive().required().messages({
+    "number.base": "Advertisement id must be a number",
+    "number.integer": "Advertisement id must be an integer",
+    "number.positive": "Advertisement id must be positive",
+    "any.required": "Advertisement id is required",
+  }),
+});
+
 export const counterOfferBodySchema = Joi.object({
   price: Joi.number().positive().required().messages({
     "number.base": "Price must be a number",
@@ -31,5 +40,3 @@ export const counterOfferBodySchema = Joi.object({
     "any.required": "Price is required",
   }),
 });
-
-
