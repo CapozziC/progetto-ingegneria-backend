@@ -547,20 +547,17 @@ export const agentCreateAccountAndExternalOffer = async (
     const agent = requireAgent(req, res);
     if (!agent) return;
 
-    const advertisementId = parsePositiveInt(req.params.advertisementId);
+  
 
-    if (!advertisementId) {
-      return res.status(400).json({ error: "Invalid advertisement id" });
-    }
-
-    const { firstName, lastName, email, price } = req.body as {
+    const { firstName, lastName, email, price, advertisementId } = req.body as {
       firstName?: string;
       lastName?: string;
       email?: string;
       price?: number;
+      advertisementId?: number;
     };
 
-    if (!firstName || !lastName || !email || price === undefined) {
+    if (!firstName || !lastName || !email || price === undefined || !advertisementId) {
       return res.status(400).json({ error: "All fields are required" });
     }
 
