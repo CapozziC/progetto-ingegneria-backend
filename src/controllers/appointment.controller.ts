@@ -104,6 +104,9 @@ export const getAvailableSlotsByDay = async (
       ? req.params.day[0]
       : req.params.day;
 
+    console.log("\n=== DEBUG getAvailableSlotsByDay ===");
+    console.log("advertisementId:", advertisementId);
+    console.log("dayParam:", dayParam);
     if (!dayParam) {
       return res.status(400).json({ error: "Missing day parameter" });
     }
