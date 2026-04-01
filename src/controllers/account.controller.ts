@@ -66,12 +66,14 @@ export const getAllAdvertisements = async (
   res: Response,
 ) => {
   try {
+    console.log("---- GET ALL ADVERTISEMENTS START ----");
     const account = requireAccount(req, res);
     if (!account) {
       return res.status(401).json({ error: "Unauthorized" });
     }
 
     const filters = parseAdvertisementFilters(req);
+    console.log("Parsed filters:", filters);
 
     const page = Math.max(Number(req.query.page) || 1, 1);
     const limit = Math.max(Number(req.query.limit) || 10, 1);
@@ -81,13 +83,21 @@ export const getAllAdvertisements = async (
 
     let location;
     try {
+      console.log("Resolving location with:", {
+        city: filters.city,
+        qLat: filters.qLat,
+        qLon: filters.qLon,
+      });
+
       location = await resolveAdvertisementLocation(
         req,
         filters.city,
         filters.qLat,
         filters.qLon,
       );
+      console.log("Resolved location:", location);
     } catch (error) {
+      console.error("Location resolution error:", error);
       if (
         error instanceof Error &&
         error.message === "Could not geocode city"
@@ -100,6 +110,7 @@ export const getAllAdvertisements = async (
 
     const hasCoordinates =
       Number.isFinite(location.lat) && Number.isFinite(location.lon);
+    console.log("Has coordinates:", hasCoordinates);
 
     let sortBy = filters.sortBy;
 
@@ -108,9 +119,11 @@ export const getAllAdvertisements = async (
     }
 
     if ((sortBy === "nearest" || sortBy === "farthest") && !hasCoordinates) {
+      console.log("Sort forced to newest because coordinates are missing");
       sortBy = "newest";
     }
 
+    console.log("Final sortBy:", sortBy);
     const result = await findAdvertisements({
       take,
       skip,
@@ -140,7 +153,7 @@ export const getAllAdvertisements = async (
       energyClass: filters.energyClass,
       sortBy,
     });
-
+    console.log("Calling findAdvertisements with:", result);
     const response = buildAdvertisementResponse(
       result,
       location.mode,
