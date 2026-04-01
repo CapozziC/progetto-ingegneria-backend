@@ -1,4 +1,4 @@
-import { EntityManager,In } from "typeorm";
+import { EntityManager, In } from "typeorm";
 import { AppDataSource } from "../data-source.js";
 import { Advertisement, Status } from "../entities/advertisement.js";
 import { RealEstate } from "../entities/realEstate.js";
@@ -253,7 +253,13 @@ export async function findAdvertisements({
 }: FindAdvertisementsParams) {
   const qb = AppDataSource.getRepository(Advertisement)
     .createQueryBuilder("adv")
-    .select(["adv.id", "adv.description", "adv.price", "adv.type", "adv.createdAt"])
+    .select([
+      "adv.id",
+      "adv.description",
+      "adv.price",
+      "adv.type",
+      "adv.createdAt",
+    ])
     .leftJoinAndSelect("adv.realEstate", "re")
     .leftJoin("adv.photos", "photos")
     .addSelect(["photos.id", "photos.url", "photos.position"])
@@ -329,7 +335,7 @@ export async function findAdvertisements({
     }
   }
 
-   const hasCoordinates =
+  const hasCoordinates =
     lat !== undefined &&
     lon !== undefined &&
     Number.isFinite(lat) &&
@@ -361,35 +367,43 @@ export async function findAdvertisements({
   switch (sortBy) {
     case "nearest":
       if (hasCoordinates) {
-        qb.orderBy("distance", "ASC");
+        qb.orderBy("distance", "ASC")
+          .addOrderBy("adv.createdAt", "DESC")
+          .addOrderBy("adv.id", "DESC");
       } else {
-        qb.orderBy("adv.createdAt", "DESC");
+        qb.orderBy("adv.createdAt", "DESC").addOrderBy("adv.id", "DESC");
       }
       break;
 
     case "farthest":
       if (hasCoordinates) {
-        qb.orderBy("distance", "DESC");
+        qb.orderBy("distance", "DESC")
+          .addOrderBy("adv.createdAt", "DESC")
+          .addOrderBy("adv.id", "DESC");
       } else {
-        qb.orderBy("adv.createdAt", "DESC");
+        qb.orderBy("adv.createdAt", "DESC").addOrderBy("adv.id", "DESC");
       }
       break;
 
     case "price_asc":
-      qb.orderBy("adv.price", "ASC");
+      qb.orderBy("adv.price", "ASC")
+        .addOrderBy("adv.createdAt", "DESC")
+        .addOrderBy("adv.id", "DESC");
       break;
 
     case "price_desc":
-      qb.orderBy("adv.price", "DESC");
+      qb.orderBy("adv.price", "DESC")
+        .addOrderBy("adv.createdAt", "DESC")
+        .addOrderBy("adv.id", "DESC");
       break;
 
     case "oldest":
-      qb.orderBy("adv.createdAt", "ASC");
+      qb.orderBy("adv.createdAt", "ASC").addOrderBy("adv.id", "DESC");
       break;
 
     case "newest":
     default:
-      qb.orderBy("adv.createdAt", "DESC");
+      qb.orderBy("adv.createdAt", "DESC").addOrderBy("adv.id", "DESC");
       break;
   }
 
