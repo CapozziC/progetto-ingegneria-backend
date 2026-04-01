@@ -253,7 +253,7 @@ export async function findAdvertisements({
 }: FindAdvertisementsParams) {
   const qb = AppDataSource.getRepository(Advertisement)
     .createQueryBuilder("adv")
-    .select(["adv.id", "adv.description", "adv.price", "adv.type"])
+    .select(["adv.id", "adv.description", "adv.price", "adv.type", "adv.createdAt"])
     .leftJoinAndSelect("adv.realEstate", "re")
     .leftJoin("adv.photos", "photos")
     .addSelect(["photos.id", "photos.url", "photos.position"])
