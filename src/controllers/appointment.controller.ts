@@ -1,7 +1,10 @@
 import { Response } from "express";
 import { DateTime } from "luxon";
 import { todayRome, dayKeyRome } from "../utils/date.utils.js";
-import { getAvailableSlotsForAdvertisement,isValidHourlySlotRome } from "../services/slots.service.js";
+import {
+  getAvailableSlotsForAdvertisement,
+  isValidHourlySlotRome,
+} from "../services/slots.service.js";
 import { RequestAccount, RequestAgent } from "../types/express.js";
 import {
   findAppointmentByIdForAgent,
@@ -174,6 +177,10 @@ export const createAppointment = async (req: RequestAccount, res: Response) => {
     }
 
     const { date, time } = req.body;
+    console.log("\n=== DEBUG CREATE APPOINTMENT ===");
+    console.log("REQ BODY:", req.body);
+    console.log("date:", date);
+    console.log("time:", time);
 
     if (!date || !time) {
       return res.status(400).json({
@@ -186,6 +193,9 @@ export const createAppointment = async (req: RequestAccount, res: Response) => {
       zone: "Europe/Rome",
     });
 
+    console.log("dtRome valid:", dtRome.isValid);
+    console.log("dtRome Rome:", dtRome.toISO());
+    console.log("dtUTC:", dtRome.toUTC().toISO());
     if (!dtRome.isValid) {
       return res.status(400).json({
         error: "Invalid date or time format",
@@ -232,6 +242,8 @@ export const createAppointment = async (req: RequestAccount, res: Response) => {
     appointment.advertisementId = advertisementId;
 
     const saved = await saveAppointment(appointment);
+    console.log("SAVED appointmentAt ISO:", saved.appointmentAt.toISOString());
+    console.log("=== END DEBUG CREATE APPOINTMENT ===\n");
 
     return res.status(201).json({
       message: "Appointment requested successfully",
