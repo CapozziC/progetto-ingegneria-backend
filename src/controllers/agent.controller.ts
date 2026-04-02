@@ -99,6 +99,7 @@ export const createNewAgent = async (req: RequestAgent, res: Response) => {
         .json({ error: "First name and last name are required" });
     }
 
+    console.log("Received data - firstName:", firstName, "lastName:", lastName, "phoneNumber:", phoneNumber, "isAdmin:", isAdmin);
     if (!phoneNumber) {
       return res.status(400).json({ error: "Phone number is required" });
     }
