@@ -88,6 +88,7 @@ export const getAgentProfile = async (req: RequestAgent, res: Response) => {
  */
 export const createNewAgent = async (req: RequestAgent, res: Response) => {
   try {
+    console.log("=== START createNewAgent ===");
     const { firstName, lastName, phoneNumber, isAdmin } = req.body;
     const admin = requireAdmin(req, res);
     if (!admin) return;
@@ -125,6 +126,7 @@ export const createNewAgent = async (req: RequestAgent, res: Response) => {
     });
 
     const savedAgent = await saveAgent(newAgent);
+    console.log("👨‍💼 Agent created:", savedAgent);
 
     try {
       await sendAgentCreatedEmail({
