@@ -40,10 +40,4 @@ export const createNewAgencyWithFirstAgentSchema = Joi.object({
     .trim()
     .pattern(/^\+?[0-9\s().-]{6,25}$/)
     .required(),
-})
-  .required()
-  // blocca campi extra nel body
-  .unknown(false)
-  .messages({
-    "object.unknown": "Field {#label} is not allowed",
-  });
+}).options({ allowUnknown: true });
