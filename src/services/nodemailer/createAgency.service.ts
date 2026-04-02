@@ -10,7 +10,7 @@ export async function sendAgencyCreatedEmail(params: {
   const loginUrl = process.env.FRONTED_URL_LOGIN;
   if (!loginUrl) {
     throw new Error(
-      "FRONTEND_URL_AGENCY_REGISTER is not defined in environment variables",
+      "FRONTEND_URL_LOGIN is not defined in environment variables",
     );
   }
   const emailContent = newAgencyCreationTemplate({
