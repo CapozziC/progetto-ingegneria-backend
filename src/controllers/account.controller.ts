@@ -21,7 +21,8 @@ import {
   normalizePagination,
 } from "../utils/parse.utils.js";
 import { buildAdvertisementResponse } from "../mappers/advertisement.response.js";
-import { resolveAdvertisementLocation } from "../services/advertisement.location.service.js";
+import { resolveAdvertisementLocation} from "../services/advertisement.location.service.js";
+import { LocationInfo, LocationMode } from "../types/advertisement.type.js";
 import bcrypt from "bcryptjs";
 
 /**
@@ -67,6 +68,7 @@ export const getAllAdvertisements = async (
 ) => {
   try {
     console.log("---- GET ALL ADVERTISEMENTS START ----");
+
     const account = requireAccount(req, res);
     if (!account) {
       return res.status(401).json({ error: "Unauthorized" });
@@ -81,42 +83,64 @@ export const getAllAdvertisements = async (
     const take = limit;
     const skip = (page - 1) * limit;
 
-    let location;
-    try {
-      console.log("Resolving location with:", {
-        city: filters.city,
-        qLat: filters.qLat,
-        qLon: filters.qLon,
-      });
+    let sortBy = filters.sortBy ?? "newest";
 
-      location = await resolveAdvertisementLocation(
-        req,
-        filters.city,
-        filters.qLat,
-        filters.qLon,
-      );
-      console.log("Resolved location:", location);
-    } catch (error) {
-      console.error("Location resolution error:", error);
-      if (
-        error instanceof Error &&
-        error.message === "Could not geocode city"
-      ) {
-        return res.status(400).json({ error: "Could not geocode city" });
+    const needsLocation =
+      sortBy === "nearest" ||
+      sortBy === "farthest" ||
+      filters.qLat !== undefined ||
+      filters.qLon !== undefined ||
+      !!filters.city;
+
+    let location: {
+      lat?: number;
+      lon?: number;
+      mode: LocationMode;
+      locationInfo: LocationInfo;
+    } = {
+      lat: undefined,
+      lon: undefined,
+      mode: "none",
+      locationInfo: null,
+    };
+
+    if (needsLocation) {
+      try {
+        console.log("Resolving location with:", {
+          city: filters.city,
+          qLat: filters.qLat,
+          qLon: filters.qLon,
+          sortBy,
+        });
+
+        location = await resolveAdvertisementLocation(
+          req,
+          filters.city,
+          filters.qLat,
+          filters.qLon,
+        );
+
+        console.log("Resolved location:", location);
+      } catch (error) {
+        console.error("Location resolution error:", error);
+
+        if (
+          error instanceof Error &&
+          error.message === "Could not geocode city"
+        ) {
+          return res.status(400).json({ error: "Could not geocode city" });
+        }
+
+        throw error;
       }
-
-      throw error;
+    } else {
+      console.log("Location resolution skipped");
     }
 
     const hasCoordinates =
       Number.isFinite(location.lat) && Number.isFinite(location.lon);
+
     console.log("Has coordinates:", hasCoordinates);
-
-    let sortBy = filters.sortBy;
-
-    if (!sortBy) {
-      sortBy = hasCoordinates ? "nearest" : "newest";
-    }
 
     if ((sortBy === "nearest" || sortBy === "farthest") && !hasCoordinates) {
       console.log("Sort forced to newest because coordinates are missing");
@@ -124,6 +148,7 @@ export const getAllAdvertisements = async (
     }
 
     console.log("Final sortBy:", sortBy);
+
     const result = await findAdvertisements({
       take,
       skip,
@@ -153,7 +178,14 @@ export const getAllAdvertisements = async (
       energyClass: filters.energyClass,
       sortBy,
     });
-    console.log("Calling findAdvertisements with:", result);
+
+    console.log("findAdvertisements result:", {
+      total: result.total,
+      take: result.take,
+      skip: result.skip,
+      itemsCount: result.items.length,
+    });
+
     const response = buildAdvertisementResponse(
       result,
       location.mode,
