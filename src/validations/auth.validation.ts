@@ -40,7 +40,6 @@ export const createNewAgencyWithFirstAgentSchema = Joi.object({
     .trim()
     .pattern(/^\+?[0-9\s().-]{6,25}$/)
     .required(),
-  logo: Joi.string().trim().uri().optional(),
 })
   .required()
   // blocca campi extra nel body
