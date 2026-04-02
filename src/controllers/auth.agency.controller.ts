@@ -35,13 +35,16 @@ export const createNewAgencyWithFirstAgent = async (
   req: Request,
   res: Response,
 ) => {
+  console.log("=== START createNewAgencyWithFirstAgent ===");
   const file = req.file;
 
+  console.log("BODY:", req.body);
+  console.log("FILE:", req.file);
   const validationError = validateCreateAgencyRequest(req);
   if (validationError) {
     return res.status(400).json({ error: validationError });
   }
-
+  console.log("Validation passed, proceeding with agency creation...");
   const queryRunner = AppDataSource.createQueryRunner();
   await queryRunner.connect();
   await queryRunner.startTransaction();
@@ -56,8 +59,10 @@ export const createNewAgencyWithFirstAgent = async (
     await ensureAgencyDoesNotExist(agencyRepo, payload.name, payload.email);
 
     const savedAgency = await createAgencyEntity(agencyRepo, payload);
-
+    console.log("🏢 Agency created:", savedAgency);
     if (file) {
+      console.log("🖼️ Creating logo with file:", file.filename);
+
       await createAgencyLogo({
         logoRepo,
         file,
@@ -65,7 +70,7 @@ export const createNewAgencyWithFirstAgent = async (
         baseUrl: `${req.protocol}://${req.get("host")}`,
       });
     }
-
+    console.log("✅ Logo saved");
     const username = await generateFirstAgentUsername(
       agentRepo,
       savedAgency.id,
@@ -84,6 +89,7 @@ export const createNewAgencyWithFirstAgent = async (
       username,
       hashedPassword,
     });
+    console.log("👨‍💼 Agent created:", savedAgent);
 
     await queryRunner.commitTransaction();
 
