@@ -1,5 +1,8 @@
+import dotenv from "dotenv";
 import { newAgentCreationTemplate } from "../../template/createAgent.template.js";
 import { sendEmail } from "./nodemailer.service.js";
+dotenv.config();
+
 
 export async function sendAgentCreatedEmail(params: {
   to: string;
@@ -7,7 +10,7 @@ export async function sendAgentCreatedEmail(params: {
   username: string;
   temporaryPassword: string;
 }) {
-  const loginUrl = process.env.FRONTEND_URL_LOGIN;
+  const loginUrl = process.env.FRONTED_URL_LOGIN;
   if (!loginUrl) {
     throw new Error(
       "FRONTEND_URL_LOGIN is not defined in environment variables",
