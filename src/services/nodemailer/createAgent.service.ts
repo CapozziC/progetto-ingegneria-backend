@@ -3,7 +3,6 @@ import { newAgentCreationTemplate } from "../../template/createAgent.template.js
 import { sendEmail } from "./nodemailer.service.js";
 dotenv.config();
 
-
 export async function sendAgentCreatedEmail(params: {
   to: string;
   firstName: string;

@@ -387,14 +387,10 @@ export async function findAdvertisements({
 
     case "price_asc":
       qb.orderBy("adv.price", "ASC")
-        .addOrderBy("adv.createdAt", "DESC")
-        .addOrderBy("adv.id", "DESC");
       break;
 
     case "price_desc":
       qb.orderBy("adv.price", "DESC")
-        .addOrderBy("adv.createdAt", "DESC")
-        .addOrderBy("adv.id", "DESC");
       break;
 
     case "oldest":
