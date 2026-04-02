@@ -217,8 +217,8 @@ export async function findAdvertisementStatusById(
 export type AdvertisementSortBy =
   | "nearest"
   | "farthest"
-  | "price_asc"
-  | "price_desc"
+  | "cheapest"
+  | "expensive"
   | "newest"
   | "oldest";
 
@@ -385,11 +385,11 @@ export async function findAdvertisements({
       }
       break;
 
-    case "price_asc":
+    case "cheapest":
       qb.orderBy("adv.price", "ASC")
       break;
 
-    case "price_desc":
+    case "expensive":
       qb.orderBy("adv.price", "DESC")
       break;
 

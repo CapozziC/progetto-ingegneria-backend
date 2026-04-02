@@ -126,16 +126,16 @@ export const normalizePagination = (
 export type AdvertisementSortBy =
   | "nearest"
   | "farthest"
-  | "price_asc"
-  | "price_desc"
+  | "cheapest"
+  | "expensive"
   | "newest"
   | "oldest";
 
 const allowedSorts = new Set<AdvertisementSortBy>([
   "nearest",
   "farthest",
-  "price_asc",
-  "price_desc",
+  "cheapest",
+  "expensive",
   "newest",
   "oldest",
 ]);
