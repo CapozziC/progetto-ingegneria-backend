@@ -133,6 +133,7 @@ export const createNewAgent = async (req: RequestAgent, res: Response) => {
         username: savedAgent.username,
         temporaryPassword,
       });
+      console.log("📧 Agent created email sent successfully");
     } catch (emailError) {
       console.error("Error sending agent created email:", emailError);
     }
@@ -547,8 +548,6 @@ export const agentCreateAccountAndExternalOffer = async (
     const agent = requireAgent(req, res);
     if (!agent) return;
 
-  
-
     const { firstName, lastName, email, price, advertisementId } = req.body as {
       firstName?: string;
       lastName?: string;
@@ -557,7 +556,13 @@ export const agentCreateAccountAndExternalOffer = async (
       advertisementId?: number;
     };
 
-    if (!firstName || !lastName || !email || price === undefined || !advertisementId) {
+    if (
+      !firstName ||
+      !lastName ||
+      !email ||
+      price === undefined ||
+      !advertisementId
+    ) {
       return res.status(400).json({ error: "All fields are required" });
     }
 
