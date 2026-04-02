@@ -101,6 +101,7 @@ export const createNewAgencyWithFirstAgent = async (
         agentUsername: username,
         temporaryPassword: temporaryPassword,
       });
+      console.log("📧 Agency created email sent successfully");
     } catch (mailError) {
       console.error("Failed to send agency created email:", mailError);
     }
