@@ -10,17 +10,6 @@ export const mapAgentToResponse = (agent: Agent) => {
     createdAt: agent.createdAt,
     isPasswordChange: agent.isPasswordChange,
     updatedAt: agent.updatedAt,
-    administratorId: agent.administrator
-      ? {
-          id: agent.administrator.id,
-          firstName: agent.administrator.firstName,
-          lastName: agent.administrator.lastName,
-          username: agent.administrator.username,
-        }
-      : null,
-    agency: {
-      id: agent.agency.id,
-      name: agent.agency.name,
-    },
+    administratorId: agent.administrator?.id || null,
   };
 };

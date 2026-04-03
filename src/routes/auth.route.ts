@@ -84,7 +84,7 @@ router.get("/agent", authenticationMiddlewareAgent, (req, res) => {
   const agent = requireAgent(req as RequestAgent, res);
   if (!agent) return;
 
-  return res.json({ agent: mapAgentToResponse(agent) });
+  return res.json(agent);
 });
 
 export default router;
