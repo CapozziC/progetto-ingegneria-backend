@@ -256,8 +256,12 @@ export const updateAgentPassword = async (req: RequestAgent, res: Response) => {
 };
 
 /**
- * Delete an agent created by the authenticated admin, reassigning all their advertisements
- * and offers to the admin, and deleting all their appointments in a single transaction.
+ * Delete an agent created by the authenticated admin, reassigning:
+ * - all their advertisements to the admin
+ * - all their offers to the admin
+ * - all agents created by them to the admin
+ * - deleting all their appointments
+ * in a single transaction.
  * Only admin agents can delete agents, and they cannot delete themselves.
  * @param req RequestAgent with authenticated admin agent in req.agent and agent id to delete in req.params.agentId
  * @param res Response with success message or error message
@@ -313,6 +317,13 @@ export const deleteAgent = async (req: RequestAgent, res: Response) => {
           { agent: { id: admin.id } },
         );
 
+      await manager
+        .getRepository(Agent)
+        .update(
+          { administrator: { id: agentIdToDelete } },
+          { administrator: { id: admin.id } },
+        );
+
       await manager.getRepository(Appointment).delete({
         agent: { id: agentIdToDelete },
       });
@@ -325,7 +336,7 @@ export const deleteAgent = async (req: RequestAgent, res: Response) => {
 
     return res.status(200).json({
       message:
-        "Agent deleted successfully (advertisements and offers transferred to admin, appointments deleted)",
+        "Agent deleted successfully (advertisements, offers and created agents transferred to admin, appointments deleted)",
     });
   } catch (error) {
     console.error("Delete agent error:", error);
