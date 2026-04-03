@@ -537,18 +537,19 @@ export const getAgentNegotiationByAdvertisementAndAccount = async (
       .json({ error: "Failed to fetch agent negotiation detail" });
   }
 };
+
 /**
- * Delete the first agent created by the authenticated admin, deleting also the associated agency, in a single transaction. The function validates the input, checks if the agent to delete exists and is created by the authenticated admin, and then deletes both the agent and the associated agency in a single transaction. Only authenticated admin agents can perform this action, and they can only delete agents that they have created.
+ * Delete the founder agent and the associated agency in a single transaction.
+ * Only the founder agent of the agency can perform this action.
  * @param req RequestAgent with authenticated admin agent in req.agent and agency id to delete in req.params.agencyId
  * @param res Response with success message or error message
  * @returns JSON with success message or error message
- * Only authenticated admin agents can perform this action, and they can only delete agents that they have created.
  */
 export const deleteFirstAgentAndAgency = async (
   req: RequestAgent,
   res: Response,
 ) => {
-  const validated = validateDeleteFounderRequest(req, res);
+  const validated = await validateDeleteFounderRequest(req, res);
   if (!validated) {
     return;
   }

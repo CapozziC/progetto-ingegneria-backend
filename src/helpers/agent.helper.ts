@@ -1,5 +1,5 @@
+import { AppDataSource } from "../data-source.js";
 import { Like, Repository } from "typeorm";
-import { Agent } from "../entities/agent.js";
 import {
   normalizeUsernameBase,
   nextUsernameFromExisting,
@@ -8,7 +8,7 @@ import { RequestAgent } from "../types/express.js";
 import { requireAdmin } from "../middleware/require.middleware.js";
 import { parsePositiveInt } from "../utils/parse.utils.js";
 import { Response } from "express";
-
+import { Agent } from "../entities/agent.js";
 /**
  * Generates a unique username for the first agent of a newly created agency based on the agent's first name and last name. The function normalizes the base username by combining the first name and last name, and then checks the database for existing usernames that start with the same base. It retrieves all existing usernames for agents in the same agency that match the base pattern and then generates a new username by appending a number to the base if necessary to ensure uniqueness. The generated username is returned as a string.
  * @param agentRepo - TypeORM repository for the Agent entity, used to query the database for existing agents and their usernames
@@ -42,13 +42,13 @@ export const generateFirstAgentUsername = async (
  * Validates a request to delete the founder agent and their agency.
  * Only the founder agent of that agency can perform this operation.
  */
-export const validateDeleteFounderRequest = (
+export const validateDeleteFounderRequest = async (
   req: RequestAgent,
   res: Response,
-): {
+): Promise<{
   admin: NonNullable<ReturnType<typeof requireAdmin>>;
   agencyToDelete: number;
-} | null => {
+} | null> => {
   const admin = requireAdmin(req, res);
   if (!admin) {
     return null;
@@ -59,24 +59,38 @@ export const validateDeleteFounderRequest = (
     res.status(400).json({ error: "Agency id to delete is required" });
     return null;
   }
+
+  const adminToDelete = await AppDataSource.getRepository(Agent).findOne({
+    where: {
+      id: admin.id,
+      agency: { id: agencyToDelete },
+    },
+    relations: ["administrator", "agency"],
+  });
+
+  if (!adminToDelete) {
+    res.status(404).json({ error: "Admin not found" });
+    return null;
+  }
+
   console.log("Admin trying to delete agency:", {
-    adminId: admin.id,
-    admministratorId: admin.administrator?.id,
+    adminId: adminToDelete.id,
+    administratorId: adminToDelete.administrator?.id ?? null,
     agencyToDelete,
   });
 
   // Il fondatore è quello che ha administrator = null
-  if (admin.administrator?.id !== null) {
+  if (adminToDelete.administrator !== null) {
     res
       .status(403)
       .json({ error: "Only the founder agent can delete the agency" });
     return null;
   }
 
-  if (agencyToDelete !== admin.agency.id) {
+  if (agencyToDelete !== adminToDelete.agency.id) {
     res.status(403).json({ error: "Cannot delete another agency" });
     return null;
   }
 
-  return { admin, agencyToDelete };
+  return { admin: adminToDelete, agencyToDelete };
 };
