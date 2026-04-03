@@ -59,9 +59,14 @@ export const validateDeleteFounderRequest = (
     res.status(400).json({ error: "Agency id to delete is required" });
     return null;
   }
+  console.log("Admin trying to delete agency:", {
+    adminId: admin.id,
+    admministratorId: admin.administrator?.id,
+    agencyToDelete,
+  });
 
   // Il fondatore è quello che ha administrator = null
-  if (admin.administrator !== null) {
+  if (admin.administrator?.id !== null) {
     res
       .status(403)
       .json({ error: "Only the founder agent can delete the agency" });
