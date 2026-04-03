@@ -47,7 +47,7 @@ router.delete(
 );
 
 router.delete(
-  "/delete/:agentId/founder",
+  "/delete/:agencyId/founder",
   authenticationMiddlewareAgent,
   validateParams(deleteAgentParamsSchema),
   deleteFirstAgentAndAgency,

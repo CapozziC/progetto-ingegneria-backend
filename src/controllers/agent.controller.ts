@@ -43,6 +43,7 @@ import {
   Status as OfferStatus,
   Offer,
 } from "../entities/offer.js";
+import { Appointment } from "../entities/appointment.js";
 
 /**
  * Get the profile of the authenticated agent, including their ID, name, username, phone number, admin status, and associated agency information. The function checks for the authenticated agent in the request, retrieves their full details from the database using their ID, and returns a structured JSON response containing the agent's profile information. If the agent is not authenticated or if there is an error during retrieval, it returns an appropriate error response.
@@ -99,7 +100,16 @@ export const createNewAgent = async (req: RequestAgent, res: Response) => {
         .json({ error: "First name and last name are required" });
     }
 
-    console.log("Received data - firstName:", firstName, "lastName:", lastName, "phoneNumber:", phoneNumber, "isAdmin:", isAdmin);
+    console.log(
+      "Received data - firstName:",
+      firstName,
+      "lastName:",
+      lastName,
+      "phoneNumber:",
+      phoneNumber,
+      "isAdmin:",
+      isAdmin,
+    );
     if (!phoneNumber) {
       return res.status(400).json({ error: "Phone number is required" });
     }
@@ -246,8 +256,9 @@ export const updateAgentPassword = async (req: RequestAgent, res: Response) => {
 };
 
 /**
- * Delete an agent created by the authenticated admin, reassigning all their advertisements to the admin,
- * in a single transaction. Only admin agents can delete agents, and they cannot delete themselves.
+ * Delete an agent created by the authenticated admin, reassigning all their advertisements
+ * and offers to the admin, and deleting all their appointments in a single transaction.
+ * Only admin agents can delete agents, and they cannot delete themselves.
  * @param req RequestAgent with authenticated admin agent in req.agent and agent id to delete in req.params.agentId
  * @param res Response with success message or error message
  * @returns JSON with success message or error message
@@ -261,6 +272,7 @@ export const deleteAgent = async (req: RequestAgent, res: Response) => {
     if (!agentIdToDelete) {
       return res.status(400).json({ error: "Agent id to delete is required" });
     }
+
     if (agentIdToDelete === admin.id) {
       return res.status(400).json({ error: "Admin cannot delete themselves" });
     }
@@ -278,24 +290,33 @@ export const deleteAgent = async (req: RequestAgent, res: Response) => {
     }
 
     await AppDataSource.transaction(async (manager) => {
-      //lock dell'agente da eliminare
-
-      await manager.getRepository(Agent).findOne({
-        where: { id: agentIdToDelete },
+      const lockedAgent = await manager.getRepository(Agent).findOne({
+        where: { id: agentIdToDelete, agency: { id: admin.agency.id } },
         lock: { mode: "pessimistic_write" },
       });
 
-      // 2) riassegna TUTTI gli advertisements dall'agente->admin
-      await manager.getRepository(Advertisement).update(
-        {
-          agent: { id: agentIdToDelete },
-        },
-        {
-          agent: { id: admin.id },
-        },
-      );
+      if (!lockedAgent) {
+        throw new Error("Agent not found during transaction");
+      }
 
-      // 3) elimina l'agente
+      await manager
+        .getRepository(Advertisement)
+        .update(
+          { agent: { id: agentIdToDelete } },
+          { agent: { id: admin.id } },
+        );
+
+      await manager
+        .getRepository(Offer)
+        .update(
+          { agent: { id: agentIdToDelete } },
+          { agent: { id: admin.id } },
+        );
+
+      await manager.getRepository(Appointment).delete({
+        agent: { id: agentIdToDelete },
+      });
+
       await manager.getRepository(Agent).delete({
         id: agentIdToDelete,
         agency: { id: admin.agency.id },
@@ -304,7 +325,7 @@ export const deleteAgent = async (req: RequestAgent, res: Response) => {
 
     return res.status(200).json({
       message:
-        "Agent deleted successfully (advertisements transferred to admin)",
+        "Agent deleted successfully (advertisements and offers transferred to admin, appointments deleted)",
     });
   } catch (error) {
     console.error("Delete agent error:", error);
@@ -520,10 +541,10 @@ export const deleteFirstAgentAndAgency = async (
     return;
   }
 
-  const { agentIdToDelete } = validated;
+  const { agencyToDelete } = validated;
 
   try {
-    await deleteFounderAndAgencyTransaction(agentIdToDelete);
+    await deleteFounderAndAgencyTransaction(agencyToDelete);
 
     return res.status(200).json({
       message: "First agent and agency deleted successfully",

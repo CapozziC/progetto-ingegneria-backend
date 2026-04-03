@@ -62,13 +62,14 @@ export const createAgencyEntity = async (
  * @param agentIdToDelete - The ID of the agent to delete, which is expected to be the founder of the agency. This ID is used to identify both the agent and the associated agency for deletion.
  * @returns A promise that resolves when the deletion is complete. If the agent or agency is not found, if the agent is not an admin, or if there are other agents associated with the agency, the promise will be rejected with an error message indicating the reason for the failure.
  */
-export const deleteFounderAndAgencyTransaction = async (agentIdToDelete: number) => {
+export const deleteFounderAndAgencyTransaction = async (agencencyIdToDelete
+  : number) => {
   await AppDataSource.transaction(async (manager) => {
     const agentRepo = manager.getRepository(Agent);
     const agencyRepo = manager.getRepository(Agency);
 
     const agent = await agentRepo.findOne({
-      where: { id: agentIdToDelete },
+      where: { agency: { id: agencencyIdToDelete } },
       relations: ["agency"],
     });
 

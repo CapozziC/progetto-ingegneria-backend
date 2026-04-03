@@ -49,23 +49,28 @@ export const validateDeleteFounderRequest = (
   res: Response,
 ): {
   admin: NonNullable<ReturnType<typeof requireAdmin>>;
-  agentIdToDelete: number;
+  agencyToDelete: number;
 } | null => {
   const admin = requireAdmin(req, res);
   if (!admin) {
     return null;
   }
 
-  const agentIdToDelete = parsePositiveInt(req.params.agentId);
-  if (!agentIdToDelete) {
-    res.status(400).json({ error: "Agent id to delete is required" });
+  const agencyToDelete = parsePositiveInt(req.params.agencyId);
+  if (!agencyToDelete) {
+    res.status(400).json({ error: "Agency id to delete is required" });
     return null;
   }
 
-  if (agentIdToDelete !== admin.id) {
-    res.status(403).json({ error: "Cannot delete another agent" });
+  if(admin.administrator?.id !== null){
+    res.status(403).json({ error: "Only founder agents can delete the agency" });
     return null;
   }
 
-  return { admin, agentIdToDelete };
+  if (agencyToDelete !== admin.agency.id) {
+    res.status(403).json({ error: "Cannot delete another agency" });
+    return null;
+  }
+
+  return { admin, agencyToDelete };
 };
