@@ -147,9 +147,18 @@ export const loginAgent = async (req: Request, res: Response) => {
       agency: agent.agency,
       firstName: agent.firstName,
       lastName: agent.lastName,
+      isPasswordChange: agent.isPasswordChange,
       phoneNumber: agent.phoneNumber,
       isAdmin: agent.isAdmin,
       createdAt: agent.createdAt,
+      administratorId: agent.administrator
+        ? {
+            id: agent.administrator.id,
+            username: agent.administrator.username,
+            firstName: agent.administrator.firstName,
+            lastName: agent.administrator.lastName,
+          }
+        : null,
     });
   } catch (error) {
     console.error("Login error:", error);
