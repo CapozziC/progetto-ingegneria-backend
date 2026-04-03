@@ -67,15 +67,13 @@ export const getAllAdvertisements = async (
   res: Response,
 ) => {
   try {
-    console.log("---- GET ALL ADVERTISEMENTS START ----");
-
     const account = requireAccount(req, res);
     if (!account) {
       return res.status(401).json({ error: "Unauthorized" });
     }
 
     const filters = parseAdvertisementFilters(req);
-    console.log("Parsed filters:", filters);
+   
 
     const page = Math.max(Number(req.query.page) || 1, 1);
     const limit = Math.max(Number(req.query.limit) || 10, 1);
@@ -120,7 +118,6 @@ export const getAllAdvertisements = async (
           filters.qLon,
         );
 
-        console.log("Resolved location:", location);
       } catch (error) {
         console.error("Location resolution error:", error);
 
@@ -143,11 +140,9 @@ export const getAllAdvertisements = async (
     console.log("Has coordinates:", hasCoordinates);
 
     if ((sortBy === "nearest" || sortBy === "farthest") && !hasCoordinates) {
-      console.log("Sort forced to newest because coordinates are missing");
       sortBy = "newest";
     }
 
-    console.log("Final sortBy:", sortBy);
 
     const result = await findAdvertisements({
       take,
