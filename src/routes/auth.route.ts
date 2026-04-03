@@ -36,7 +36,6 @@ import {
 import { verifyResetToken } from "../middleware/reset.middleware.js";
 import { googleAuthAccount } from "../controllers/auth.google.account.controller.js";
 import { mapAccountToResponse } from "../mappers/account.response.js";
-import { mapAgentToResponse } from "../mappers/agent.response.js";
 
 // Create a router instance
 const router = express.Router();
@@ -84,7 +83,19 @@ router.get("/agent", authenticationMiddlewareAgent, (req, res) => {
   const agent = requireAgent(req as RequestAgent, res);
   if (!agent) return;
 
-  return res.json(agent);
+  return res.json({
+    id: agent.id,
+    agency: agent.agency,
+    firstName: agent.firstName,
+    lastName: agent.lastName,
+    username: agent.username,
+    phoneNumber: agent.phoneNumber,
+    isAdmin: agent.isAdmin,
+    isPasswordChange: agent.isPasswordChange,
+    administratorId: agent.administrator?.id || null,
+    createdAt: agent.createdAt,
+    updatedAt: agent.updatedAt,
+  });
 });
 
 export default router;
