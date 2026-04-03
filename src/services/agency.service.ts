@@ -1,9 +1,8 @@
-import { Repository } from "typeorm";
+import { IsNull, Repository } from "typeorm";
 import { Agency } from "../entities/agency.js";
 import { Agent } from "../entities/agent.js";
 import { CreateAgencyPayload } from "../types/agency.type.js";
 import { AppDataSource } from "../data-source.js";
-
 
 /**
  * Utility functions for creating agency and agent entities in the database. This module provides functions to create new agency entities and their associated first agent entities based on the provided payload. The createAgencyEntity function takes a TypeORM repository for the Agency entity and a CreateAgencyPayload object, constructs a new Agency entity, and saves it to the database. The createFirstAgentEntity function takes a TypeORM repository for the Agent entity and an object containing the necessary parameters to create a new Agent entity (including the associated agency, agent details, username, and hashed password), constructs the Agent entity, and saves it to the database. These utility functions are intended to be used in the process of creating new agencies and their first agents in the application.
@@ -56,47 +55,50 @@ export const createAgencyEntity = async (
 
   return agencyRepo.save(newAgency);
 };
-
 /**
- *  Deletes an agency and its founder agent in a single transaction. The function takes the ID of the agent to delete, which is expected to be the founder of the agency. It performs a series of checks to ensure that the agent exists, is an admin (founder), and that there are no other agents associated with the agency before proceeding with the deletion. If all checks pass, it removes both the agent and the associated agency from the database within a transaction to ensure data integrity. If any of the checks fail, it throws an appropriate error message indicating the reason for the failure.
- * @param agentIdToDelete - The ID of the agent to delete, which is expected to be the founder of the agency. This ID is used to identify both the agent and the associated agency for deletion.
- * @returns A promise that resolves when the deletion is complete. If the agent or agency is not found, if the agent is not an admin, or if there are other agents associated with the agency, the promise will be rejected with an error message indicating the reason for the failure.
+ * Deletes the founder agent and the agency in a single transaction.
+ * The founder is the agent with administrator = null.
+ * The agency can be deleted only if no other agents belong to it.
  */
-export const deleteFounderAndAgencyTransaction = async (agencencyIdToDelete
-  : number) => {
+export const deleteFounderAndAgencyTransaction = async (
+  agencyIdToDelete: number,
+): Promise<void> => {
   await AppDataSource.transaction(async (manager) => {
     const agentRepo = manager.getRepository(Agent);
     const agencyRepo = manager.getRepository(Agency);
 
-    const agent = await agentRepo.findOne({
-      where: { agency: { id: agencencyIdToDelete } },
+    const founder = await agentRepo.findOne({
+      where: {
+        agency: { id: agencyIdToDelete },
+        administrator: IsNull(),
+      },
       relations: ["agency"],
     });
 
-    if (!agent) {
-      throw new Error("AGENT_NOT_FOUND");
+    if (!founder) {
+      throw new Error("FOUNDER_NOT_FOUND");
     }
 
-    const agency = agent.agency;
+    if (!founder.isAdmin) {
+      throw new Error("FOUNDER_IS_NOT_ADMIN");
+    }
+
+    const agency = founder.agency;
     if (!agency) {
       throw new Error("AGENCY_NOT_FOUND");
     }
 
-    if (!agent.isAdmin) {
-      throw new Error("NOT_FOUNDER");
-    }
-
-    const otherAgentsCount = await agentRepo.count({
+    const agentsCount = await agentRepo.count({
       where: {
-        agency: agency,
+        agency: { id: agencyIdToDelete },
       },
     });
 
-    if (otherAgentsCount > 1) {
+    if (agentsCount > 1) {
       throw new Error("AGENCY_HAS_OTHER_AGENTS");
     }
 
-    await agentRepo.remove(agent);
+    await agentRepo.remove(founder);
     await agencyRepo.remove(agency);
   });
 };

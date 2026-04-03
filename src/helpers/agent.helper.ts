@@ -39,10 +39,8 @@ export const generateFirstAgentUsername = async (
 };
 
 /**
- *  Validates a request to delete a founder agent by checking if the requester is an admin and if the agent ID to delete is valid and corresponds to the requester. The function takes an Express request and response object, checks if the requester is an admin using the requireAdmin middleware, and then validates the agent ID provided in the request parameters. If the requester is not an admin, if the agent ID is not a positive integer, or if the agent ID does not match the requester's ID, the function sends an appropriate error response and returns null. If all validations pass, it returns an object containing the admin information and the agent ID to delete.
- * @param req - The Express request object containing the parameters and user information for validation
- * @param res - The Express response object used to send error responses if validation fails
- * @returns An object containing the admin information and the agent ID to delete if validation is successful; otherwise, null if validation fails
+ * Validates a request to delete the founder agent and their agency.
+ * Only the founder agent of that agency can perform this operation.
  */
 export const validateDeleteFounderRequest = (
   req: RequestAgent,
@@ -62,8 +60,11 @@ export const validateDeleteFounderRequest = (
     return null;
   }
 
-  if(admin.administrator?.id !== null){
-    res.status(403).json({ error: "Only founder agents can delete the agency" });
+  // Il fondatore è quello che ha administrator = null
+  if (admin.administrator !== null) {
+    res
+      .status(403)
+      .json({ error: "Only the founder agent can delete the agency" });
     return null;
   }
 

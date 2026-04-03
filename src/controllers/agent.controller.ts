@@ -538,10 +538,11 @@ export const getAgentNegotiationByAdvertisementAndAccount = async (
   }
 };
 /**
- * Delete the first agent created by the authenticated admin, along with their agency, only if that agent is the founder of the agency and there are no other agents in the agency. This operation is performed in a single transaction to ensure data integrity. Only admin agents can perform this operation, and they cannot delete themselves.
- * @param req RequestAgent with authenticated admin agent in req.agent and agent id to delete in req.params.agentId
+ * Delete the first agent created by the authenticated admin, deleting also the associated agency, in a single transaction. The function validates the input, checks if the agent to delete exists and is created by the authenticated admin, and then deletes both the agent and the associated agency in a single transaction. Only authenticated admin agents can perform this action, and they can only delete agents that they have created.
+ * @param req RequestAgent with authenticated admin agent in req.agent and agency id to delete in req.params.agencyId
  * @param res Response with success message or error message
  * @returns JSON with success message or error message
+ * Only authenticated admin agents can perform this action, and they can only delete agents that they have created.
  */
 export const deleteFirstAgentAndAgency = async (
   req: RequestAgent,
@@ -558,10 +559,10 @@ export const deleteFirstAgentAndAgency = async (
     await deleteFounderAndAgencyTransaction(agencyToDelete);
 
     return res.status(200).json({
-      message: "First agent and agency deleted successfully",
+      message: "Founder agent and agency deleted successfully",
     });
   } catch (error) {
-    console.error("Error deleting first agent and agency:", error);
+    console.error("Error deleting founder agent and agency:", error);
 
     const mappedError = mapDeleteFounderError(error);
     return res.status(mappedError.status).json(mappedError.body);

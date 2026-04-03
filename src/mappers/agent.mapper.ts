@@ -1,18 +1,17 @@
-export const mapDeleteFounderError = (
-  error: unknown,
-): { status: number; body: object } => {
-  if (!(error instanceof Error)) {
-    return {
-      status: 500,
-      body: { error: "Internal server error" },
-    };
-  }
+export const mapDeleteFounderError = (error: unknown) => {
+  const message = error instanceof Error ? error.message : "UNKNOWN_ERROR";
 
-  switch (error.message) {
-    case "AGENT_NOT_FOUND":
+  switch (message) {
+    case "FOUNDER_NOT_FOUND":
       return {
         status: 404,
-        body: { error: "Agent not found" },
+        body: { error: "Founder agent not found" },
+      };
+
+    case "FOUNDER_IS_NOT_ADMIN":
+      return {
+        status: 403,
+        body: { error: "Founder agent is not an admin" },
       };
 
     case "AGENCY_NOT_FOUND":
@@ -21,20 +20,10 @@ export const mapDeleteFounderError = (
         body: { error: "Agency not found" },
       };
 
-    case "NOT_FOUNDER":
-      return {
-        status: 400,
-        body: {
-          error: "Only the founder agent can be deleted with the agency",
-        },
-      };
-
     case "AGENCY_HAS_OTHER_AGENTS":
       return {
-        status: 400,
-        body: {
-          error: "Cannot delete agency because other agents still belong to it",
-        },
+        status: 409,
+        body: { error: "Cannot delete agency because it has other agents" },
       };
 
     default:
@@ -44,6 +33,3 @@ export const mapDeleteFounderError = (
       };
   }
 };
-
-
-
