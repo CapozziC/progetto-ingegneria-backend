@@ -598,11 +598,11 @@ export const agentCreateAccountAndExternalOffer = async (
       price === undefined ||
       !advertisementId
     ) {
-      return res.status(400).json({ error: { message: "All fields are required" } });
+      return res.status(400).json({ error: "Tutti i campi  sono obbligatori" });
     }
 
     if (typeof price !== "number" || price <= 0) {
-      return res.status(400).json({ error: { message: "Price must be a positive number" } });
+      return res.status(400).json({ error: "Il prezzo deve essere un numero positivo" });
     }
 
     const result = await AppDataSource.transaction(async (manager) => {
@@ -625,7 +625,7 @@ export const agentCreateAccountAndExternalOffer = async (
         return {
           status: 403,
           body: {
-            error: { message: "Forbidden: cannot create offer for this advertisement" },
+            error: "Non puoi creare un'offerta per un annuncio che non ti appartiene",
           },
         };
       }
@@ -634,7 +634,7 @@ export const agentCreateAccountAndExternalOffer = async (
         return {
           status: 400,
           body: {
-            error: { message: "Cannot create offer for an advertisement that is not a sale" },
+            error: "Non puoi creare un'offerta per un annuncio che non è una vendita",
           },
         };
       }
@@ -671,8 +671,8 @@ export const agentCreateAccountAndExternalOffer = async (
         status: 201,
         body: {
           message: accountCreated
-            ? "External account and offer created successfully"
-            : "Offer created successfully for existing external account",
+            ? "Account esterno e offerta creati con successo"
+            : "Offerta creata con successo per account esterno esistente",
           accountCreated,
           account: {
             id: account.id,
@@ -694,6 +694,6 @@ export const agentCreateAccountAndExternalOffer = async (
     return res.status(result.status).json(result.body);
   } catch (error) {
     console.error("Error creating external account and offer:", error);
-    return res.status(500).json({ error: { message: "Internal server error" } });
+    return res.status(500).json({ error: "Internal server error" });
   }
 };

@@ -106,19 +106,16 @@ export const createAdvertisementWithRealEstateAndPhotosTx = async (
     console.error("createAdvertisement error:", err);
 
     if (err instanceof Error && err.message === "ADDRESS_NOT_FOUND") {
-      return res.status(400).json({ error: { message: "Address not found / invalid" } });
+      return res.status(400).json({ error: "Indirizzo non trovato" });
     }
 
     if (err instanceof Error && err.message === "LOCATION_REQUIRED") {
       return res.status(400).json({
-        error: {
-          message:
-            "Provide either realEstate.address/addressInput or realEstate.location {lat,lng}",
-        }
+        error: "Indirizzo non valido: impossibile risolvere la posizione geografica",
       });
     }
 
-    return res.status(500).json({ error: { message: "Failed to create advertisement" } });
+    return res.status(500).json({ error: "Fallimento nella creazione dell'annuncio" });
   } finally {
     try {
       await queryRunner.release();
@@ -142,12 +139,12 @@ export const updateAgentAdvertisement = async (
     const agent = requireAgent(req, res);
 
     if (!agent) {
-      return res.status(401).json({ error: { message: "Unauthorized" }   });
+      return res.status(401).json({ error: "Unauthorized" });
     }
 
     const advertisementId = Number(req.params.id);
     if (Number.isNaN(advertisementId)) {
-      return res.status(400).json({ error: { message: "Invalid advertisement id" } });
+      return res.status(400).json({ error: "Invalid advertisement id" });
     }
 
     const updatedAdvertisement = await updateAdvertisementByAgent({
@@ -161,21 +158,21 @@ export const updateAgentAdvertisement = async (
       .json(buildUpdatedAdvertisementResponse(updatedAdvertisement));
   } catch (err) {
     if (err instanceof Error && err.message === "ADVERTISEMENT_NOT_FOUND") {
-      return res.status(404).json({ error: { message: "Advertisement not found" } });
+      return res.status(404).json({ error: "Advertisement not found" });
     }
 
     if (err instanceof Error && err.message === "REALESTATE_NOT_FOUND") {
-      return res.status(400).json({ error: { message: "Real estate data not found" } });
+      return res.status(400).json({ error: "Real estate data not found" });
     }
 
     if (err instanceof Error && err.message === "FORBIDDEN_ADVERTISEMENT") {
       return res.status(403).json({
-        error: { message: "Forbidden: you can update only your own advertisements" },
+        error: "Forbidden: you can update only your own advertisements",
       });
     }
 
     console.error("updateAgentAdvertisement error:", err);
-    return res.status(500).json({ error: { message: "Internal server error" } });
+    return res.status(500).json({ error: "Internal server error" });
   }
 };
 /**
@@ -282,7 +279,7 @@ export const deleteAgentAdvertisement = async (
     }
 
     return res.status(200).json({
-      message: "Advertisement deleted successfully",
+      message: "Annunncio cancellato con successo",
     });
   } catch (err) {
     console.error("deleteAgentAdvertisement error:", err);

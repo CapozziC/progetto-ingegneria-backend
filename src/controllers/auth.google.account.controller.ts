@@ -122,7 +122,7 @@ export const googleAuthAccount = async (req: Request, res: Response) => {
   } catch (error) {
     console.error("googleAuthAccount error:", error);
     return res.status(401).json({
-      error: { message: "Invalid Google authentication" },
+      error: "Autenticazione Google fallita",
     });
   }
 };

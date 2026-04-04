@@ -44,7 +44,7 @@ export const registerAccount = async (req: RequestAccount, res: Response) => {
 
     if (!firstName || !lastName || !email || !password) {
       return res.status(400).json({
-        error: "First name, last name, email and password are required",
+        error: "Tutti i campi sono obbligatori",
       });
     }
 
@@ -128,10 +128,10 @@ export const loginAccount = async (req: RequestAccount, res: Response) => {
     const { email, password } = req.body;
 
     if (!email) {
-      return res.status(400).json({ error: "Email is required" });
+      return res.status(400).json({ error: "Email  è obbligatoria" });
     }
     if (!password) {
-      return res.status(400).json({ error: "Password is required" });
+      return res.status(400).json({ error: "Password  è obbligatoria" });
     }
 
     const account = await findAccountByEmail(email);
@@ -142,7 +142,7 @@ export const loginAccount = async (req: RequestAccount, res: Response) => {
     if (!account.password) {
       return res
         .status(401)
-        .json({ error: "Account doesn't have a password set" });
+        .json({ error: "Account non ha una password impostata" });
     }
 
     const isPasswordValid = await bcrypt.compare(password, account.password);
@@ -220,7 +220,7 @@ export const logoutAccount = async (req: RequestAccount, res: Response) => {
 
     await revokeRefreshToken(account.id, Type.ACCOUNT);
     clearAuthCookies(res);
-    return res.status(200).json({ message: "Logout successful" });
+    return res.status(200).json({ message: "Logout avvenuto con successo" });
   } catch (error) {
     console.error("Logout error:", error);
     return res.status(500).json({ error: "Internal server error" });
@@ -240,7 +240,7 @@ export const forgotAccountPassword = async (
     const { email } = req.body;
 
     if (!email) {
-      return res.status(400).json({ error: { message: "Email is required" } });
+      return res.status(400).json({ error: { message: "Email  è obbligatoria" } });
     }
 
     const account = await findAccountByEmail(email);
@@ -262,7 +262,7 @@ export const forgotAccountPassword = async (
     });
 
     return res.status(200).json({
-      message: "Reset password email sent",
+      message: "Email di reset password inviata con successo",
     });
   } catch (error) {
     console.error("Forgot account password error:", error);
@@ -301,7 +301,7 @@ export const resetAccountPassword = async (
     await saveAccount(account);
 
     return res.status(200).json({
-      message: "Password updated successfully",
+      message: "Password resettata con successo",
     });
   } catch (error) {
     console.error("Reset account password error:", error);

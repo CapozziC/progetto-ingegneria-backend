@@ -42,11 +42,15 @@ export const getAvailableDays = async (req: RequestAccount, res: Response) => {
 
     const advertisementId = parsePositiveInt(req.params.id);
     if (!advertisementId) {
-      return res.status(400).json({ error: { message: "Invalid advertisement id" } });
+      return res
+        .status(400)
+        .json({ error: { message: "Invalid advertisement id" } });
     }
     const advertisement = await searchAdvertisementById(advertisementId);
     if (!advertisement) {
-      return res.status(404).json({ error: { message: "Advertisement not found" } });
+      return res
+        .status(404)
+        .json({ error: { message: "Advertisement not found" } });
     }
 
     const startRome = todayRome().startOf("day");
@@ -71,7 +75,9 @@ export const getAvailableDays = async (req: RequestAccount, res: Response) => {
     });
   } catch (e) {
     console.error("getAvailableDays error:", e);
-    return res.status(500).json({ error: { message: "Internal server error" } });
+    return res
+      .status(500)
+      .json({ error: { message: "Internal server error" } });
   }
 };
 /**
@@ -92,12 +98,16 @@ export const getAvailableSlotsByDay = async (
 
     const advertisementId = parsePositiveInt(req.params.id);
     if (!advertisementId) {
-      return res.status(400).json({ error: { message: "Invalid advertisement id" } });
+      return res
+        .status(400)
+        .json({ error: { message: "Invalid advertisement id" } });
     }
 
     const advertisement = await searchAdvertisementById(advertisementId);
     if (!advertisement) {
-      return res.status(404).json({ error: { message: "Advertisement not found" } });
+      return res
+        .status(404)
+        .json({ error: { message: "Advertisement not found" } });
     }
 
     const dayParam = Array.isArray(req.params.day)
@@ -108,12 +118,16 @@ export const getAvailableSlotsByDay = async (
     console.log("advertisementId:", advertisementId);
     console.log("dayParam:", dayParam);
     if (!dayParam) {
-      return res.status(400).json({ error: { message: "Missing day parameter" } });
+      return res
+        .status(400)
+        .json({ error: "Il parametro giorno è obbligatorio" });
     }
     const selected = DateTime.fromISO(dayParam, { zone: "Europe/Rome" });
 
     if (!selected.isValid) {
-      return res.status(400).json({ error: { message: "Invalid day format (YYYY-MM-DD)" } });
+      return res
+        .status(400)
+        .json({ error: "Formato giorno non valido (YYYY-MM-DD)" });
     }
 
     const dayStartRome = selected.startOf("day");
@@ -141,7 +155,9 @@ export const getAvailableSlotsByDay = async (
     });
   } catch (e) {
     console.error("getAvailableSlotsByDay error:", e);
-    return res.status(500).json({ error: { message: "Internal server error" } });
+    return res
+      .status(500)
+      .json({ error: { message: "Internal server error" } });
   }
 };
 
@@ -176,7 +192,9 @@ export const createAppointment = async (req: RequestAccount, res: Response) => {
 
     const advertisementId = parsePositiveInt(req.params.id);
     if (!advertisementId) {
-      return res.status(400).json({ error: { message: "Invalid advertisement id" } });
+      return res
+        .status(400)
+        .json({ error: { message: "Invalid advertisement id" } });
     }
 
     const { date, time } = req.body;
@@ -186,7 +204,9 @@ export const createAppointment = async (req: RequestAccount, res: Response) => {
     console.log("time:", time);
 
     if (!date || !time) {
-      return res.status(400).json({ error: { message: "date and time are required" } });
+      return res
+        .status(400)
+        .json({ error: "Giorno e ora sono entrambi obbligatori" });
     }
 
     // combina date + time in Europe/Rome
@@ -199,7 +219,7 @@ export const createAppointment = async (req: RequestAccount, res: Response) => {
     console.log("dtUTC:", dtRome.toUTC().toISO());
     if (!dtRome.isValid) {
       return res.status(400).json({
-        error: { message: "Invalid date or time format" },
+        error: { message: "Formato data o ora non valido" },
       });
     }
 
@@ -207,7 +227,7 @@ export const createAppointment = async (req: RequestAccount, res: Response) => {
     const appointmentAt = dtRome.toUTC().toJSDate();
     if (!isValidHourlySlotRome(appointmentAt)) {
       return res.status(400).json({
-        error: { message: "Invalid slot (must be a valid working-hour hourly slot in Europe/Rome)" },
+        error: "L'orario dell'appuntamento deve essere in un'ora intera (es. 14:00) e non nel passato",
       });
     }
 
@@ -215,13 +235,15 @@ export const createAppointment = async (req: RequestAccount, res: Response) => {
     const apptUtc = DateTime.fromJSDate(appointmentAt, { zone: "utc" });
     if (apptUtc <= nowUtc) {
       return res.status(400).json({
-        error: { message: "appointmentAt must be in the future" },
+        error: "L'orario dell'appuntamento deve essere nel futuro",
       });
     }
 
     const agentId = await findAdvertisementOwnerId(advertisementId);
     if (!agentId) {
-      return res.status(404).json({ error: { message: "Advertisement owner  not found" } });
+      return res
+        .status(404)
+        .json({ error: { message: "Advertisement owner  not found" } });
     }
     const existingAppointment = await existingRequestedAppointment(
       advertisementId,
@@ -229,7 +251,7 @@ export const createAppointment = async (req: RequestAccount, res: Response) => {
     );
     if (existingAppointment) {
       return res.status(409).json({
-        error: { message: "You already have a pending appointment request for this advertisement" },
+        error: "Esiste già una richiesta di appuntamento per questo annuncio da parte di questo account",
       });
     }
 
@@ -255,10 +277,12 @@ export const createAppointment = async (req: RequestAccount, res: Response) => {
     });
   } catch (err) {
     if (isPgUniqueViolation(err)) {
-      return res.status(409).json({ error: { message: "Slot already taken" } });
+      return res.status(409).json({ error: "Lo slot selezionato non è più disponibile" });
     }
     console.error("createAppointment error:", err);
-    return res.status(500).json({ error: { message: "Internal server error" } });
+    return res
+      .status(500)
+      .json({ error: { message: "Internal server error" } });
   }
 };
 
@@ -301,7 +325,7 @@ export const getAppointmentsForAgent = async (
 
       if (isInvalidRange) {
         return res.status(400).json({
-          error: { message: "Invalid date range" },
+          error: "Range di date non valido"
         });
       }
 
@@ -309,7 +333,9 @@ export const getAppointmentsForAgent = async (
       parsedTo = t;
     } else if (from !== undefined || to !== undefined) {
       return res.status(400).json({
-        error: { message: "Both from and to must be provided as ISO date strings" },
+        error: {
+          message: "Both from and to must be provided as ISO date strings",
+        },
       });
     }
 
@@ -346,7 +372,9 @@ export const getAppointmentsForAgent = async (
     });
   } catch (e) {
     console.error("getAppointmentsForAgent error:", e);
-    return res.status(500).json({ error: { message: "Internal server error" } });
+    return res
+      .status(500)
+      .json({ error: { message: "Internal server error" } });
   }
 };
 
@@ -368,7 +396,9 @@ export const agentConfirmAppointment = async (
     if (!agent) return;
 
     if (!appointmentId) {
-      return res.status(400).json({ error: { message: "Invalid appointment id" }  }); 
+      return res
+        .status(400)
+        .json({ error: { message: "Invalid appointment id" } });
     }
 
     const appointment = await findAppointmentByIdForAgent(
@@ -377,13 +407,17 @@ export const agentConfirmAppointment = async (
     );
 
     if (!appointment) {
-      return res.status(404).json({ error : { message: "Appointment not found" } });
+      return res
+        .status(404)
+        .json({ error: { message: "Appointment not found" } });
     }
 
     if (appointment.status !== Status.REQUESTED) {
       return res
         .status(400)
-        .json({ error: { message: "Only requested appointments can be confirmed" } });
+        .json({
+          error: "Solo gli appuntamenti in stato 'IN ATTESA' possono essere confermati",
+        });
     }
 
     appointment.status = Status.CONFIRMED;
@@ -399,7 +433,9 @@ export const agentConfirmAppointment = async (
     });
   } catch (e) {
     console.error("agentConfirmAppointment error:", e);
-    return res.status(500).json({ error: { message: "Internal server error" } });
+    return res
+      .status(500)
+      .json({ error: { message: "Internal server error" } });
   }
 };
 
@@ -421,7 +457,9 @@ export const agentRejectAppointment = async (
     if (!agent) return;
 
     if (!appointmentId) {
-      return res.status(400).json({ error: { message: "Invalid appointment id" }  }); 
+      return res
+        .status(400)
+        .json({ error: { message: "Invalid appointment id" } });
     }
 
     const appointment = await findAppointmentByIdForAgent(
@@ -429,20 +467,24 @@ export const agentRejectAppointment = async (
       agent.id,
     );
     if (!appointment) {
-      return res.status(404).json({ error: { message: "Appointment not found" } });
+      return res
+        .status(404)
+        .json({ error: { message: "Appointment not found" } });
     }
 
     if (appointment.status !== Status.REQUESTED) {
       return res
         .status(400)
-        .json({ error: { message: "Only requested appointments can be rejected" } });
+        .json({
+          error: "Solo gli appuntamenti in stato 'IN ATTESA' possono essere rifiutati",
+        });
     }
 
     appointment.status = Status.REJECTED;
     await saveAppointment(appointment);
 
     return res.json({
-      message: "Appointment rejected successfully",
+      message: "Appuntamento rifiutato con successo",
       appointmentId: appointment.id,
       status: appointment.status,
       appointmentAt: appointment.appointmentAt.toISOString(),
@@ -451,7 +493,9 @@ export const agentRejectAppointment = async (
     });
   } catch (e) {
     console.error("agentRejectAppointment error:", e);
-    return res.status(500).json({ error: { message: "Internal server error" } });
+    return res
+      .status(500)
+      .json({ error: "Errore interno del server"  });
   }
 };
 
@@ -513,7 +557,9 @@ export const getAppointmentsForAccount = async (
     });
   } catch (e) {
     console.error("getAppointmentsForAccount error:", e);
-    return res.status(500).json({ error: { message: "Internal server error" } });
+    return res
+      .status(500)
+      .json({ error: { message: "Internal server error" } });
   }
 };
 
@@ -535,7 +581,9 @@ export const accountCancelAppointment = async (
 
     const appointmentId = parsePositiveInt(req.params.id);
     if (!appointmentId) {
-      return res.status(400).json({ error: { message: "Invalid appointment id" } });
+      return res
+        .status(400)
+        .json({ error: { message: "Invalid appointment id" } });
     }
 
     const appointment = await findAppointmentByIdForAccount(
@@ -545,7 +593,7 @@ export const accountCancelAppointment = async (
 
     if (!appointment) {
       return res.status(404).json({
-        error: { message: "Appointment not found or not owned by this account" },
+        error: "Appuntamento non trovato",
       });
     }
 
@@ -554,7 +602,9 @@ export const accountCancelAppointment = async (
       appointment.status !== Status.CONFIRMED
     ) {
       return res.status(409).json({
-        error: { message: `Cannot cancel appointment in status '${appointment.status}'` },
+        error: {
+          message: `Non puoi annullare un appuntamento in stato '${appointment.status}'`,
+        },
       });
     }
 
@@ -562,7 +612,7 @@ export const accountCancelAppointment = async (
     const saved = await saveAppointment(appointment);
 
     return res.status(200).json({
-      message: "Appointment cancelled successfully",
+      message: "Appuntamento annullato con successo",
       appointmentId: saved.id,
       status: saved.status,
       appointmentAt: saved.appointmentAt.toISOString(),

@@ -274,7 +274,7 @@ export const getAccountNegotiationByAdvertisementAndAgent = async (
     });
 
     if (!negotiation) {
-      return res.status(404).json({ error: { message: "Negotiation not found" } });
+      return res.status(404).json({ error: "Negoziazione non trovata" });
     }
 
     return res.json(negotiation);
@@ -282,7 +282,7 @@ export const getAccountNegotiationByAdvertisementAndAgent = async (
     console.error("Error fetching account negotiation detail:", error);
     return res
       .status(500)
-      .json({ error: { message: "Failed to fetch account negotiation detail" } });
+      .json({ error: "Fallimento nel caricamento delle dettagli della negoziazione" });
   }
 };
 
@@ -310,7 +310,7 @@ export const getAdvertisementById = async (
   try {
     const advertisement = await findAdvertisementById(advertisementId);
     if (!advertisement) {
-      return res.status(404).json({ error: { message: "Advertisement not found" } });
+      return res.status(404).json({ error: "Annuncio non trovato" });
     }
     return res.json({
       ...advertisement,
@@ -322,7 +322,7 @@ export const getAdvertisementById = async (
     });
   } catch (err) {
     console.error("getAdvertisementById error:", err);
-    return res.status(500).json({ error: { message: "Failed to retrieve advertisement" } });
+    return res.status(500).json({ error: "Errore interno del server" });
   }
 };
 
@@ -346,27 +346,27 @@ export const updatePasswordAccount = async (
 
     if (account.id !== accountId) {
       return res.status(403).json({
-        error: { message: "Forbidden: only the account owner can update their password" },
+        error: "Forbiddesn: only the account owner can update their password",
       });
     }
 
     const { currentPassword, newPassword } = req.body;
     if (!currentPassword || !newPassword) {
       return res.status(400).json({
-        error: { message: "Current password and new password are required" },
+        error: "Current password and new password are required",
       });
     }
 
     if (newPassword === currentPassword) {
       return res.status(400).json({
-        error: { message: "New password must be different from current password" },
+        error: "New password must be different from current password",
       });
     }
 
     const fullAccount = await findAccountById(account.id);
     if (!fullAccount?.password) {
       return res.status(404).json({
-        error: { message: "Account not found or password not set" },
+        error: "Password non settata per questo account, impossibile aggiornare la password",
       });
     }
 
@@ -377,7 +377,7 @@ export const updatePasswordAccount = async (
 
     if (!isCurrentPasswordValid) {
       return res.status(401).json({
-        error: { message: "Current password is incorrect" },
+        error: "Current password is incorrect",
       });
     }
 
@@ -386,7 +386,7 @@ export const updatePasswordAccount = async (
     await updateAccountPassword(fullAccount.id, hashedNewPassword);
 
     return res.status(200).json({
-      message: "Password updated successfully",
+      message: "Password aggiornata con successo",
       account: {
         id: fullAccount.id,
         firstName: fullAccount.firstName,
@@ -402,7 +402,7 @@ export const updatePasswordAccount = async (
   } catch (err) {
     console.error("updatePasswordAccount error:", err);
     return res.status(500).json({
-      error: { message: "Failed to update password" },
+      error: "Fallimento nell'aggiornamento della password",
     });
   }
 };
@@ -446,12 +446,12 @@ export const deleteAccount = async (req: RequestAccount, res: Response) => {
     await deleteAccountById(account.id);
 
     return res.status(200).json({
-      message: "Account deleted successfully",
+      message: "Account cancellato con successo",
     });
   } catch (err) {
     console.error("deleteAccount error:", err);
     return res.status(500).json({
-      error: { message: "Failed to delete account" },
+      error: "Fallimento nella cancellazione dell'account",
     });
   }
 };

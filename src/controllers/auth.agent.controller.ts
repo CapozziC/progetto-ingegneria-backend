@@ -378,7 +378,7 @@ export const resetAgentPassword = async (
     await saveAgent(agent);
 
     return res.status(200).json({
-      message: "Password updated successfully",
+      message: "Password resettata con successo",
     });
   } catch (error) {
     console.error("Reset agent password error:", error);
