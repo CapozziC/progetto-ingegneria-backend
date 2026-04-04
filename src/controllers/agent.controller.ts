@@ -59,7 +59,7 @@ export const getAgentProfile = async (req: RequestAgent, res: Response) => {
 
     const fullAgent = await findAgentById(agent.id);
     if (!fullAgent) {
-      return res.status(404).json({ error: "Agent not found" });
+      return res.status(404).json({ error: { message: "Agent not found" } });
     }
 
     return res.status(200).json({
@@ -76,7 +76,7 @@ export const getAgentProfile = async (req: RequestAgent, res: Response) => {
     });
   } catch (error) {
     console.error("Error fetching agent profile:", error);
-    return res.status(500).json({ error: "Internal server error" });
+    return res.status(500).json({ error: { message: "Internal server error" } });
   }
 };
 
@@ -97,7 +97,7 @@ export const createNewAgent = async (req: RequestAgent, res: Response) => {
     if (!firstName || !lastName) {
       return res
         .status(400)
-        .json({ error: "First name and last name are required" });
+        .json({ error: { message: "First name and last name are required" } });
     }
 
     console.log(
@@ -111,7 +111,7 @@ export const createNewAgent = async (req: RequestAgent, res: Response) => {
       isAdmin,
     );
     if (!phoneNumber) {
-      return res.status(400).json({ error: "Phone number is required" });
+      return res.status(400).json({ error: { message: "Phone number is required" } });
     }
 
     const usernameBase = normalizeUsernameBase(firstName, lastName);
@@ -159,7 +159,7 @@ export const createNewAgent = async (req: RequestAgent, res: Response) => {
     });
   } catch (error) {
     console.error("Error creating agent:", error);
-    return res.status(500).json({ error: "Internal server error" });
+    return res.status(500).json({ error: { message: "Internal server error" } });
   }
 };
 
@@ -181,7 +181,7 @@ export const updatePhoneNumberAgent = async (
 
     if (typeof phoneNumber !== "string" || phoneNumber.trim() === "") {
       return res.status(400).json({
-        error: "Invalid phone number",
+        error: { message: "Invalid phone number" },
       });
     }
 
@@ -197,7 +197,7 @@ export const updatePhoneNumberAgent = async (
   } catch (err) {
     console.error("updateMyPhoneNumber error:", err);
     return res.status(500).json({
-      error: "Internal server error",
+      error: { message: "Internal server error" },
     });
   }
 };
@@ -216,25 +216,25 @@ export const updateAgentPassword = async (req: RequestAgent, res: Response) => {
 
     const agentId = parsePositiveInt(req.params.agentId);
     if (!agentId) {
-      return res.status(400).json({ error: "Invalid agent id" });
+      return res.status(400).json({ error: { message: "Invalid agent id" } });
     }
     if (agent.id !== agentId) {
       return res
         .status(403)
-        .json({ error: "Forbidden: cannot change another agent's password" });
+        .json({ error: { message: "Forbidden: cannot change another agent's password" } });
     }
 
     const { currentPassword, newPassword } = req.body;
     if (!currentPassword || !newPassword) {
       return res.status(400).json({
-        error: "Current password and new password are required",
+        error: { message: "Current password and new password are required" },
       });
     }
 
     if (newPassword.length < 8) {
       return res
         .status(400)
-        .json({ error: "New password must be at least 8 characters long" });
+        .json({ error: { message: "New password must be at least 8 characters long" } });
     }
 
     const isCurrentPasswordValid = await bcrypt.compare(
@@ -242,7 +242,7 @@ export const updateAgentPassword = async (req: RequestAgent, res: Response) => {
       agent.password,
     );
     if (!isCurrentPasswordValid) {
-      return res.status(401).json({ error: "Current password is incorrect" });
+      return res.status(401).json({ error: { message: "Current password is incorrect" } });
     }
 
     const hashedNewPassword = await bcrypt.hash(newPassword, 10);
@@ -251,7 +251,7 @@ export const updateAgentPassword = async (req: RequestAgent, res: Response) => {
     return res.status(200).json({ message: "Password updated successfully" });
   } catch (err) {
     console.error("updateAgentPassword error:", err);
-    return res.status(500).json({ error: "Internal server error" });
+    return res.status(500).json({ error: { message: "Internal server error" } });
   }
 };
 
@@ -274,11 +274,11 @@ export const deleteAgent = async (req: RequestAgent, res: Response) => {
     if (!admin) return;
 
     if (!agentIdToDelete) {
-      return res.status(400).json({ error: "Agent id to delete is required" });
+      return res.status(400).json({ error: { message: "Agent id to delete is required" } });
     }
 
     if (agentIdToDelete === admin.id) {
-      return res.status(400).json({ error: "Admin cannot delete themselves" });
+      return res.status(400).json({ error: { message: "Admin cannot delete themselves" } });
     }
 
     const agentToDelete = await findAgentCreatedByAdmin(
@@ -288,9 +288,7 @@ export const deleteAgent = async (req: RequestAgent, res: Response) => {
     );
 
     if (!agentToDelete) {
-      return res.status(404).json({
-        error: "Agent not found or you are not allowed to delete this agent",
-      });
+      return res.status(404).json({ error: { message: "Agent not found or you are not allowed to delete this agent" } });
     }
 
     await AppDataSource.transaction(async (manager) => {
@@ -340,7 +338,7 @@ export const deleteAgent = async (req: RequestAgent, res: Response) => {
     });
   } catch (error) {
     console.error("Delete agent error:", error);
-    return res.status(500).json({ error: "Internal server error" });
+    return res.status(500).json({ error: { message: "Internal server error" } });
   }
 };
 
@@ -358,7 +356,7 @@ export const getAgentAdvertisements = async (
     //Controllo autenticazione
     const agent = requireAgent(req, res);
     if (!agent) {
-      return res.status(401).json({ error: "Unauthorized" });
+      return res.status(401).json({ error: { message: "Unauthorized" } });
     }
 
     const advertisements = await findAdvertisementsByAgentId(agent.id);
@@ -384,7 +382,7 @@ export const getAgentAdvertisements = async (
     });
   } catch (err) {
     console.error(" getAgentAdvertisements error:", err);
-    return res.status(500).json({ error: "Internal server error" });
+    return res.status(500).json({ error: { message: "Internal server error" } });
   }
 };
 /**
@@ -406,7 +404,7 @@ export const getAgentAdvertisementById = async (
     const advertisementId = parsePositiveInt(req.params.advertisementId);
     console.log("Parsed advertisementId:", advertisementId);
     if (!advertisementId) {
-      return res.status(400).json({ error: "Invalid advertisement id" });
+      return res.status(400).json({ error: { message: "Invalid advertisement id" } });
     }
 
     const advertisement = await findAdvertisementByIdAndAgentId(
@@ -415,13 +413,13 @@ export const getAgentAdvertisementById = async (
     );
     console.log("Fetched advertisement:", advertisement);
     if (!advertisement) {
-      return res.status(404).json({ error: "Advertisement not found" });
+      return res.status(404).json({ error: { message: "Advertisement not found" } });
     }
 
     return res.status(200).json(advertisement);
   } catch (error) {
     console.error("Error fetching advertisement by ID:", error);
-    return res.status(500).json({ error: "Internal server error" });
+    return res.status(500).json({ error: { message: "Internal server error" } });
   }
 };
 
@@ -441,7 +439,7 @@ export const getAgentNegotiations = async (
   res: Response,
 ) => {
   const agent = requireAgent(req, res);
-  if (!agent) return res.status(401).json({ error: "Unauthorized" });
+  if (!agent) return res.status(401).json({ error: { message: "Unauthorized" } });
 
   try {
     const result = await findAgentNegotiations({
@@ -453,7 +451,7 @@ export const getAgentNegotiations = async (
     console.error("Error fetching agent negotiations:", error);
     return res
       .status(500)
-      .json({ error: "Failed to fetch agent negotiations" });
+      .json({ error: { message: "Failed to fetch agent negotiations" } });
   }
 };
 /**
@@ -486,7 +484,7 @@ export const getAllAgentCreatedByLoggedAdmin = async (
     });
   } catch (error) {
     console.error("Error fetching agents created by admin:", error);
-    return res.status(500).json({ error: "Internal server error" });
+    return res.status(500).json({ error: { message: "Internal server error" } });
   }
 };
 
@@ -506,16 +504,16 @@ export const getAgentNegotiationByAdvertisementAndAccount = async (
   res: Response,
 ) => {
   const agent = requireAgent(req, res);
-  if (!agent) return res.status(401).json({ error: "Unauthorized" });
+  if (!agent) return res.status(401).json({ error: { message: "Unauthorized" } });
 
   const advertisementId = parsePositiveInt(req.params.advertisementId);
   if (!advertisementId) {
-    return res.status(400).json({ error: "Invalid advertisement id" });
+    return res.status(400).json({ error: { message: "Invalid advertisement id" } });
   }
 
   const accountId = parsePositiveInt(req.params.accountId);
   if (!accountId) {
-    return res.status(400).json({ error: "Invalid account id" });
+    return res.status(400).json({ error: { message: "Invalid account id" } });
   }
 
   try {
@@ -526,7 +524,7 @@ export const getAgentNegotiationByAdvertisementAndAccount = async (
     });
 
     if (!negotiation) {
-      return res.status(404).json({ error: "Negotiation not found" });
+      return res.status(404).json({ error: { message: "Negotiation not found" } });
     }
 
     return res.json(negotiation);
@@ -534,7 +532,7 @@ export const getAgentNegotiationByAdvertisementAndAccount = async (
     console.error("Error fetching agent negotiation detail:", error);
     return res
       .status(500)
-      .json({ error: "Failed to fetch agent negotiation detail" });
+      .json({ error: { message: "Failed to fetch agent negotiation detail" } });
   }
 };
 
@@ -600,11 +598,11 @@ export const agentCreateAccountAndExternalOffer = async (
       price === undefined ||
       !advertisementId
     ) {
-      return res.status(400).json({ error: "All fields are required" });
+      return res.status(400).json({ error: { message: "All fields are required" } });
     }
 
     if (typeof price !== "number" || price <= 0) {
-      return res.status(400).json({ error: "Price must be a positive number" });
+      return res.status(400).json({ error: { message: "Price must be a positive number" } });
     }
 
     const result = await AppDataSource.transaction(async (manager) => {
@@ -620,14 +618,14 @@ export const agentCreateAccountAndExternalOffer = async (
       });
 
       if (!advertisement) {
-        return { status: 404, body: { error: "Advertisement not found" } };
+        return { status: 404, body: { error: { message: "Advertisement not found" } } };
       }
 
       if (advertisement.agent?.id !== agent.id) {
         return {
           status: 403,
           body: {
-            error: "Forbidden: cannot create offer for this advertisement",
+            error: { message: "Forbidden: cannot create offer for this advertisement" },
           },
         };
       }
@@ -636,8 +634,7 @@ export const agentCreateAccountAndExternalOffer = async (
         return {
           status: 400,
           body: {
-            error:
-              "Cannot create offer for an advertisement that is not a sale",
+            error: { message: "Cannot create offer for an advertisement that is not a sale" },
           },
         };
       }
@@ -697,6 +694,6 @@ export const agentCreateAccountAndExternalOffer = async (
     return res.status(result.status).json(result.body);
   } catch (error) {
     console.error("Error creating external account and offer:", error);
-    return res.status(500).json({ error: "Internal server error" });
+    return res.status(500).json({ error: { message: "Internal server error" } });
   }
 };

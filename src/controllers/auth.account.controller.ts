@@ -240,13 +240,13 @@ export const forgotAccountPassword = async (
     const { email } = req.body;
 
     if (!email) {
-      return res.status(400).json({ error: "Email is required" });
+      return res.status(400).json({ error: { message: "Email is required" } });
     }
 
     const account = await findAccountByEmail(email);
 
     if (!account) {
-      return res.status(404).json({ error: "Account not found" });
+      return res.status(404).json({ error: { message: "Account not found" } });
     }
 
     const resetToken = generateResetToken(
@@ -278,21 +278,21 @@ export const resetAccountPassword = async (
     const { newPassword } = req.body;
 
     if (!newPassword) {
-      return res.status(400).json({ error: "New password is required" });
+      return res.status(400).json({ error: { message: "New password is required" } });
     }
 
     const resetToken = req.resetToken;
     if (!resetToken) {
-      return res.status(401).json({ error: "Missing reset token payload" });
+      return res.status(401).json({ error: { message: "Missing reset token payload" } });
     }
 
     if (resetToken.type !== Type.ACCOUNT) {
-      return res.status(403).json({ error: "Invalid token type" });
+      return res.status(403).json({ error: { message: "Invalid token type" } });
     }
 
     const account = await findAccountById(resetToken.subjectId);
     if (!account) {
-      return res.status(404).json({ error: "Account not found" });
+      return res.status(404).json({ error: { message: "Account not found" } });
     }
 
     const hashedPassword = await bcrypt.hash(newPassword, 10);
@@ -305,6 +305,6 @@ export const resetAccountPassword = async (
     });
   } catch (error) {
     console.error("Reset account password error:", error);
-    return res.status(500).json({ error: "Internal server error" });
+    return res.status(500).json({ error: { message: "Internal server error" } });
   }
 };

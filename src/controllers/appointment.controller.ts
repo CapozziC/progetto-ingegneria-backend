@@ -42,11 +42,11 @@ export const getAvailableDays = async (req: RequestAccount, res: Response) => {
 
     const advertisementId = parsePositiveInt(req.params.id);
     if (!advertisementId) {
-      return res.status(400).json({ error: "Invalid advertisement id" });
+      return res.status(400).json({ error: { message: "Invalid advertisement id" } });
     }
     const advertisement = await searchAdvertisementById(advertisementId);
     if (!advertisement) {
-      return res.status(404).json({ error: "Advertisement not found" });
+      return res.status(404).json({ error: { message: "Advertisement not found" } });
     }
 
     const startRome = todayRome().startOf("day");
@@ -71,7 +71,7 @@ export const getAvailableDays = async (req: RequestAccount, res: Response) => {
     });
   } catch (e) {
     console.error("getAvailableDays error:", e);
-    return res.status(500).json({ error: "Internal server error" });
+    return res.status(500).json({ error: { message: "Internal server error" } });
   }
 };
 /**
@@ -92,12 +92,12 @@ export const getAvailableSlotsByDay = async (
 
     const advertisementId = parsePositiveInt(req.params.id);
     if (!advertisementId) {
-      return res.status(400).json({ error: "Invalid advertisement id" });
+      return res.status(400).json({ error: { message: "Invalid advertisement id" } });
     }
 
     const advertisement = await searchAdvertisementById(advertisementId);
     if (!advertisement) {
-      return res.status(404).json({ error: "Advertisement not found" });
+      return res.status(404).json({ error: { message: "Advertisement not found" } });
     }
 
     const dayParam = Array.isArray(req.params.day)
@@ -108,12 +108,12 @@ export const getAvailableSlotsByDay = async (
     console.log("advertisementId:", advertisementId);
     console.log("dayParam:", dayParam);
     if (!dayParam) {
-      return res.status(400).json({ error: "Missing day parameter" });
+      return res.status(400).json({ error: { message: "Missing day parameter" } });
     }
     const selected = DateTime.fromISO(dayParam, { zone: "Europe/Rome" });
 
     if (!selected.isValid) {
-      return res.status(400).json({ error: "Invalid day format (YYYY-MM-DD)" });
+      return res.status(400).json({ error: { message: "Invalid day format (YYYY-MM-DD)" } });
     }
 
     const dayStartRome = selected.startOf("day");
@@ -141,7 +141,7 @@ export const getAvailableSlotsByDay = async (
     });
   } catch (e) {
     console.error("getAvailableSlotsByDay error:", e);
-    return res.status(500).json({ error: "Internal server error" });
+    return res.status(500).json({ error: { message: "Internal server error" } });
   }
 };
 
@@ -176,7 +176,7 @@ export const createAppointment = async (req: RequestAccount, res: Response) => {
 
     const advertisementId = parsePositiveInt(req.params.id);
     if (!advertisementId) {
-      return res.status(400).json({ error: "Invalid advertisement id" });
+      return res.status(400).json({ error: { message: "Invalid advertisement id" } });
     }
 
     const { date, time } = req.body;
@@ -186,9 +186,7 @@ export const createAppointment = async (req: RequestAccount, res: Response) => {
     console.log("time:", time);
 
     if (!date || !time) {
-      return res.status(400).json({
-        error: "date and time are required",
-      });
+      return res.status(400).json({ error: { message: "date and time are required" } });
     }
 
     // combina date + time in Europe/Rome
@@ -303,7 +301,7 @@ export const getAppointmentsForAgent = async (
 
       if (isInvalidRange) {
         return res.status(400).json({
-          error: "Invalid date range",
+          error: { message: "Invalid date range" },
         });
       }
 

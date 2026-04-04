@@ -69,7 +69,7 @@ export const getAllAdvertisements = async (
   try {
     const account = requireAccount(req, res);
     if (!account) {
-      return res.status(401).json({ error: "Unauthorized" });
+      return res.status(401).json({ error:{ message: "Unauthorized" } });
     }
 
     const filters = parseAdvertisementFilters(req);
@@ -125,7 +125,7 @@ export const getAllAdvertisements = async (
           error instanceof Error &&
           error.message === "Could not geocode city"
         ) {
-          return res.status(400).json({ error: "Could not geocode city" });
+          return res.status(400).json({ error: { message: "Could not geocode city" } });
         }
 
         throw error;
@@ -204,7 +204,7 @@ export const getAllAdvertisements = async (
     });
   } catch (error) {
     console.error("GET ALL ADVERTISEMENTS ERROR:", error);
-    return res.status(500).json({ error: "Internal server error" });
+    return res.status(500).json({ error: { message: "Internal server error" } });
   }
 };
 /**
@@ -223,7 +223,7 @@ export const getAccountNegotiations = async (
   res: Response,
 ) => {
   const account = requireAccount(req, res);
-  if (!account) return res.status(401).json({ error: "Unauthorized" });
+  if (!account) return res.status(401).json({ error: { message: "Unauthorized" } });
 
   try {
     const result = await findAccountNegotiations({
@@ -235,7 +235,7 @@ export const getAccountNegotiations = async (
     console.error("Error fetching account negotiations:", error);
     return res
       .status(500)
-      .json({ error: "Failed to fetch account negotiations" });
+      .json({ error: { message: "Failed to fetch account negotiations" } });
   }
 };
 
@@ -254,16 +254,16 @@ export const getAccountNegotiationByAdvertisementAndAgent = async (
   res: Response,
 ) => {
   const account = requireAccount(req, res);
-  if (!account) return res.status(401).json({ error: "Unauthorized" });
+  if (!account) return res.status(401).json({ error: { message: "Unauthorized" } });
 
   const advertisementId = parsePositiveInt(req.params.advertisementId);
   if (!advertisementId) {
-    return res.status(400).json({ error: "Invalid advertisement id" });
+    return res.status(400).json({ error: { message: "Invalid advertisement id" } });
   }
 
   const agentId = parsePositiveInt(req.params.agentId);
   if (!agentId) {
-    return res.status(400).json({ error: "Invalid agent id" });
+    return res.status(400).json({ error: { message: "Invalid agent id" } });
   }
 
   try {
@@ -274,7 +274,7 @@ export const getAccountNegotiationByAdvertisementAndAgent = async (
     });
 
     if (!negotiation) {
-      return res.status(404).json({ error: "Negotiation not found" });
+      return res.status(404).json({ error: { message: "Negotiation not found" } });
     }
 
     return res.json(negotiation);
@@ -282,7 +282,7 @@ export const getAccountNegotiationByAdvertisementAndAgent = async (
     console.error("Error fetching account negotiation detail:", error);
     return res
       .status(500)
-      .json({ error: "Failed to fetch account negotiation detail" });
+      .json({ error: { message: "Failed to fetch account negotiation detail" } });
   }
 };
 
@@ -310,7 +310,7 @@ export const getAdvertisementById = async (
   try {
     const advertisement = await findAdvertisementById(advertisementId);
     if (!advertisement) {
-      return res.status(404).json({ error: "Advertisement not found" });
+      return res.status(404).json({ error: { message: "Advertisement not found" } });
     }
     return res.json({
       ...advertisement,
@@ -322,7 +322,7 @@ export const getAdvertisementById = async (
     });
   } catch (err) {
     console.error("getAdvertisementById error:", err);
-    return res.status(500).json({ error: "Failed to retrieve advertisement" });
+    return res.status(500).json({ error: { message: "Failed to retrieve advertisement" } });
   }
 };
 
@@ -346,27 +346,27 @@ export const updatePasswordAccount = async (
 
     if (account.id !== accountId) {
       return res.status(403).json({
-        error: "Forbidden: only the account owner can update their password",
+        error: { message: "Forbidden: only the account owner can update their password" },
       });
     }
 
     const { currentPassword, newPassword } = req.body;
     if (!currentPassword || !newPassword) {
       return res.status(400).json({
-        error: "Current password and new password are required",
+        error: { message: "Current password and new password are required" },
       });
     }
 
     if (newPassword === currentPassword) {
       return res.status(400).json({
-        error: "New password must be different from current password",
+        error: { message: "New password must be different from current password" },
       });
     }
 
     const fullAccount = await findAccountById(account.id);
     if (!fullAccount?.password) {
       return res.status(404).json({
-        error: "Account not found or password not set",
+        error: { message: "Account not found or password not set" },
       });
     }
 
@@ -377,7 +377,7 @@ export const updatePasswordAccount = async (
 
     if (!isCurrentPasswordValid) {
       return res.status(401).json({
-        error: "Current password is incorrect",
+        error: { message: "Current password is incorrect" },
       });
     }
 
@@ -402,7 +402,7 @@ export const updatePasswordAccount = async (
   } catch (err) {
     console.error("updatePasswordAccount error:", err);
     return res.status(500).json({
-      error: "Failed to update password",
+      error: { message: "Failed to update password" },
     });
   }
 };
@@ -429,7 +429,7 @@ export const deleteAccount = async (req: RequestAccount, res: Response) => {
     console.log("Parsed accountId:", accountId);
 
     if (!rawAccountId || !Number.isInteger(accountId)) {
-      return res.status(400).json({ error: "Invalid account ID" });
+      return res.status(400).json({ error: { message: "Invalid account ID" } });
     }
     console.log(
       "Comparing authenticated account id:",
@@ -439,7 +439,7 @@ export const deleteAccount = async (req: RequestAccount, res: Response) => {
     );
     if (account.id !== accountId) {
       return res.status(403).json({
-        error: "Unauthorized: only the account owner can delete their account",
+        error: { message: "Unauthorized: only the account owner can delete their account" },
       });
     }
 
@@ -451,7 +451,7 @@ export const deleteAccount = async (req: RequestAccount, res: Response) => {
   } catch (err) {
     console.error("deleteAccount error:", err);
     return res.status(500).json({
-      error: "Failed to delete account",
+      error: { message: "Failed to delete account" },
     });
   }
 };

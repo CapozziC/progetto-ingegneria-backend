@@ -56,7 +56,7 @@ export const validateDeleteFounderRequest = async (
 
   const agencyToDelete = parsePositiveInt(req.params.agencyId);
   if (!agencyToDelete) {
-    res.status(400).json({ error: "Agency id to delete is required" });
+    res.status(400).json({ error: { message: "Agency id to delete is required" } });
     return null;
   }
 
@@ -69,7 +69,7 @@ export const validateDeleteFounderRequest = async (
   });
 
   if (!adminToDelete) {
-    res.status(404).json({ error: "Admin not found" });
+    res.status(404).json({ error: { message: "Admin not found" } });
     return null;
   }
 
@@ -83,12 +83,12 @@ export const validateDeleteFounderRequest = async (
   if (adminToDelete.administrator !== null) {
     res
       .status(403)
-      .json({ error: "Only the founder agent can delete the agency" });
+      .json({ error: { message: "Only the founder agent can delete the agency" } });
     return null;
   }
 
   if (agencyToDelete !== adminToDelete.agency.id) {
-    res.status(403).json({ error: "Cannot delete another agency" });
+    res.status(403).json({ error: { message: "Cannot delete another agency" } });
     return null;
   }
 

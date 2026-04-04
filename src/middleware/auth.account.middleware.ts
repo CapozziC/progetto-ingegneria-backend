@@ -53,13 +53,13 @@ export const authenticationMiddlewareAccount = async (
       // ✅ Questo middleware è per ACCOUNT
       if (payload.type !== Type.ACCOUNT) {
         clearAuthCookies(res);
-        return res.status(403).json({ error: "Forbidden" });
+        return res.status(403).json({ error: { message: "Forbidden" } });
       }
 
       const account = await findAccountById(payload.subjectId);
       if (!account) {
         clearAuthCookies(res);
-        return res.status(401).json({ error: "User not found" });
+        return res.status(401).json({ error: { message: "User not found" } });
       }
       req.account = account;
       return next();
@@ -77,7 +77,7 @@ export const authenticationMiddlewareAccount = async (
   // 2) Refresh flow (access token assente o scaduto)
   if (!refreshToken) {
     clearAuthCookies(res);
-    return res.status(401).json({ error: "Refresh token missing" });
+    return res.status(401).json({ error: { message: "Refresh token missing" } });
   }
   try {
     console.log("Faccio il refresh flow");
@@ -86,7 +86,7 @@ export const authenticationMiddlewareAccount = async (
     // Questo middleware è per ACCOUNT
     if (payload.type !== Type.ACCOUNT) {
       clearAuthCookies(res);
-      return res.status(403).json({ error: "Forbidden" });
+      return res.status(403).json({ error: { message: "Forbidden" } });
     }
 
     const storedToken = await findRefreshTokenBySubject(
@@ -95,7 +95,7 @@ export const authenticationMiddlewareAccount = async (
     );
     if (!storedToken) {
       clearAuthCookies(res);
-      return res.status(401).json({ error: "Refresh token not found" });
+      return res.status(401).json({ error: { message: "Refresh token not found" } });
     }
 
     // hash match
@@ -103,21 +103,21 @@ export const authenticationMiddlewareAccount = async (
     if (storedToken.id !== incomingHash) {
       await revokeRefreshToken(payload.subjectId, payload.type);
       clearAuthCookies(res);
-      return res.status(401).json({ error: "Refresh token mismatch" });
+      return res.status(401).json({ error: { message: "Refresh token mismatch" } });
     }
 
     // scadenza server-side
     if (storedToken.expiresAt.getTime() <= Date.now()) {
       await revokeRefreshToken(payload.subjectId, payload.type);
       clearAuthCookies(res);
-      return res.status(401).json({ error: "Refresh token expired" });
+      return res.status(401).json({ error: { message: "Refresh token expired" } });
     }
 
     const account = await findAccountById(payload.subjectId);
     if (!account) {
       await revokeRefreshToken(payload.subjectId, payload.type);
       clearAuthCookies(res);
-      return res.status(401).json({ error: "User not found" });
+      return res.status(401).json({ error: { message: "User not found" } });
     }
 
     // ROTATION: revoco quello vecchio e genero nuovi token
@@ -156,6 +156,6 @@ export const authenticationMiddlewareAccount = async (
     return next();
   } catch (err) {
     clearAuthCookies(res);
-    return res.status(401).json({ error: "Invalid refresh token", cause: err });
+    return res.status(401).json({ error: { message: "Invalid refresh token" }, cause: err });
   }
 };

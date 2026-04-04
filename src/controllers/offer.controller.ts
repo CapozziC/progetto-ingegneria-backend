@@ -48,26 +48,26 @@ export const createOfferByAccount = async (
     if (!account) return;
     const advertisementId = parsePositiveInt(req.params.id);
     if (!advertisementId) {
-      return res.status(400).json({ error: "Invalid advertisement id" });
+      return res.status(400).json({ error: { message: "Invalid advertisement id" } });
     }
 
     const advertisement = await searchAdvertisementById(advertisementId);
     if (!advertisement) {
-      return res.status(404).json({ error: "Advertisement not found" });
+      return res.status(404).json({ error: { message: "Advertisement not found" } });
     }
     if (advertisement.type !== Type.SALE) {
       return res
         .status(409)
-        .json({ error: "Offers can only be made for sale advertisements" });
+        .json({ error: { message: "Offers can only be made for sale advertisements" } });
     }
 
     const { price } = req.body;
     if (!price || typeof price !== "number" || price <= 0) {
-      return res.status(400).json({ error: "Invalid price" });
+      return res.status(400).json({ error: { message: "Invalid price" } });
     }
     const agentId = await findAdvertisementOwnerId(advertisementId);
     if (!agentId) {
-      return res.status(404).json({ error: "Advertisement owner not found" });
+      return res.status(404).json({ error: { message: "Advertisement owner not found" } });
     }
     const existingOffer = await existPendingOfferByAdvertisementIdAndAccountId(
       advertisementId,
@@ -75,7 +75,7 @@ export const createOfferByAccount = async (
     );
     if (existingOffer) {
       return res.status(409).json({
-        error: "You already have a pending offer for this advertisement",
+        error: { message: "You already have a pending offer for this advertisement" },
       });
     }
     const offer = createOffer({
@@ -88,7 +88,7 @@ export const createOfferByAccount = async (
     return res.status(201).json({ offer: savedOffer });
   } catch (error) {
     console.error("Error creating offer:", error);
-    return res.status(500).json({ error: "Failed to create offer" });
+    return res.status(500).json({ error: { message: "Failed to create offer" } });
   }
 };
 
@@ -106,7 +106,7 @@ export const agentAcceptOffer = async (req: RequestAgent, res: Response) => {
 
     const offerId = parsePositiveInt(req.params.id);
     if (!offerId) {
-      return res.status(400).json({ error: "Invalid offer id" });
+      return res.status(400).json({ error: { message: "Invalid offer id" } });
     }
 
     const result = await acceptOfferByAgent({
@@ -128,12 +128,12 @@ export const agentAcceptOffer = async (req: RequestAgent, res: Response) => {
     if (error instanceof Error) {
       switch (error.message) {
         case "OFFER_NOT_FOUND":
-          return res.status(404).json({ error: "Offer not found" });
+          return res.status(404).json({ error: { message: "Offer not found" } });
 
         case "FORBIDDEN_OFFER":
           return res
             .status(403)
-            .json({ error: "You are not the owner of this offer" });
+            .json({ error: { message: "You are not the owner of this offer" } });
 
         case "OFFER_NOT_PENDING":
           return res.status(400).json({
@@ -190,11 +190,11 @@ export const agentRejectOffer = async (req: RequestAgent, res: Response) => {
     if (!agent) return;
     const offerId = parsePositiveInt(req.params.id);
     if (!offerId) {
-      return res.status(400).json({ error: "Invalid offer id" });
+      return res.status(400).json({ error: { message: "Invalid offer id" } });
     }
     const offer = await findOfferByIdForAgent(offerId, agent.id);
     if (!offer) {
-      return res.status(404).json({ error: "Offer not found" });
+      return res.status(404).json({ error: { message: "Offer not found" } });
     }
     if (offer.agentId !== agent.id) {
       return res.status(403).json({

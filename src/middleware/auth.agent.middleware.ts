@@ -62,7 +62,7 @@ export const authenticationMiddlewareAgent = async (
       if (payload.type !== Type.AGENT) {
         console.log("[5] Tipo NON AGENT -> Forbidden");
         clearAuthCookies(res);
-        return res.status(403).json({ error: "Forbidden" });
+        return res.status(403).json({ error: { message: "Forbidden" } });
       }
 
       console.log("[6] Cerco agente con ID:", payload.subjectId);
@@ -71,7 +71,7 @@ export const authenticationMiddlewareAgent = async (
       if (!agent) {
         console.log("[7] Agente NON trovato");
         clearAuthCookies(res);
-        return res.status(401).json({ error: "User not found" });
+        return res.status(401).json({ error: { message: "Agent not found" } });
       }
 
       console.log("[8] Agente trovato:", agent.id);
@@ -102,7 +102,7 @@ export const authenticationMiddlewareAgent = async (
   if (!refreshToken) {
     console.log("[14] Refresh token mancante");
     clearAuthCookies(res);
-    return res.status(401).json({ error: "Refresh token missing" });
+    return res.status(401).json({ error: { message: "Refresh token missing" } });
   }
 
   try {
@@ -113,7 +113,7 @@ export const authenticationMiddlewareAgent = async (
     if (payload.type !== Type.AGENT) {
       console.log("[17] Tipo NON AGENT nel refresh");
       clearAuthCookies(res);
-      return res.status(403).json({ error: "Forbidden" });
+      return res.status(403).json({ error: { message: "Forbidden" } });
     }
 
     console.log("[18] Cerco refresh token salvato...");
@@ -125,7 +125,7 @@ export const authenticationMiddlewareAgent = async (
     if (!storedToken) {
       console.log("[19] Refresh token NON trovato nel DB");
       clearAuthCookies(res);
-      return res.status(401).json({ error: "Refresh token not found" });
+      return res.status(401).json({ error: { message: "Refresh token not found" } });
     }
 
     console.log("[20] Confronto hash refresh token...");
@@ -135,7 +135,7 @@ export const authenticationMiddlewareAgent = async (
       console.log("[21] HASH mismatch -> possibile furto token");
       await revokeRefreshToken(payload.subjectId, payload.type);
       clearAuthCookies(res);
-      return res.status(401).json({ error: "Refresh token mismatch" });
+      return res.status(401).json({ error: { message: "Refresh token mismatch" } });
     }
 
     console.log("[22] Controllo scadenza DB...");
@@ -143,7 +143,7 @@ export const authenticationMiddlewareAgent = async (
       console.log("[23] Refresh token SCADUTO lato server");
       await revokeRefreshToken(payload.subjectId, payload.type);
       clearAuthCookies(res);
-      return res.status(401).json({ error: "Refresh token expired" });
+      return res.status(401).json({ error: { message: "Refresh token expired" } });
     }
 
     console.log("[24] Cerco agente...");
@@ -153,7 +153,7 @@ export const authenticationMiddlewareAgent = async (
       console.log("[25] Agente NON trovato");
       await revokeRefreshToken(payload.subjectId, payload.type);
       clearAuthCookies(res);
-      return res.status(401).json({ error: "Agent not found" });
+      return res.status(401).json({ error: { message: "Agent not found" } });
     }
 
     console.log("[26] ROTATION token...");
@@ -194,7 +194,7 @@ export const authenticationMiddlewareAgent = async (
   } catch (err) {
     console.log("[31] Errore REFRESH FLOW:", err);
     clearAuthCookies(res);
-    return res.status(401).json({ error: "Invalid refresh token", cause: err });
+    return res.status(401).json({ error: { message: "Invalid refresh token" } , cause: err });
   }
 };
 

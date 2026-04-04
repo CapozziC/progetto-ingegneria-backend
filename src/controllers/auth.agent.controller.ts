@@ -55,25 +55,25 @@ export const loginAgent = async (req: Request, res: Response) => {
     console.log("========================================");
 
     if (!agencyId) {
-      return res.status(400).json({ error: "Agency ID is required" });
+      return res.status(400).json({ error: { message: "Agency id is required" } });
     }
 
     if (!username) {
-      return res.status(400).json({ error: "Username is required" });
+      return res.status(400).json({ error: { message: "Username is required" } });
     }
     if (!password) {
-      return res.status(400).json({ error: "Password is required" });
+      return res.status(400).json({ error: { message: "Password is required" } });
     }
 
     const agent = await findAgentsByAgencyIdAndUsername(agencyId, username);
     if (!agent) {
-      return res.status(404).json({ error: "Agent not found" });
+      return res.status(404).json({ error: { message: "Agent not found" } });
     }
 
     const isPasswordValid = await bcrypt.compare(password, agent.password);
 
     if (!isPasswordValid) {
-      return res.status(401).json({ error: "credenziali errate" });
+      return res.status(401).json({ error: { message: "credenziali errate" } });
     }
 
     if (!agent.isPasswordChange) {
@@ -89,7 +89,7 @@ export const loginAgent = async (req: Request, res: Response) => {
       setFirstLoginAccessCookie(res, accessToken);
 
       return res.status(200).json({
-        message: "Password change required",
+        error: { message: "Password change required" },
         isPasswordChange: false,
         agent: {
           id: agent.id,
@@ -117,12 +117,12 @@ export const loginAgent = async (req: Request, res: Response) => {
     );
 
     if (!accessToken || !refreshToken) {
-      return res.status(500).json({ error: "Failed to generate tokens" });
+      return res.status(500).json({ error: { message: "Failed to generate tokens" } });
     }
 
     const hashedRefreshToken = hashRefreshToken(refreshToken);
     if (!hashedRefreshToken) {
-      return res.status(500).json({ error: "Failed to hash refresh token" });
+      return res.status(500).json({ error: { message: "Failed to hash refresh token" } });
     }
 
     await revokeRefreshToken(agent.id, Type.AGENT);
@@ -136,12 +136,13 @@ export const loginAgent = async (req: Request, res: Response) => {
 
     const savedRefreshToken = await saveRefreshToken(refreshTokenEntry);
     if (!savedRefreshToken) {
-      return res.status(500).json({ error: "Failed to save refresh token" });
+      return res.status(500).json({ error: { message: "Failed to save refresh token" } });
     }
 
     setAuthCookies(res, accessToken, refreshToken);
 
     return res.status(200).json({
+      error: null,
       id: agent.id,
       username: agent.username,
       agency: agent.agency,
@@ -155,7 +156,7 @@ export const loginAgent = async (req: Request, res: Response) => {
     });
   } catch (error) {
     console.error("Login error:", error);
-    return res.status(500).json({ error: "Internal server error" });
+    return res.status(500).json({ error: { message: "Internal server error" } });
   }
 };
 
@@ -169,7 +170,7 @@ export const logoutAgent = async (req: RequestAgent, res: Response) => {
   try {
     const agent = req.agent;
     if (!agent) {
-      return res.status(401).json({ error: "Unauthorized" });
+      return res.status(401).json({ error: { message: "Unauthorized" } });
     }
 
     await revokeRefreshToken(agent.id, Type.AGENT);
@@ -177,7 +178,7 @@ export const logoutAgent = async (req: RequestAgent, res: Response) => {
     return res.status(200).json({ message: "Logout successful" });
   } catch (error) {
     console.error("Logout error:", error);
-    return res.status(500).json({ error: "Internal server error" });
+    return res.status(500).json({ error: { message: "Internal server error" } });
   }
 };
 
@@ -196,39 +197,39 @@ export const changePasswordFirstLogin = async (
 ) => {
   try {
     const agent = req.agent;
-    if (!agent) return res.status(401).json({ error: "Unauthorized" });
+    if (!agent) return res.status(401).json({ error: { message: "Unauthorized" } });
 
     // IMPORTANT: questo endpoint deve essere chiamabile SOLO se isChangePassword=false
     if (agent.isPasswordChange) {
-      return res.status(400).json({ error: "Password change is not required" });
+      return res.status(400).json({ error: { message: "Password change is not required" } });
     }
 
     const { currentPassword, newPassword } = req.body;
 
     if (!currentPassword || !newPassword) {
       return res.status(400).json({
-        error: "currentPassword and newPassword are required",
+        error: { message: "currentPassword and newPassword are required" },
       });
     }
 
     if (newPassword.length < 8) {
       return res
         .status(400)
-        .json({ error: "Password must be at least 8 characters" });
+        .json({ error: { message: "Password must be at least 8 characters" } });
     }
     if (newPassword === currentPassword) {
       return res.status(400).json({
-        error: "New password must be different from current password",
+        error: { message: "New password must be different from current password" },
       });
     }
 
     // ricarica dal DB per essere sicuri di avere password aggiornata
     const freshAgent = await findAgentById(agent.id);
-    if (!freshAgent) return res.status(404).json({ error: "Agent not found" });
+    if (!freshAgent) return res.status(404).json({ error: { message: "Agent not found" } });
 
     const ok = await bcrypt.compare(currentPassword, freshAgent.password);
     if (!ok)
-      return res.status(401).json({ error: "Current password is incorrect" });
+      return res.status(401).json({ error: { message: "Current password is incorrect" } });
 
     const hashed = await bcrypt.hash(newPassword, 10);
 
@@ -276,7 +277,7 @@ export const changePasswordFirstLogin = async (
     return res.status(200).json({ message: "Password updated successfully" });
   } catch (err) {
     console.error("changePasswordFirstLogin error:", err);
-    return res.status(500).json({ error: "Internal server error" });
+    return res.status(500).json({ error: { message: "Internal server error" } });
   }
 };
 /**
@@ -291,7 +292,7 @@ export const getAllAgency = async (req: Request, res: Response) => {
     return res.status(200).json({ agencies });
   } catch (err) {
     console.error("getAllAgency error:", err);
-    return res.status(500).json({ error: "Internal server error" });
+    return res.status(500).json({ error: { message: "Internal server error" } });
   }
 };
 /**
@@ -305,17 +306,17 @@ export const forgotAgentPassword = async (req: Request, res: Response) => {
     const { username, agencyId } = req.body;
 
     if (!username) {
-      return res.status(400).json({ error: "Username is required" });
+      return res.status(400).json({ error: { message: "Username is required" } });
     }
 
     if (!agencyId) {
-      return res.status(400).json({ error: "Agency ID is required" });
+      return res.status(400).json({ error: { message: "Agency id is required" } });
     }
 
     const agent = await findAgentByUsername(username);
 
     if (!agent) {
-      return res.status(404).json({ error: "Agent not found" });
+      return res.status(404).json({ error: { message: "Agent not found" } });
     }
 
     const resetToken = generateResetToken(
@@ -354,21 +355,21 @@ export const resetAgentPassword = async (
     const { newPassword } = req.body;
 
     if (!newPassword) {
-      return res.status(400).json({ error: "New password is required" });
+      return res.status(400).json({ error: { message: "New password is required" } });
     }
 
     const resetToken = req.resetToken;
     if (!resetToken) {
-      return res.status(401).json({ error: "Missing reset token payload" });
+      return res.status(401).json({ error: { message: "Missing reset token payload" } });
     }
 
     if (resetToken.type !== Type.AGENT) {
-      return res.status(403).json({ error: "Invalid token type" });
+      return res.status(403).json({ error: { message: "Invalid token type" } });
     }
 
     const agent = await findAgentById(resetToken.subjectId);
     if (!agent) {
-      return res.status(404).json({ error: "Agent not found" });
+      return res.status(404).json({ error: { message: "Agent not found" } });
     }
 
     const hashedPassword = await bcrypt.hash(newPassword, 10);
@@ -381,6 +382,6 @@ export const resetAgentPassword = async (
     });
   } catch (error) {
     console.error("Reset agent password error:", error);
-    return res.status(500).json({ error: "Internal server error" });
+    return res.status(500).json({ error: { message: "Internal server error" } });
   }
 };

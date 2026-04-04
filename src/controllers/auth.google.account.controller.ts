@@ -22,7 +22,7 @@ export const googleAuthAccount = async (req: Request, res: Response) => {
     const { idToken } = req.body as { idToken?: string };
 
     if (typeof idToken !== "string" || !idToken.trim()) {
-      return res.status(400).json({ error: "Google token is required" });
+      return res.status(400).json({ error: { message: "Google token is required" } });
     }
 
     const googleData = await verifyGoogleToken(idToken);
@@ -80,7 +80,7 @@ export const googleAuthAccount = async (req: Request, res: Response) => {
     );
 
     if (!accessToken) {
-      return res.status(500).json({ error: "Token generation failed" });
+      return res.status(500).json({ error: { message: "Token generation failed" } });
     }
 
     const refreshToken = generateRefreshToken(
@@ -122,7 +122,7 @@ export const googleAuthAccount = async (req: Request, res: Response) => {
   } catch (error) {
     console.error("googleAuthAccount error:", error);
     return res.status(401).json({
-      error: "Invalid Google authentication",
+      error: { message: "Invalid Google authentication" },
     });
   }
 };

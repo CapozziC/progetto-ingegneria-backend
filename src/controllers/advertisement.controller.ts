@@ -40,7 +40,7 @@ export const createAdvertisementWithRealEstateAndPhotosTx = async (
 
   if (!req.agent) {
     await deleteUploadedFilesSafe(files);
-    return res.status(401).json({ error: "Unauthorized" });
+    return res.status(401).json({ error: { message: "Unauthorized" } });
   }
 
   const queryRunner = AppDataSource.createQueryRunner();
@@ -106,17 +106,19 @@ export const createAdvertisementWithRealEstateAndPhotosTx = async (
     console.error("createAdvertisement error:", err);
 
     if (err instanceof Error && err.message === "ADDRESS_NOT_FOUND") {
-      return res.status(400).json({ error: "Address not found / invalid" });
+      return res.status(400).json({ error: { message: "Address not found / invalid" } });
     }
 
     if (err instanceof Error && err.message === "LOCATION_REQUIRED") {
       return res.status(400).json({
-        error:
-          "Provide either realEstate.address/addressInput or realEstate.location {lat,lng}",
+        error: {
+          message:
+            "Provide either realEstate.address/addressInput or realEstate.location {lat,lng}",
+        }
       });
     }
 
-    return res.status(500).json({ error: "Failed to create advertisement" });
+    return res.status(500).json({ error: { message: "Failed to create advertisement" } });
   } finally {
     try {
       await queryRunner.release();
@@ -140,12 +142,12 @@ export const updateAgentAdvertisement = async (
     const agent = requireAgent(req, res);
 
     if (!agent) {
-      return res.status(401).json({ error: "Unauthorized" });
+      return res.status(401).json({ error: { message: "Unauthorized" }   });
     }
 
     const advertisementId = Number(req.params.id);
     if (Number.isNaN(advertisementId)) {
-      return res.status(400).json({ error: "Invalid advertisement id" });
+      return res.status(400).json({ error: { message: "Invalid advertisement id" } });
     }
 
     const updatedAdvertisement = await updateAdvertisementByAgent({
@@ -159,21 +161,21 @@ export const updateAgentAdvertisement = async (
       .json(buildUpdatedAdvertisementResponse(updatedAdvertisement));
   } catch (err) {
     if (err instanceof Error && err.message === "ADVERTISEMENT_NOT_FOUND") {
-      return res.status(404).json({ error: "Advertisement not found" });
+      return res.status(404).json({ error: { message: "Advertisement not found" } });
     }
 
     if (err instanceof Error && err.message === "REALESTATE_NOT_FOUND") {
-      return res.status(400).json({ error: "Real estate data not found" });
+      return res.status(400).json({ error: { message: "Real estate data not found" } });
     }
 
     if (err instanceof Error && err.message === "FORBIDDEN_ADVERTISEMENT") {
       return res.status(403).json({
-        error: "Forbidden: you can update only your own advertisements",
+        error: { message: "Forbidden: you can update only your own advertisements" },
       });
     }
 
     console.error("updateAgentAdvertisement error:", err);
-    return res.status(500).json({ error: "Internal server error" });
+    return res.status(500).json({ error: { message: "Internal server error" } });
   }
 };
 /**
@@ -195,13 +197,13 @@ export const replaceAgentAdvertisementPhotoAgent = async (
 
     if (!advertisementId || !photoId) {
       return res.status(400).json({
-        error: "Invalid advertisementId or photoId",
+        error: { message: "Invalid advertisementId or photoId" },
       });
     }
 
     if (!req.file) {
       return res.status(400).json({
-        error: "New photo file is required",
+        error: { message: "New photo file is required" },
       });
     }
 
@@ -222,19 +224,19 @@ export const replaceAgentAdvertisementPhotoAgent = async (
   } catch (error) {
     if (error instanceof Error && error.message === "ADVERTISEMENT_NOT_FOUND") {
       return res.status(404).json({
-        error: "Advertisement not found",
+        error: { message: "Advertisement not found" },
       });
     }
 
     if (error instanceof Error && error.message === "PHOTO_NOT_FOUND") {
       return res.status(404).json({
-        error: "Photo not found",
+        error: { message: "Photo not found" },
       });
     }
 
     console.error(error);
     return res.status(500).json({
-      error: "Internal server error",
+      error: { message: "Internal server error" },
     });
   }
 };
@@ -253,30 +255,30 @@ export const deleteAgentAdvertisement = async (
     if (!agent) {
       return res
         .status(401)
-        .json({ error: "Unauthorized: agent not logged in" });
+        .json({ error: { message: "Unauthorized" } });
     }
 
     const advertisementId = Number(req.params.id);
     if (!Number.isInteger(advertisementId) || advertisementId <= 0) {
-      return res.status(400).json({ error: "Invalid advertisement id" });
+      return res.status(400).json({ error: { message: "Invalid advertisement id" } });
     }
 
     const ownerId = await findAdvertisementOwnerId(advertisementId);
 
     if (!ownerId) {
-      return res.status(404).json({ error: "Advertisement not found" });
+      return res.status(404).json({ error: { message: "Advertisement not found" } });
     }
 
     if (ownerId !== agent.id) {
       return res.status(403).json({
-        error: "Forbidden: you can delete only your own advertisements",
+        error: { message: "Forbidden: you can delete only your own advertisements" },
       });
     }
 
     const deleted = await deleteAdvertisementById(advertisementId);
 
     if (!deleted) {
-      return res.status(404).json({ error: "Advertisement not found" });
+      return res.status(404).json({ error: { message: "Advertisement not found" } });
     }
 
     return res.status(200).json({
@@ -284,6 +286,6 @@ export const deleteAgentAdvertisement = async (
     });
   } catch (err) {
     console.error("deleteAgentAdvertisement error:", err);
-    return res.status(500).json({ error: "Internal server error" });
+    return res.status(500).json({ error: { message: "Internal server error" } });
   }
 };

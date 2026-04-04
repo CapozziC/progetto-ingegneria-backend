@@ -19,7 +19,7 @@ export const validateBody =
 
       if (error) {
         return res.status(400).json({
-          error: "Validation error",
+          error: { message: "Validation error" },
           details: error.details.map((d) => d.message),
         });
       }
@@ -46,7 +46,7 @@ export const validateParams =
 
       if (error) {
         return res.status(400).json({
-          error: "Invalid route parameters",
+          error: { message: "Invalid route parameters" }  ,
           details: error.details.map((d) => d.message),
         });
       }

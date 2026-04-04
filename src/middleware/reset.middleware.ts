@@ -12,7 +12,7 @@ export const verifyResetToken = (
     const { token } = req.body ;
 
     if (!token) {
-      return res.status(400).json({ error: "Reset token is required" });
+      return res.status(400).json({ error: { message: "Reset token is required" } });
     }
 
     const payload = jwt.verify(
@@ -28,7 +28,7 @@ export const verifyResetToken = (
   } catch (error) {
     console.error("Invalid reset token:", error);
     return res.status(401).json({
-      error: "Invalid or expired reset token",
+      error: { message: "Invalid or expired reset token" },
     });
   }
 };
