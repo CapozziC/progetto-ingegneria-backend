@@ -48,16 +48,12 @@ export const createOfferByAccount = async (
     if (!account) return;
     const advertisementId = parsePositiveInt(req.params.id);
     if (!advertisementId) {
-      return res
-        .status(400)
-        .json({ error: "Invalid advertisement id" });
+      return res.status(400).json({ error: "Invalid advertisement id" });
     }
 
     const advertisement = await searchAdvertisementById(advertisementId);
     if (!advertisement) {
-      return res
-        .status(404)
-        .json({ error:  "Advertisement not found"  });
+      return res.status(404).json({ error: "Advertisement not found" });
     }
     if (advertisement.type !== Type.SALE) {
       return res.status(409).json({
@@ -71,9 +67,7 @@ export const createOfferByAccount = async (
     }
     const agentId = await findAdvertisementOwnerId(advertisementId);
     if (!agentId) {
-      return res
-        .status(404)
-        .json({ error:  "Advertisement owner not found"  });
+      return res.status(404).json({ error: "Advertisement owner not found" });
     }
     const existingOffer = await existPendingOfferByAdvertisementIdAndAccountId(
       advertisementId,
@@ -81,7 +75,7 @@ export const createOfferByAccount = async (
     );
     if (existingOffer) {
       return res.status(409).json({
-        error: { message: "Hai già fatto un'offerta per questa annuncio" },
+        error: "Hai già fatto un'offerta per questa annuncio",
       });
     }
     const offer = createOffer({
@@ -210,9 +204,7 @@ export const agentRejectOffer = async (req: RequestAgent, res: Response) => {
     }
     offer.status = Status.REJECTED;
     await saveOffer(offer);
-    return res
-      .status(200)
-      .json({ error: "Offerta rifiutata con successo" });
+    return res.status(200).json({ error: "Offerta rifiutata con successo" });
   } catch (error) {
     console.error("Error rejecting offer:", error);
     return res
@@ -372,7 +364,8 @@ export const accountAcceptAgentOffer = async (
 
         case "AGENT_OFFER_NOT_FOUND":
           return res.status(409).json({
-            error: "Non ci sono offerte in sospeso fatte da agenti per questo annuncio",
+            error:
+              "Non ci sono offerte in sospeso fatte da agenti per questo annuncio",
           });
 
         case "INVALID_OFFER_PRICE":
@@ -435,7 +428,10 @@ export const accountRejectAgentOffer = async (
       await queryRunner.rollbackTransaction();
       return res
         .status(409)
-        .json({ error: "Non ci sono offerte in sospeso fatte da agenti per questo annuncio" });
+        .json({
+          error:
+            "Non ci sono offerte in sospeso fatte da agenti per questo annuncio",
+        });
     }
 
     lastAgentOffer.status = Status.REJECTED;
@@ -505,7 +501,8 @@ export const accountRejectAgentOfferAndCreateCounter = async (
 
     if (error instanceof Error && error.message === "AGENT_OFFER_NOT_FOUND") {
       return res.status(409).json({
-        error: "Non ci sono offerte in sospeso fatte da agenti per questo annuncio",
+        error:
+          "Non ci sono offerte in sospeso fatte da agenti per questo annuncio",
       });
     }
 
