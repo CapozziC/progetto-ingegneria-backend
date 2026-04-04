@@ -330,12 +330,14 @@ export const forgotAgentPassword = async (req: Request, res: Response) => {
       token: resetToken,
     });
 
-    return res.status(200).json({
-      message: "Reset password email sent",
-    });
+    return res
+      .status(200)
+      .json({ error: { message: "Reset password email sent" } });
   } catch (error) {
     console.error("Forgot agent password error:", error);
-    return res.status(500).json({ error: "Internal server error" });
+    return res
+      .status(500)
+      .json({ error: { message: "Internal server error" } });
   }
 };
 /**

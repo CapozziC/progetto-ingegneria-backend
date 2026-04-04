@@ -201,7 +201,7 @@ export const createAppointment = async (req: RequestAccount, res: Response) => {
     console.log("dtUTC:", dtRome.toUTC().toISO());
     if (!dtRome.isValid) {
       return res.status(400).json({
-        error: "Invalid date or time format",
+        error: { message: "Invalid date or time format" },
       });
     }
 
@@ -209,8 +209,7 @@ export const createAppointment = async (req: RequestAccount, res: Response) => {
     const appointmentAt = dtRome.toUTC().toJSDate();
     if (!isValidHourlySlotRome(appointmentAt)) {
       return res.status(400).json({
-        error:
-          "Invalid slot (must be a valid working-hour hourly slot in Europe/Rome)",
+        error: { message: "Invalid slot (must be a valid working-hour hourly slot in Europe/Rome)" },
       });
     }
 
@@ -218,13 +217,13 @@ export const createAppointment = async (req: RequestAccount, res: Response) => {
     const apptUtc = DateTime.fromJSDate(appointmentAt, { zone: "utc" });
     if (apptUtc <= nowUtc) {
       return res.status(400).json({
-        error: "appointmentAt must be in the future",
+        error: { message: "appointmentAt must be in the future" },
       });
     }
 
     const agentId = await findAdvertisementOwnerId(advertisementId);
     if (!agentId) {
-      return res.status(404).json({ error: "Advertisement owner  not found" });
+      return res.status(404).json({ error: { message: "Advertisement owner  not found" } });
     }
     const existingAppointment = await existingRequestedAppointment(
       advertisementId,
@@ -232,8 +231,7 @@ export const createAppointment = async (req: RequestAccount, res: Response) => {
     );
     if (existingAppointment) {
       return res.status(409).json({
-        error:
-          "You already have a pending appointment request for this advertisement",
+        error: { message: "You already have a pending appointment request for this advertisement" },
       });
     }
 
@@ -259,10 +257,10 @@ export const createAppointment = async (req: RequestAccount, res: Response) => {
     });
   } catch (err) {
     if (isPgUniqueViolation(err)) {
-      return res.status(409).json({ error: "Slot already taken" });
+      return res.status(409).json({ error: { message: "Slot already taken" } });
     }
     console.error("createAppointment error:", err);
-    return res.status(500).json({ error: "Internal server error" });
+    return res.status(500).json({ error: { message: "Internal server error" } });
   }
 };
 
@@ -286,7 +284,7 @@ export const getAppointmentsForAgent = async (
     const parsedStatus = parseStatus(status);
     if (status !== undefined && parsedStatus === null) {
       return res.status(400).json({
-        error: "Invalid status value",
+        error: { message: "Invalid status value" },
       });
     }
 
@@ -313,7 +311,7 @@ export const getAppointmentsForAgent = async (
       parsedTo = t;
     } else if (from !== undefined || to !== undefined) {
       return res.status(400).json({
-        error: "Both from and to must be provided as ISO date strings",
+        error: { message: "Both from and to must be provided as ISO date strings" },
       });
     }
 
@@ -350,7 +348,7 @@ export const getAppointmentsForAgent = async (
     });
   } catch (e) {
     console.error("getAppointmentsForAgent error:", e);
-    return res.status(500).json({ error: "Internal server error" });
+    return res.status(500).json({ error: { message: "Internal server error" } });
   }
 };
 
@@ -372,7 +370,7 @@ export const agentConfirmAppointment = async (
     if (!agent) return;
 
     if (!appointmentId) {
-      return res.status(400).json({ error: "Invalid appointment id" });
+      return res.status(400).json({ error: { message: "Invalid appointment id" }  }); 
     }
 
     const appointment = await findAppointmentByIdForAgent(
@@ -381,13 +379,13 @@ export const agentConfirmAppointment = async (
     );
 
     if (!appointment) {
-      return res.status(404).json({ error: "Appointment not found" });
+      return res.status(404).json({ error : { message: "Appointment not found" } });
     }
 
     if (appointment.status !== Status.REQUESTED) {
       return res
         .status(400)
-        .json({ error: "Only requested appointments can be confirmed" });
+        .json({ error: { message: "Only requested appointments can be confirmed" } });
     }
 
     appointment.status = Status.CONFIRMED;
@@ -403,7 +401,7 @@ export const agentConfirmAppointment = async (
     });
   } catch (e) {
     console.error("agentConfirmAppointment error:", e);
-    return res.status(500).json({ error: "Internal server error" });
+    return res.status(500).json({ error: { message: "Internal server error" } });
   }
 };
 
@@ -425,7 +423,7 @@ export const agentRejectAppointment = async (
     if (!agent) return;
 
     if (!appointmentId) {
-      return res.status(400).json({ error: "Invalid appointment id" });
+      return res.status(400).json({ error: { message: "Invalid appointment id" }  }); 
     }
 
     const appointment = await findAppointmentByIdForAgent(
@@ -433,13 +431,13 @@ export const agentRejectAppointment = async (
       agent.id,
     );
     if (!appointment) {
-      return res.status(404).json({ error: "Appointment not found" });
+      return res.status(404).json({ error: { message: "Appointment not found" } });
     }
 
     if (appointment.status !== Status.REQUESTED) {
       return res
         .status(400)
-        .json({ error: "Only requested appointments can be rejected" });
+        .json({ error: { message: "Only requested appointments can be rejected" } });
     }
 
     appointment.status = Status.REJECTED;
@@ -455,7 +453,7 @@ export const agentRejectAppointment = async (
     });
   } catch (e) {
     console.error("agentRejectAppointment error:", e);
-    return res.status(500).json({ error: "Internal server error" });
+    return res.status(500).json({ error: { message: "Internal server error" } });
   }
 };
 
@@ -517,7 +515,7 @@ export const getAppointmentsForAccount = async (
     });
   } catch (e) {
     console.error("getAppointmentsForAccount error:", e);
-    return res.status(500).json({ error: "Internal server error" });
+    return res.status(500).json({ error: { message: "Internal server error" } });
   }
 };
 
@@ -539,7 +537,7 @@ export const accountCancelAppointment = async (
 
     const appointmentId = parsePositiveInt(req.params.id);
     if (!appointmentId) {
-      return res.status(400).json({ error: "Invalid appointment id" });
+      return res.status(400).json({ error: { message: "Invalid appointment id" } });
     }
 
     const appointment = await findAppointmentByIdForAccount(
@@ -549,7 +547,7 @@ export const accountCancelAppointment = async (
 
     if (!appointment) {
       return res.status(404).json({
-        error: "Appointment not found or not owned by this account",
+        error: { message: "Appointment not found or not owned by this account" },
       });
     }
 
@@ -558,7 +556,7 @@ export const accountCancelAppointment = async (
       appointment.status !== Status.CONFIRMED
     ) {
       return res.status(409).json({
-        error: `Cannot cancel appointment in status '${appointment.status}'`,
+        error: { message: `Cannot cancel appointment in status '${appointment.status}'` },
       });
     }
 
@@ -574,7 +572,7 @@ export const accountCancelAppointment = async (
   } catch (err) {
     console.error("cancelAppointment error:", err);
     return res.status(500).json({
-      error: "Internal server error",
+      error: { message: "Internal server error" },
     });
   }
 };

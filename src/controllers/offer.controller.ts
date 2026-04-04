@@ -136,33 +136,48 @@ export const agentAcceptOffer = async (req: RequestAgent, res: Response) => {
             .json({ error: "You are not the owner of this offer" });
 
         case "OFFER_NOT_PENDING":
-          return res
-            .status(400)
-            .json({ error: "Only pending offers can be accepted" });
+          return res.status(400).json({
+            error: {
+              message: "Only pending offers can be accepted",
+            },
+          });
 
         case "INVALID_OFFER_PRICE":
-          return res.status(400).json({ error: "Invalid offer price" });
+          return res.status(400).json({
+            error: {
+              message: "Invalid offer price",
+            },
+          });
 
         case "ADVERTISEMENT_NOT_FOUND":
-          return res
-            .status(404)
-            .json({ error: "Associated advertisement not found" });
+          return res.status(404).json({
+            error: {
+              message: "Associated advertisement not found",
+            },
+          });
 
         case "ADVERTISEMENT_NOT_SALE":
           return res.status(409).json({
-            error: "Only offers for sale advertisements can be accepted",
+            error: {
+              message: "Only offers for sale advertisements can be accepted",
+            },
           });
 
         case "ADVERTISEMENT_NOT_ACTIVE":
           return res.status(409).json({
-            error: "Only offers for active advertisements can be accepted",
+            error: {
+              message: "Only offers for active advertisements can be accepted",
+            },
           });
       }
     }
 
-    return res.status(500).json({ error: "Failed to accept offer" });
+    return res
+      .status(500)
+      .json({ error: { message: "Failed to accept offer" } });
   }
 };
+
 /**
  * Reject an offer as an agent, changing the offer status to rejected
  * @param req RequestAgent with params containing offer id
@@ -182,16 +197,22 @@ export const agentRejectOffer = async (req: RequestAgent, res: Response) => {
       return res.status(404).json({ error: "Offer not found" });
     }
     if (offer.agentId !== agent.id) {
-      return res
-        .status(403)
-        .json({ error: "You are not the owner of this offer" });
+      return res.status(403).json({
+        error: {
+          message: "You are not the owner of this offer",
+        },
+      });
     }
     offer.status = Status.REJECTED;
     await saveOffer(offer);
-    return res.status(200).json({ message: "Offer rejected successfully" });
+    return res
+      .status(200)
+      .json({ error: { message: "Offer rejected successfully" } });
   } catch (error) {
     console.error("Error rejecting offer:", error);
-    return res.status(500).json({ error: "Failed to reject offer" });
+    return res
+      .status(500)
+      .json({ error: { message: "Failed to reject offer" } });
   }
 };
 /**
@@ -210,17 +231,19 @@ export const rejectLatestAccountOfferAndCreateCounterOfferAsAgent = async (
 
     const advertisementId = parsePositiveInt(req.params.advertisementId);
     if (!advertisementId) {
-      return res.status(400).json({ error: "Invalid advertisement id" });
+      return res
+        .status(400)
+        .json({ error: { message: "Invalid advertisement id" } });
     }
 
     const accountId = parsePositiveInt(req.params.accountId);
     if (!accountId) {
-      return res.status(400).json({ error: "Invalid account id" });
+      return res.status(400).json({ error: { message: "Invalid account id" } });
     }
 
     const { price } = req.body;
     if (typeof price !== "number" || !Number.isFinite(price) || price <= 0) {
-      return res.status(400).json({ error: "Invalid price" });
+      return res.status(400).json({ error: { message: "Invalid price" } });
     }
 
     const result = await createAgentCounterOffer({
@@ -251,17 +274,22 @@ export const rejectLatestAccountOfferAndCreateCounterOfferAsAgent = async (
         case "ADVERTISEMENT_NOT_FOUND":
           return res
             .status(404)
-            .json({ error: "Associated advertisement not found" });
+            .json({ error: { message: "Associated advertisement not found" } });
 
         case "ADVERTISEMENT_NOT_ACTIVE":
           return res.status(409).json({
-            error: "Counteroffer can only be made for active advertisements",
+            error: {
+              message:
+                "Counteroffer can only be made for active advertisements",
+            },
           });
 
         case "PENDING_ACCOUNT_OFFER_NOT_FOUND":
           return res.status(409).json({
-            error:
-              "No pending account offer found for this account to counter (agent can only counter account offers)",
+            error: {
+              message:
+                "No pending account offer found for this account to counter (agent can only counter account offers)",
+            },
           });
       }
     }
@@ -290,12 +318,14 @@ export const accountAcceptAgentOffer = async (
 
     const offerId = parsePositiveInt(req.params.id);
     if (!offerId) {
-      return res.status(400).json({ error: "Invalid offer id" });
+      return res.status(400).json({ error: { message: "Invalid offer id" } });
     }
 
     const advertisementId = await findAdvertisementWithOfferId(offerId);
     if (!advertisementId) {
-      return res.status(400).json({ error: "Invalid advertisement id" });
+      return res
+        .status(400)
+        .json({ error: { message: "Invalid advertisement id" } });
     }
 
     const result = await acceptAgentOfferAsAccount({
@@ -319,29 +349,37 @@ export const accountAcceptAgentOffer = async (
         case "ADVERTISEMENT_NOT_FOUND":
           return res
             .status(404)
-            .json({ error: "Associated advertisement not found" });
+            .json({ error: { message: "Associated advertisement not found" } });
 
         case "ADVERTISEMENT_NOT_SALE":
           return res.status(409).json({
-            error: "Only offers for sale advertisements can be accepted",
+            error: {
+              message: "Only offers for sale advertisements can be accepted",
+            },
           });
 
         case "ADVERTISEMENT_NOT_ACTIVE":
           return res.status(409).json({
-            error: "Only active sale advertisements can accept offers",
+            error: {
+              message: "Only active sale advertisements can accept offers",
+            },
           });
 
         case "AGENT_OFFER_NOT_FOUND":
           return res.status(409).json({
-            error: "No pending agent offer found to accept",
+            error: { message: "No pending agent offer found to accept" },
           });
 
         case "INVALID_OFFER_PRICE":
-          return res.status(400).json({ error: "Invalid offer price" });
+          return res
+            .status(400)
+            .json({ error: { message: "Invalid offer price" } });
       }
     }
 
-    return res.status(500).json({ error: "Failed to accept agent offer" });
+    return res
+      .status(500)
+      .json({ error: { message: "Failed to accept  offer" } });
   }
 };
 
@@ -364,11 +402,13 @@ export const accountRejectAgentOffer = async (
 
     const offerId = parsePositiveInt(req.params.id);
     if (!offerId) {
-      return res.status(400).json({ error: "Invalid offer id" });
+      return res.status(400).json({ error: { message: "Invalid offer id" } });
     }
     const advertisementId = await findAdvertisementWithOfferId(offerId);
     if (!advertisementId) {
-      return res.status(400).json({ error: "Invalid advertisement id" });
+      return res
+        .status(400)
+        .json({ error: { message: "Invalid advertisement id" } });
     }
 
     await queryRunner.startTransaction();
@@ -390,7 +430,7 @@ export const accountRejectAgentOffer = async (
       await queryRunner.rollbackTransaction();
       return res
         .status(409)
-        .json({ error: "No pending agent offer found to reject" });
+        .json({ error: { message: "No pending agent offer found to reject" } });
     }
 
     lastAgentOffer.status = Status.REJECTED;
@@ -408,7 +448,9 @@ export const accountRejectAgentOffer = async (
       console.error("Error during rollback:", rollbackError);
     }
     console.error("Error accepting agent offer as account:", error);
-    return res.status(500).json({ error: "Failed to accept agent offer" });
+    return res
+      .status(500)
+      .json({ error: { message: "Failed to accept  offer" } });
   } finally {
     await queryRunner.release();
   }
@@ -429,12 +471,14 @@ export const accountRejectAgentOfferAndCreateCounter = async (
 
     const advertisementId = parsePositiveInt(req.params.advertisementId);
     if (!advertisementId) {
-      return res.status(400).json({ error: "Invalid advertisement id" });
+      return res
+        .status(400)
+        .json({ error: { message: "Invalid advertisement id" } });
     }
 
     const { price } = req.body;
     if (typeof price !== "number" || !Number.isFinite(price) || price <= 0) {
-      return res.status(400).json({ error: "Invalid price" });
+      return res.status(400).json({ error: { message: "Invalid price" } });
     }
 
     const result = await counterAgentOfferAsAccount({
@@ -456,12 +500,16 @@ export const accountRejectAgentOfferAndCreateCounter = async (
 
     if (error instanceof Error && error.message === "AGENT_OFFER_NOT_FOUND") {
       return res.status(409).json({
-        error:
-          "No pending agent offer found to counter (account can only counter agent offers)",
+        error: {
+          message:
+            " No pending agent offer found to counter (account can only counter agent offers)",
+        },
       });
     }
 
-    return res.status(500).json({ error: "Failed to counter agent offer" });
+    return res
+      .status(500)
+      .json({ error: { message: "Failed to counter agent offer" } });
   }
 };
 
@@ -481,7 +529,7 @@ export const markAdvertisementAsRented = async (
 
     const advertisementId = parsePositiveInt(req.params.advertisementId);
     if (!advertisementId) {
-      return res.status(400).json({ error: "Invalid advertisement id" });
+      return res.status(400).json({ error:{ message: "Invalid advertisement id" } });
     }
 
     await AppDataSource.transaction(async (manager) => {
@@ -496,24 +544,24 @@ export const markAdvertisementAsRented = async (
       });
 
       if (!advertisement) {
-        return res.status(404).json({ error: "Advertisement not found" });
+        return res.status(404).json({ error:{ message: "Advertisement not found" } });
       }
 
       if (advertisement.agent.id !== agent.id) {
         return res
           .status(403)
-          .json({ error: "You are not the owner of this advertisement" });
+          .json({ error: { message: "You are not the owner of this advertisement" } });
       }
 
       if (advertisement.type !== Type.RENT) {
         return res.status(409).json({
-          error: "Only rental advertisements can be marked as rented",
+          error: { message: "Only rental advertisements can be marked as rented" },
         });
       }
 
       if (advertisement.status !== AdvStatus.ACTIVE) {
         return res.status(409).json({
-          error: "Only active advertisements can be marked as rented",
+          error: { message: "Only active advertisements can be marked as rented" },
         });
       }
 
@@ -541,6 +589,6 @@ export const markAdvertisementAsRented = async (
     console.error("Error marking advertisement as rented:", error);
     return res
       .status(500)
-      .json({ error: "Failed to mark advertisement as rented" });
+      .json({ error: { message: "Failed to mark advertisement as rented" } });
   }
 };
