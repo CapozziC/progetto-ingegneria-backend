@@ -41,7 +41,11 @@ export const authenticationMiddlewareAccount = async (
   next: NextFunction,
 ) => {
   console.log("SONO ENTRATO NEL MIDDLEWARE ACCOUNT");
-  console.log("cookies:", req.cookies);
+  console.log("[REQ]", req.method, req.originalUrl);
+  console.log("[REQ] origin:", req.headers.origin ?? "n/a");
+  console.log("[REQ] referer:", req.headers.referer ?? "n/a");
+  console.log("[0] Cookies ricevuti:", req.cookies);
+
   const accessToken = req.cookies?.accessToken as string | undefined;
   const refreshToken = req.cookies?.refreshToken as string | undefined;
 
@@ -77,7 +81,9 @@ export const authenticationMiddlewareAccount = async (
   // 2) Refresh flow (access token assente o scaduto)
   if (!refreshToken) {
     clearAuthCookies(res);
-    return res.status(401).json({ error: { message: "Refresh token missing" } });
+    return res
+      .status(401)
+      .json({ error: { message: "Refresh token missing" } });
   }
   try {
     console.log("Faccio il refresh flow");
@@ -95,7 +101,9 @@ export const authenticationMiddlewareAccount = async (
     );
     if (!storedToken) {
       clearAuthCookies(res);
-      return res.status(401).json({ error: { message: "Refresh token not found" } });
+      return res
+        .status(401)
+        .json({ error: { message: "Refresh token not found" } });
     }
 
     // hash match
@@ -103,14 +111,18 @@ export const authenticationMiddlewareAccount = async (
     if (storedToken.id !== incomingHash) {
       await revokeRefreshToken(payload.subjectId, payload.type);
       clearAuthCookies(res);
-      return res.status(401).json({ error: { message: "Refresh token mismatch" } });
+      return res
+        .status(401)
+        .json({ error: { message: "Refresh token mismatch" } });
     }
 
     // scadenza server-side
     if (storedToken.expiresAt.getTime() <= Date.now()) {
       await revokeRefreshToken(payload.subjectId, payload.type);
       clearAuthCookies(res);
-      return res.status(401).json({ error: { message: "Refresh token expired" } });
+      return res
+        .status(401)
+        .json({ error: { message: "Refresh token expired" } });
     }
 
     const account = await findAccountById(payload.subjectId);
