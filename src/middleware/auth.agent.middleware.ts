@@ -42,6 +42,9 @@ export const authenticationMiddlewareAgent = async (
   next: NextFunction,
 ) => {
   console.log("\n========== AUTH MIDDLEWARE AGENT ==========");
+  console.log("[REQ]", req.method, req.originalUrl);
+  console.log("[REQ] origin:", req.headers.origin ?? "n/a");
+  console.log("[REQ] referer:", req.headers.referer ?? "n/a");
   console.log("[0] Cookies ricevuti:", req.cookies);
 
   const accessToken = req.cookies?.accessToken as string | undefined;
@@ -124,9 +127,7 @@ export const authenticationMiddlewareAgent = async (
     if (!storedToken) {
       console.log("[19] Refresh token NON trovato nel DB");
       clearAuthCookies(res);
-      return res
-        .status(401)
-        .json({ error: "Refresh token not found"  });
+      return res.status(401).json({ error: "Refresh token not found" });
     }
 
     console.log("[20] Confronto hash refresh token...");
@@ -154,7 +155,7 @@ export const authenticationMiddlewareAgent = async (
       console.log("[25] Agente NON trovato");
       await revokeRefreshToken(payload.subjectId, payload.type);
       clearAuthCookies(res);
-      return res.status(401).json({ error: { message: "Agent not found" } });
+      return res.status(401).json({ error: "Agent not found" });
     }
 
     console.log("[26] ROTATION token...");
