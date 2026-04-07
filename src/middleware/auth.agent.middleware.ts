@@ -104,7 +104,7 @@ export const authenticationMiddlewareAgent = async (
     clearAuthCookies(res);
     return res
       .status(401)
-      .json({ error: { message: "Refresh token missing" } });
+      .json({ error: "Refresh token missing"  });
   }
 
   try {
@@ -115,7 +115,7 @@ export const authenticationMiddlewareAgent = async (
     if (payload.type !== Type.AGENT) {
       console.log("[17] Tipo NON AGENT nel refresh");
       clearAuthCookies(res);
-      return res.status(403).json({ error: { message: "Forbidden" } });
+      return res.status(403).json({ error: "Forbidden"  });
     }
 
     console.log("[18] Cerco refresh token salvato...");
@@ -200,7 +200,7 @@ export const authenticationMiddlewareAgent = async (
     clearAuthCookies(res);
     return res
       .status(401)
-      .json({ error: { message: "Invalid refresh token" }, cause: err });
+      .json({ error: "Invalid refresh token" , cause: err });
   }
 };
 
