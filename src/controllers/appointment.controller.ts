@@ -267,7 +267,7 @@ export const createAppointment = async (req: RequestAccount, res: Response) => {
     console.log("=== END DEBUG CREATE APPOINTMENT ===\n");
 
     return res.status(201).json({
-      message: "Appointment requested successfully",
+      message: "Appuntamento richiesto con successo",
       appointmentId: saved.id,
       status: saved.status,
       appointmentAt: saved.appointmentAt.toISOString(), // UTC in risposta (ok)
@@ -277,7 +277,7 @@ export const createAppointment = async (req: RequestAccount, res: Response) => {
     });
   } catch (err) {
     if (isPgUniqueViolation(err)) {
-      return res.status(409).json({ error: "Lo slot selezionato non è più disponibile" });
+      return res.status(409).json({ error: { message: "Lo slot selezionato non è più disponibile" } });
     }
     console.error("createAppointment error:", err);
     return res
@@ -325,7 +325,7 @@ export const getAppointmentsForAgent = async (
 
       if (isInvalidRange) {
         return res.status(400).json({
-          error: "Range di date non valido"
+          error: { message: "Range di date non valido" }
         });
       }
 
@@ -416,7 +416,7 @@ export const agentConfirmAppointment = async (
       return res
         .status(400)
         .json({
-          error: "Solo gli appuntamenti in stato 'IN ATTESA' possono essere confermati",
+          error:  { message: "Solo gli appuntamenti in stato 'IN ATTESA' possono essere confermati" },
         });
     }
 
@@ -424,7 +424,7 @@ export const agentConfirmAppointment = async (
     await saveAppointment(appointment);
 
     return res.json({
-      message: "Appointment confirmed successfully",
+      message: "Appuntamento confermato con successo",
       appointmentId: appointment.id,
       status: appointment.status,
       appointmentAt: appointment.appointmentAt.toISOString(),
@@ -476,7 +476,7 @@ export const agentRejectAppointment = async (
       return res
         .status(400)
         .json({
-          error: "Solo gli appuntamenti in stato 'IN ATTESA' possono essere rifiutati",
+          error: { message: "Solo gli appuntamenti in stato 'IN ATTESA' possono essere rifiutati" },
         });
     }
 
@@ -495,7 +495,7 @@ export const agentRejectAppointment = async (
     console.error("agentRejectAppointment error:", e);
     return res
       .status(500)
-      .json({ error: "Errore interno del server"  });
+      .json({ error: { message: "Errore interno del server" } });
   }
 };
 
@@ -593,7 +593,7 @@ export const accountCancelAppointment = async (
 
     if (!appointment) {
       return res.status(404).json({
-        error: "Appuntamento non trovato",
+        error: { message: "Appuntamento non trovato" },
       });
     }
 

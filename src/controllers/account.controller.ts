@@ -274,7 +274,7 @@ export const getAccountNegotiationByAdvertisementAndAgent = async (
     });
 
     if (!negotiation) {
-      return res.status(404).json({ error: "Negoziazione non trovata" });
+      return res.status(404).json({ error: { message: "Negoziazione non trovata" } });
     }
 
     return res.json(negotiation);
@@ -282,7 +282,7 @@ export const getAccountNegotiationByAdvertisementAndAgent = async (
     console.error("Error fetching account negotiation detail:", error);
     return res
       .status(500)
-      .json({ error: "Fallimento nel caricamento delle dettagli della negoziazione" });
+      .json({ error: { message: "Fallimento nel caricamento delle dettagli della negoziazione" } });
   }
 };
 
@@ -310,7 +310,7 @@ export const getAdvertisementById = async (
   try {
     const advertisement = await findAdvertisementById(advertisementId);
     if (!advertisement) {
-      return res.status(404).json({ error: "Annuncio non trovato" });
+      return res.status(404).json({ error: { message: "Annuncio non trovato" } });
     }
     return res.json({
       ...advertisement,
@@ -322,7 +322,7 @@ export const getAdvertisementById = async (
     });
   } catch (err) {
     console.error("getAdvertisementById error:", err);
-    return res.status(500).json({ error: "Errore interno del server" });
+    return res.status(500).json({ error: { message: "Errore interno del server" } });
   }
 };
 
@@ -346,27 +346,27 @@ export const updatePasswordAccount = async (
 
     if (account.id !== accountId) {
       return res.status(403).json({
-        error: "Forbiddesn: only the account owner can update their password",
+        error: { message: "Forbidden: only the account owner can update their password" },
       });
     }
 
     const { currentPassword, newPassword } = req.body;
     if (!currentPassword || !newPassword) {
       return res.status(400).json({
-        error: "Current password and new password are required",
+        error: { message: "Current password and new password are required" },
       });
     }
 
     if (newPassword === currentPassword) {
       return res.status(400).json({
-        error: "New password must be different from current password",
+        error: { message: "New password must be different from current password" },
       });
     }
 
     const fullAccount = await findAccountById(account.id);
     if (!fullAccount?.password) {
       return res.status(404).json({
-        error: "Password non settata per questo account, impossibile aggiornare la password",
+        error: { message: "Password non settata per questo account, impossibile aggiornare la password" },
       });
     }
 
@@ -377,7 +377,7 @@ export const updatePasswordAccount = async (
 
     if (!isCurrentPasswordValid) {
       return res.status(401).json({
-        error: "Current password is incorrect",
+        error: { message: "Current password is incorrect" },
       });
     }
 
@@ -402,7 +402,7 @@ export const updatePasswordAccount = async (
   } catch (err) {
     console.error("updatePasswordAccount error:", err);
     return res.status(500).json({
-      error: "Fallimento nell'aggiornamento della password",
+      error: { message: "Fallimento nell'aggiornamento della password" },
     });
   }
 };
@@ -451,7 +451,7 @@ export const deleteAccount = async (req: RequestAccount, res: Response) => {
   } catch (err) {
     console.error("deleteAccount error:", err);
     return res.status(500).json({
-      error: "Fallimento nella cancellazione dell'account",
+      error: { message: "Fallimento nella cancellazione dell'account" },
     });
   }
 };

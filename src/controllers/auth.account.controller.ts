@@ -44,14 +44,14 @@ export const registerAccount = async (req: RequestAccount, res: Response) => {
 
     if (!firstName || !lastName || !email || !password) {
       return res.status(400).json({
-        error: "Tutti i campi sono obbligatori",
+        error:  { message: "Tutti i campi sono obbligatori" },
       });
     }
 
     const existingAccount = await findAccountByEmail(email);
 
     if (existingAccount) {
-      return res.status(409).json({ error: "Account already exists" });
+      return res.status(409).json({ error: { message: "Account already exists" }   });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -77,13 +77,13 @@ export const registerAccount = async (req: RequestAccount, res: Response) => {
     );
 
     if (!accessToken || !refreshToken) {
-      return res.status(500).json({ error: "Token generation failed" });
+      return res.status(500).json({ error: { message: "Token generation failed" } });
     }
 
     const hashedRefreshToken = hashRefreshToken(refreshToken);
 
     if (!hashedRefreshToken) {
-      return res.status(500).json({ error: "Refresh token hashing failed" });
+      return res.status(500).json({ error: { message: "Refresh token hashing failed" } });
     }
 
     await revokeRefreshToken(savedAccount.id, Type.ACCOUNT);
@@ -97,7 +97,7 @@ export const registerAccount = async (req: RequestAccount, res: Response) => {
     const savedRefreshToken = await saveRefreshToken(refreshTokenEntry);
 
     if (!savedRefreshToken) {
-      return res.status(500).json({ error: "Saving refresh token failed" });
+      return res.status(500).json({ error: { message: "Saving refresh token failed" } });
     }
     // Set tokens as httpOnly cookies
     setAuthCookies(res, accessToken, refreshToken);
@@ -113,7 +113,7 @@ export const registerAccount = async (req: RequestAccount, res: Response) => {
     });
   } catch (error) {
     console.error("Registration error:", error);
-    return res.status(500).json({ error: "Internal server error" });
+    return res.status(500).json({ error: { message: "Internal server error" } });
   }
 };
 
@@ -128,27 +128,27 @@ export const loginAccount = async (req: RequestAccount, res: Response) => {
     const { email, password } = req.body;
 
     if (!email) {
-      return res.status(400).json({ error: "Email  è obbligatoria" });
+      return res.status(400).json({ error: { message: "Email  è obbligatoria" } });
     }
     if (!password) {
-      return res.status(400).json({ error: "Password  è obbligatoria" });
+      return res.status(400).json({ error: { message: "Password  è obbligatoria" } });
     }
 
     const account = await findAccountByEmail(email);
 
     if (!account) {
-      return res.status(401).json({ error: "credenziali errate" });
+      return res.status(401).json({ error: { message: "credenziali errate" } });
     }
     if (!account.password) {
       return res
         .status(401)
-        .json({ error: "Account non ha una password impostata" });
+        .json({ error: { message: "Account non ha una password impostata" } });
     }
 
     const isPasswordValid = await bcrypt.compare(password, account.password);
 
     if (!isPasswordValid) {
-      return res.status(401).json({ error: "credenziali errate" });
+      return res.status(401).json({ error: { message: "credenziali errate" } });
     }
 
     const accessToken = generateAccessToken(
@@ -164,13 +164,13 @@ export const loginAccount = async (req: RequestAccount, res: Response) => {
     );
 
     if (!accessToken || !refreshToken) {
-      return res.status(500).json({ error: "Token generation failed" });
+      return res.status(500).json({ error: { message: "Token generation failed" } });
     }
 
     const hashedRefreshToken = hashRefreshToken(refreshToken);
 
     if (!hashedRefreshToken) {
-      return res.status(500).json({ error: "Refresh token hashing failed" });
+      return res.status(500).json({ error: { message: "Refresh token hashing failed" } });
     }
 
     await revokeRefreshToken(account.id, Type.ACCOUNT);
@@ -184,7 +184,7 @@ export const loginAccount = async (req: RequestAccount, res: Response) => {
 
     const savedRefreshToken = await saveRefreshToken(refreshTokenEntry);
     if (!savedRefreshToken) {
-      return res.status(500).json({ error: "Saving refresh token failed" });
+      return res.status(500).json({ error: { message: "Saving refresh token failed" } });
     }
 
     setAuthCookies(res, accessToken, refreshToken);
@@ -200,7 +200,7 @@ export const loginAccount = async (req: RequestAccount, res: Response) => {
     });
   } catch (error) {
     console.error("Login error:", error);
-    return res.status(500).json({ error: "Internal server error" });
+    return res.status(500).json({ error: { message: "Internal server error" } });
   }
 };
 

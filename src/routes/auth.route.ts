@@ -22,7 +22,6 @@ import {
 import { validateBody } from "../middleware/validate.middleware.js";
 import {
   changePasswordAgentSchema,
-  loginAgentSchema,
   registerAccountSchema,
   createNewAgencyWithFirstAgentSchema,
 } from "../validations/auth.validation.js";
@@ -52,7 +51,7 @@ router.post("/account/forgot_password", forgotAccountPassword);
 router.post("/account/reset_password", verifyResetToken, resetAccountPassword);
 router.post("/account/logout", authenticationMiddlewareAccount, logoutAccount);
 //AGENT AUTH ROUTES
-router.post("/agent/login", validateBody(loginAgentSchema), loginAgent);
+router.post("/agent/login", loginAgent);
 router.get("/agencies", getAllAgency);
 router.post(
   "/agent/login/change_password",

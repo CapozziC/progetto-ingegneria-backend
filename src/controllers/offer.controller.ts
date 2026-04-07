@@ -48,16 +48,20 @@ export const createOfferByAccount = async (
     if (!account) return;
     const advertisementId = parsePositiveInt(req.params.id);
     if (!advertisementId) {
-      return res.status(400).json({ error: "Invalid advertisement id" });
+      return res
+        .status(400)
+        .json({ error: { message: "Invalid advertisement id" } });
     }
 
     const advertisement = await searchAdvertisementById(advertisementId);
     if (!advertisement) {
-      return res.status(404).json({ error: "Advertisement not found" });
+      return res
+        .status(404)
+        .json({ error: { message: "Advertisement not found" } });
     }
     if (advertisement.type !== Type.SALE) {
       return res.status(409).json({
-        error: "Puoi fare offerte solo per annunci in vendita",
+        error: { message: "Puoi fare offerte solo per annunci in vendita" },
       });
     }
 
@@ -67,7 +71,9 @@ export const createOfferByAccount = async (
     }
     const agentId = await findAdvertisementOwnerId(advertisementId);
     if (!agentId) {
-      return res.status(404).json({ error: "Advertisement owner not found" });
+      return res
+        .status(404)
+        .json({ error: { message: "Advertisement owner not found" } });
     }
     const existingOffer = await existPendingOfferByAdvertisementIdAndAccountId(
       advertisementId,
@@ -75,7 +81,7 @@ export const createOfferByAccount = async (
     );
     if (existingOffer) {
       return res.status(409).json({
-        error: "Hai già fatto un'offerta per questa annuncio",
+        error: { message: "Hai già fatto un'offerta per questa annuncio" },
       });
     }
     const offer = createOffer({
@@ -130,44 +136,52 @@ export const agentAcceptOffer = async (req: RequestAgent, res: Response) => {
     if (error instanceof Error) {
       switch (error.message) {
         case "OFFER_NOT_FOUND":
-          return res.status(404).json({ error: "Offer not found" });
+          return res
+            .status(404)
+            .json({ error: { message: "Offer not found" } });
 
         case "FORBIDDEN_OFFER":
           return res.status(403).json({
-            error: "You are not the owner of this offer",
+            error: { message: "You are not the owner of this offer" },
           });
 
         case "OFFER_NOT_PENDING":
           return res.status(400).json({
-            error:
-              'Solo le offerte in stato "IN SOSPESO" possono essere accettate',
+            error: {
+              message:
+                'Solo le offerte in stato "IN SOSPESO" possono essere accettate',
+            },
           });
 
         case "INVALID_OFFER_PRICE":
           return res.status(400).json({
-            error: "Prezzo dell'offerta non valido",
+            error: { message: "Prezzo dell'offerta non valido" },
           });
 
         case "ADVERTISEMENT_NOT_FOUND":
           return res.status(404).json({
-            error: "Associated advertisement not found",
+            error: { message: "Associated advertisement not found" },
           });
 
         case "ADVERTISEMENT_NOT_SALE":
           return res.status(409).json({
-            error: "Puoi fare offerte solo per annunci in vendita",
+            error: { message: "Puoi fare offerte solo per annunci in vendita" },
           });
 
         case "ADVERTISEMENT_NOT_ACTIVE":
           return res.status(409).json({
-            error: "Only offers for active advertisements can be accepted",
+            error: {
+              message: "Only offers for active advertisements can be accepted",
+            },
           });
       }
     }
 
     return res
       .status(500)
-      .json({ error: "Fallimento nell'accettazione dell'offerta" });
+      .json({
+        error: { message: "Fallimento nell'accettazione dell'offerta" },
+      });
   }
 };
 
@@ -198,12 +212,14 @@ export const agentRejectOffer = async (req: RequestAgent, res: Response) => {
     }
     offer.status = Status.REJECTED;
     await saveOffer(offer);
-    return res.status(200).json({ error: "Offerta rifiutata con successo" });
+    return res
+      .status(200)
+      .json({ error: { message: "Offerta rifiutata con successo" } });
   } catch (error) {
     console.error("Error rejecting offer:", error);
     return res
       .status(500)
-      .json({ error: "Fallimento nel rifiuto dell'offerta" });
+      .json({ error: { message: "Fallimento nel rifiuto dell'offerta" } });
   }
 };
 /**
@@ -285,7 +301,9 @@ export const rejectLatestAccountOfferAndCreateCounterOfferAsAgent = async (
       }
     }
 
-    return res.status(500).json({ error: "Failed to create counteroffer" });
+    return res
+      .status(500)
+      .json({ error: { message: "Failed to create counteroffer" } });
   }
 };
 
@@ -358,20 +376,22 @@ export const accountAcceptAgentOffer = async (
 
         case "AGENT_OFFER_NOT_FOUND":
           return res.status(409).json({
-            error:
-              "Non ci sono offerte in sospeso fatte da agenti per questo annuncio",
+            error: {
+              message:
+                "Non ci sono offerte in sospeso fatte da agenti per questo annuncio",
+            },
           });
 
         case "INVALID_OFFER_PRICE":
           return res
             .status(400)
-            .json({ error: "Prezzo dell'offerta non valido" });
+            .json({ error: { message: "Prezzo dell'offerta non valido" } });
       }
     }
 
     return res
       .status(500)
-      .json({ error: "Fallimento nell'accettazione dell'offerta" });
+      .json({ error: { message: "Fallimento nell'accettazione dell'offerta" } });
   }
 };
 
@@ -421,8 +441,10 @@ export const accountRejectAgentOffer = async (
     if (!lastAgentOffer) {
       await queryRunner.rollbackTransaction();
       return res.status(409).json({
-        error:
-          "Non ci sono offerte in sospeso fatte da agenti per questo annuncio",
+        error: {
+          message:
+            "Non ci sono offerte in sospeso fatte da agenti per questo annuncio",
+        },
       });
     }
 
@@ -443,7 +465,7 @@ export const accountRejectAgentOffer = async (
     console.error("Error rejecting agent offer as account:", error);
     return res
       .status(500)
-      .json({ error: "Fallimento nel rifiuto dell'offerta" });
+      .json({ error: { message: "Fallimento nel rifiuto dell'offerta" } });
   } finally {
     await queryRunner.release();
   }
@@ -487,20 +509,23 @@ export const accountRejectAgentOfferAndCreateCounter = async (
       advertisementId: result.advertisementId,
       accountId: result.accountId,
       agentId: result.agentId,
+      message: "Controproposta creata con successo",
     });
   } catch (error) {
     console.error("Error countering agent offer as account:", error);
 
     if (error instanceof Error && error.message === "AGENT_OFFER_NOT_FOUND") {
       return res.status(409).json({
-        error:
-          "Non ci sono offerte in sospeso fatte da agenti per questo annuncio",
+        error: {
+          message:
+            "Non ci sono offerte in sospeso fatte da agenti per questo annuncio",
+        },
       });
     }
 
     return res
       .status(500)
-      .json({ error: "Fallimento nell'inserimento della controproposta" });
+      .json({ error: { message: "Fallimento nell'inserimento della controproposta" } });
   }
 };
 
@@ -589,6 +614,6 @@ export const markAdvertisementAsRented = async (
     console.error("Error marking advertisement as rented:", error);
     return res
       .status(500)
-      .json({ error: "Fallimento nel segnare l'annuncio come noleggiato" });
+      .json({ error: { message: "Fallimento nel segnare l'annuncio come noleggiato" } });
   }
 };

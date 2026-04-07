@@ -334,7 +334,7 @@ export const deleteAgent = async (req: RequestAgent, res: Response) => {
 
     return res.status(200).json({
       message:
-        "Agent deleted successfully (advertisements, offers and created agents transferred to admin, appointments deleted)",
+        "Agente cancellato con successo (annunci, offerte e agenti creati trasferiti all'admin, appuntamenti eliminati)",
     });
   } catch (error) {
     console.error("Delete agent error:", error);
@@ -598,11 +598,11 @@ export const agentCreateAccountAndExternalOffer = async (
       price === undefined ||
       !advertisementId
     ) {
-      return res.status(400).json({ error: "Tutti i campi  sono obbligatori" });
+      return res.status(400).json({ error: { message: "Tutti i campi  sono obbligatori" } });
     }
 
     if (typeof price !== "number" || price <= 0) {
-      return res.status(400).json({ error: "Il prezzo deve essere un numero positivo" });
+      return res.status(400).json({ error: { message: "Il prezzo deve essere un numero positivo" } });
     }
 
     const result = await AppDataSource.transaction(async (manager) => {
@@ -618,14 +618,14 @@ export const agentCreateAccountAndExternalOffer = async (
       });
 
       if (!advertisement) {
-        return { status: 404, body: { error: "Advertisement not found"  } };
+        return { status: 404, body: { error: { message: "Advertisement not found" } } };
       }
 
       if (advertisement.agent?.id !== agent.id) {
         return {
           status: 403,
           body: {
-            error: "Non puoi creare un'offerta per un annuncio che non ti appartiene",
+            error: { message: "Non puoi creare un'offerta per un annuncio che non ti appartiene" },
           },
         };
       }
@@ -634,7 +634,7 @@ export const agentCreateAccountAndExternalOffer = async (
         return {
           status: 400,
           body: {
-            error: "Non puoi creare un'offerta per un annuncio che non è una vendita",
+            error: { message: "Non puoi creare un'offerta per un annuncio che non è una vendita" },
           },
         };
       }
@@ -694,6 +694,6 @@ export const agentCreateAccountAndExternalOffer = async (
     return res.status(result.status).json(result.body);
   } catch (error) {
     console.error("Error creating external account and offer:", error);
-    return res.status(500).json({ error: "Internal server error" });
+    return res.status(500).json({ error: { message: "Internal server error" } });
   }
 };
