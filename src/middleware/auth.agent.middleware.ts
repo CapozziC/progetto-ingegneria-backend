@@ -89,7 +89,6 @@ export const authenticationMiddlewareAgent = async (
 
       if (err instanceof ExpiredTokenError) {
         console.log("[12] Access token SCADUTO -> passo al refresh flow");
-        clearAuthCookies(res);
       }
     }
   }
@@ -102,9 +101,7 @@ export const authenticationMiddlewareAgent = async (
   if (!refreshToken) {
     console.log("[14] Refresh token mancante");
     clearAuthCookies(res);
-    return res
-      .status(401)
-      .json({ error: "Refresh token missing"  });
+    return res.status(401).json({ error: "Refresh token missing" });
   }
 
   try {
@@ -115,7 +112,7 @@ export const authenticationMiddlewareAgent = async (
     if (payload.type !== Type.AGENT) {
       console.log("[17] Tipo NON AGENT nel refresh");
       clearAuthCookies(res);
-      return res.status(403).json({ error: "Forbidden"  });
+      return res.status(403).json({ error: "Forbidden" });
     }
 
     console.log("[18] Cerco refresh token salvato...");
@@ -198,9 +195,7 @@ export const authenticationMiddlewareAgent = async (
   } catch (err) {
     console.log("[31] Errore REFRESH FLOW:", err);
     clearAuthCookies(res);
-    return res
-      .status(401)
-      .json({ error: "Invalid refresh token" , cause: err });
+    return res.status(401).json({ error: "Invalid refresh token", cause: err });
   }
 };
 

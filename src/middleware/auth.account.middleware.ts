@@ -156,6 +156,6 @@ export const authenticationMiddlewareAccount = async (
     return next();
   } catch (err) {
     clearAuthCookies(res);
-    return res.status(401).json({ error: { message: "Invalid refresh token" }, cause: err });
+    return res.status(401).json({ error: "Invalid refresh token", cause: err });
   }
 };
