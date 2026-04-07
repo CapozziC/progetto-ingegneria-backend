@@ -30,6 +30,7 @@ import { Agent } from "../entities/agent.js";
 import { revokeRefreshToken } from "../services/auth.service.js";
 import { sendAgentForgotPasswordEmail } from "../services/nodemailer/agentForgotPassword.service.js";
 import { RequestWithResetToken } from "../types/auth.type.js";
+import { error } from "node:console";
 
 const ACCESS_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET;
 const REFRESH_TOKEN_SECRET = process.env.REFRESH_TOKEN_SECRET;
@@ -55,14 +56,20 @@ export const loginAgent = async (req: Request, res: Response) => {
     console.log("========================================");
 
     if (!agencyId) {
-      return res.status(400).json({ error: { message: "Agency id is required" } });
+      return res
+        .status(400)
+        .json({ error: { message: "Agency id is required" } });
     }
 
     if (!username) {
-      return res.status(400).json({ error: { message: "Username is required" } });
+      return res
+        .status(400)
+        .json({ error: { message: "Username is required" } });
     }
     if (!password) {
-      return res.status(400).json({ error: { message: "Password is required" } });
+      return res
+        .status(400)
+        .json({ error: { message: "Password is required" } });
     }
 
     const agent = await findAgentsByAgencyIdAndUsername(agencyId, username);
@@ -73,7 +80,7 @@ export const loginAgent = async (req: Request, res: Response) => {
     const isPasswordValid = await bcrypt.compare(password, agent.password);
 
     if (!isPasswordValid) {
-      return res.status(401).json({ error: { message: "credenziali errate" } });
+      return res.status(401).json({ error: "credenziali errate" });
     }
 
     if (!agent.isPasswordChange) {
@@ -117,12 +124,16 @@ export const loginAgent = async (req: Request, res: Response) => {
     );
 
     if (!accessToken || !refreshToken) {
-      return res.status(500).json({ error: { message: "Failed to generate tokens" } });
+      return res
+        .status(500)
+        .json({ error: { message: "Failed to generate tokens" } });
     }
 
     const hashedRefreshToken = hashRefreshToken(refreshToken);
     if (!hashedRefreshToken) {
-      return res.status(500).json({ error: { message: "Failed to hash refresh token" } });
+      return res
+        .status(500)
+        .json({ error: { message: "Failed to hash refresh token" } });
     }
 
     await revokeRefreshToken(agent.id, Type.AGENT);
@@ -136,7 +147,9 @@ export const loginAgent = async (req: Request, res: Response) => {
 
     const savedRefreshToken = await saveRefreshToken(refreshTokenEntry);
     if (!savedRefreshToken) {
-      return res.status(500).json({ error: { message: "Failed to save refresh token" } });
+      return res
+        .status(500)
+        .json({ error: { message: "Failed to save refresh token" } });
     }
 
     setAuthCookies(res, accessToken, refreshToken);
@@ -156,7 +169,7 @@ export const loginAgent = async (req: Request, res: Response) => {
     });
   } catch (error) {
     console.error("Login error:", error);
-    return res.status(500).json({ error: { message: "Internal server error" } });
+    return res.status(500).json({ error: "Internal server error" });
   }
 };
 
@@ -178,7 +191,9 @@ export const logoutAgent = async (req: RequestAgent, res: Response) => {
     return res.status(200).json({ message: "Logout successful" });
   } catch (error) {
     console.error("Logout error:", error);
-    return res.status(500).json({ error: { message: "Internal server error" } });
+    return res
+      .status(500)
+      .json({ error: "Internal server error" });
   }
 };
 
@@ -197,11 +212,14 @@ export const changePasswordFirstLogin = async (
 ) => {
   try {
     const agent = req.agent;
-    if (!agent) return res.status(401).json({ error: { message: "Unauthorized" } });
+    if (!agent)
+      return res.status(401).json({ error: { message: "Unauthorized" } });
 
     // IMPORTANT: questo endpoint deve essere chiamabile SOLO se isChangePassword=false
     if (agent.isPasswordChange) {
-      return res.status(400).json({ error: { message: "Password change is not required" } });
+      return res
+        .status(400)
+        .json({ error: { message: "Password change is not required" } });
     }
 
     const { currentPassword, newPassword } = req.body;
@@ -219,17 +237,22 @@ export const changePasswordFirstLogin = async (
     }
     if (newPassword === currentPassword) {
       return res.status(400).json({
-        error: { message: "New password must be different from current password" },
+        error: {
+          message: "New password must be different from current password",
+        },
       });
     }
 
     // ricarica dal DB per essere sicuri di avere password aggiornata
     const freshAgent = await findAgentById(agent.id);
-    if (!freshAgent) return res.status(404).json({ error: { message: "Agent not found" } });
+    if (!freshAgent)
+      return res.status(404).json({ error: { message: "Agent not found" } });
 
     const ok = await bcrypt.compare(currentPassword, freshAgent.password);
     if (!ok)
-      return res.status(401).json({ error: { message: "Current password is incorrect" } });
+      return res
+        .status(401)
+        .json({ error: { message: "Current password is incorrect" } });
 
     const hashed = await bcrypt.hash(newPassword, 10);
 
@@ -277,7 +300,9 @@ export const changePasswordFirstLogin = async (
     return res.status(200).json({ message: "Password updated successfully" });
   } catch (err) {
     console.error("changePasswordFirstLogin error:", err);
-    return res.status(500).json({ error: { message: "Internal server error" } });
+    return res
+      .status(500)
+      .json({ error: { message: "Internal server error" } });
   }
 };
 /**
@@ -292,7 +317,9 @@ export const getAllAgency = async (req: Request, res: Response) => {
     return res.status(200).json({ agencies });
   } catch (err) {
     console.error("getAllAgency error:", err);
-    return res.status(500).json({ error: { message: "Internal server error" } });
+    return res
+      .status(500)
+      .json({ error: { message: "Internal server error" } });
   }
 };
 /**
@@ -306,11 +333,15 @@ export const forgotAgentPassword = async (req: Request, res: Response) => {
     const { username, agencyId } = req.body;
 
     if (!username) {
-      return res.status(400).json({ error: { message: "Username is required" } });
+      return res
+        .status(400)
+        .json({ error: { message: "Username is required" } });
     }
 
     if (!agencyId) {
-      return res.status(400).json({ error: { message: "Agency id is required" } });
+      return res
+        .status(400)
+        .json({ error: { message: "Agency id is required" } });
     }
 
     const agent = await findAgentByUsername(username);
@@ -355,12 +386,16 @@ export const resetAgentPassword = async (
     const { newPassword } = req.body;
 
     if (!newPassword) {
-      return res.status(400).json({ error: { message: "New password is required" } });
+      return res
+        .status(400)
+        .json({ error: { message: "New password is required" } });
     }
 
     const resetToken = req.resetToken;
     if (!resetToken) {
-      return res.status(401).json({ error: { message: "Missing reset token payload" } });
+      return res
+        .status(401)
+        .json({ error: { message: "Missing reset token payload" } });
     }
 
     if (resetToken.type !== Type.AGENT) {
@@ -382,6 +417,8 @@ export const resetAgentPassword = async (
     });
   } catch (error) {
     console.error("Reset agent password error:", error);
-    return res.status(500).json({ error: { message: "Internal server error" } });
+    return res
+      .status(500)
+      .json({ error: { message: "Internal server error" } });
   }
 };
