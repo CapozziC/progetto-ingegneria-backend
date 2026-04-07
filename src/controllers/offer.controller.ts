@@ -130,13 +130,11 @@ export const agentAcceptOffer = async (req: RequestAgent, res: Response) => {
     if (error instanceof Error) {
       switch (error.message) {
         case "OFFER_NOT_FOUND":
-          return res
-            .status(404)
-            .json({ error: { message: "Offer not found" } });
+          return res.status(404).json({ error: "Offer not found" });
 
         case "FORBIDDEN_OFFER":
           return res.status(403).json({
-            error: { message: "You are not the owner of this offer" },
+            error: "You are not the owner of this offer",
           });
 
         case "OFFER_NOT_PENDING":
@@ -152,9 +150,7 @@ export const agentAcceptOffer = async (req: RequestAgent, res: Response) => {
 
         case "ADVERTISEMENT_NOT_FOUND":
           return res.status(404).json({
-            error: {
-              message: "Associated advertisement not found",
-            },
+            error: "Associated advertisement not found",
           });
 
         case "ADVERTISEMENT_NOT_SALE":
@@ -164,9 +160,7 @@ export const agentAcceptOffer = async (req: RequestAgent, res: Response) => {
 
         case "ADVERTISEMENT_NOT_ACTIVE":
           return res.status(409).json({
-            error: {
-              message: "Only offers for active advertisements can be accepted",
-            },
+            error: "Only offers for active advertisements can be accepted",
           });
       }
     }
@@ -426,12 +420,10 @@ export const accountRejectAgentOffer = async (
 
     if (!lastAgentOffer) {
       await queryRunner.rollbackTransaction();
-      return res
-        .status(409)
-        .json({
-          error:
-            "Non ci sono offerte in sospeso fatte da agenti per questo annuncio",
-        });
+      return res.status(409).json({
+        error:
+          "Non ci sono offerte in sospeso fatte da agenti per questo annuncio",
+      });
     }
 
     lastAgentOffer.status = Status.REJECTED;

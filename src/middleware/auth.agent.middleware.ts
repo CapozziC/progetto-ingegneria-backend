@@ -126,7 +126,7 @@ export const authenticationMiddlewareAgent = async (
       clearAuthCookies(res);
       return res
         .status(401)
-        .json({ error: { message: "Refresh token not found" } });
+        .json({ error: "Refresh token not found"  });
     }
 
     console.log("[20] Confronto hash refresh token...");
