@@ -30,7 +30,7 @@ import { Agent } from "../entities/agent.js";
 import { revokeRefreshToken } from "../services/auth.service.js";
 import { sendAgentForgotPasswordEmail } from "../services/nodemailer/agentForgotPassword.service.js";
 import { RequestWithResetToken } from "../types/auth.type.js";
-import { error } from "node:console";
+
 
 const ACCESS_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET;
 const REFRESH_TOKEN_SECRET = process.env.REFRESH_TOKEN_SECRET;

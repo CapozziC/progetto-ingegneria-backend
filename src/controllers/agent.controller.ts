@@ -618,7 +618,7 @@ export const agentCreateAccountAndExternalOffer = async (
       });
 
       if (!advertisement) {
-        return { status: 404, body: { error: { message: "Advertisement not found" } } };
+        return { status: 404, body: { error: "Advertisement not found"  } };
       }
 
       if (advertisement.agent?.id !== agent.id) {

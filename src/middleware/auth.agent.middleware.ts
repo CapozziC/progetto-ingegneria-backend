@@ -102,7 +102,9 @@ export const authenticationMiddlewareAgent = async (
   if (!refreshToken) {
     console.log("[14] Refresh token mancante");
     clearAuthCookies(res);
-    return res.status(401).json({ error: { message: "Refresh token missing" } });
+    return res
+      .status(401)
+      .json({ error: { message: "Refresh token missing" } });
   }
 
   try {
@@ -125,7 +127,9 @@ export const authenticationMiddlewareAgent = async (
     if (!storedToken) {
       console.log("[19] Refresh token NON trovato nel DB");
       clearAuthCookies(res);
-      return res.status(401).json({ error: { message: "Refresh token not found" } });
+      return res
+        .status(401)
+        .json({ error: { message: "Refresh token not found" } });
     }
 
     console.log("[20] Confronto hash refresh token...");
@@ -135,7 +139,7 @@ export const authenticationMiddlewareAgent = async (
       console.log("[21] HASH mismatch -> possibile furto token");
       await revokeRefreshToken(payload.subjectId, payload.type);
       clearAuthCookies(res);
-      return res.status(401).json({ error: { message: "Refresh token mismatch" } });
+      return res.status(401).json({ error: "Refresh token mismatch" });
     }
 
     console.log("[22] Controllo scadenza DB...");
@@ -143,7 +147,7 @@ export const authenticationMiddlewareAgent = async (
       console.log("[23] Refresh token SCADUTO lato server");
       await revokeRefreshToken(payload.subjectId, payload.type);
       clearAuthCookies(res);
-      return res.status(401).json({ error: { message: "Refresh token expired" } });
+      return res.status(401).json({ error: "Refresh token expired" });
     }
 
     console.log("[24] Cerco agente...");
@@ -194,7 +198,9 @@ export const authenticationMiddlewareAgent = async (
   } catch (err) {
     console.log("[31] Errore REFRESH FLOW:", err);
     clearAuthCookies(res);
-    return res.status(401).json({ error: { message: "Invalid refresh token" } , cause: err });
+    return res
+      .status(401)
+      .json({ error: { message: "Invalid refresh token" }, cause: err });
   }
 };
 
