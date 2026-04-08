@@ -26,11 +26,20 @@ export const createAgentSchema = Joi.object({
 }).unknown(false);
 
 export const deleteAgentParamsSchema = Joi.object({
-  agencyId: Joi.number().integer().positive().required().messages({
+  agentId: Joi.number().integer().positive().required().messages({
     "number.base": "Agent ID must be a number",
     "number.integer": "Agent ID must be an integer",
     "number.positive": "Agent ID must be positive",
     "any.required": "Agent ID is required",
+  }),
+}).unknown(false);
+
+export const deleteFirstAgentAndAgencyParamsSchema = Joi.object({
+  agencyId: Joi.number().integer().positive().required().messages({
+    "number.base": "Agency ID must be a number",
+    "number.integer": "Agency ID must be an integer",
+    "number.positive": "Agency ID must be positive",
+    "any.required": "Agency ID is required",
   }),
 }).unknown(false);
 

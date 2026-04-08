@@ -12,6 +12,7 @@ import {
   updatePasswordAgentBodySchema,
   updatePhoneNumberSchema,
   agentCreateAccountAndExternalOfferBodySchema,
+  deleteFirstAgentAndAgencyParamsSchema,
 } from "../validations/agent.validation.js";
 import {
   createNewAgent,
@@ -49,7 +50,7 @@ router.delete(
 router.delete(
   "/delete/:agencyId/founder",
   authenticationMiddlewareAgent,
-  validateParams(deleteAgentParamsSchema),
+  validateParams(deleteFirstAgentAndAgencyParamsSchema),
   deleteFirstAgentAndAgency,
 );
 
