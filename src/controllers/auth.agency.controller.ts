@@ -42,7 +42,7 @@ export const createNewAgencyWithFirstAgent = async (
   console.log("FILE:", req.file);
   const validationError = validateCreateAgencyRequest(req);
   if (validationError) {
-    return res.status(400).json({ error: validationError });
+    return res.status(400).json({ error: { message: validationError } });
   }
   console.log("Validation passed, proceeding with agency creation...");
   const queryRunner = AppDataSource.createQueryRunner();

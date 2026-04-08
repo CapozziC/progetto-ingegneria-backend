@@ -89,18 +89,12 @@ export const validateCreateAgencyRequest = (req: Request): string | null => {
     agentPhoneNumber,
   } = req.body;
 
-  const isBlank = (value: unknown) =>
-    typeof value !== "string" || value.trim() === "";
+  if (!name || !email || !agencyPhoneNumber) {
+    return "I campi name, email e agencyPhoneNumber sono obbligatori per l'agenzia";
+  }
 
-  if (isBlank(name)) return "Il nome dell'agenzia è obbligatorio";
-  if (isBlank(email)) return "L'email dell'agenzia è obbligatoria";
-  if (isBlank(agencyPhoneNumber))
-    return "Il telefono dell'agenzia è obbligatorio";
-
-  if (isBlank(firstName)) return "Il nome dell'amministratore è obbligatorio";
-  if (isBlank(lastName)) return "Il cognome dell'amministratore è obbligatorio";
-  if (isBlank(agentPhoneNumber))
-    return "Il telefono dell'amministratore è obbligatorio";
-
+  if (!firstName || !lastName || !agentPhoneNumber) {
+    return "I campi firstName, lastName e agentPhoneNumber sono obbligatori per il primo agente";
+  }
   return null;
 };
