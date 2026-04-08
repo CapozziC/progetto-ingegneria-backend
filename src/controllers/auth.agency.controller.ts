@@ -40,6 +40,7 @@ export const createNewAgencyWithFirstAgent = async (
 
   console.log("BODY:", req.body);
   console.log("FILE:", req.file);
+  console.log("CONTENT-TYPE:", req.headers["content-type"]);
   const validationError = validateCreateAgencyRequest(req);
   if (validationError) {
     return res.status(400).json({ error: { message: validationError } });
