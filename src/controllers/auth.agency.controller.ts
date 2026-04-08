@@ -131,13 +131,13 @@ export const createNewAgencyWithFirstAgent = async (
       if (error.message === "AGENCY_NAME_ALREADY_EXISTS") {
         return res
           .status(409)
-          .json({ message: "Il nome dell'agenzia esiste già" });
+          .json({ error: { message: "Il nome dell'agenzia esiste già" } });
       }
 
       if (error.message === "AGENCY_EMAIL_ALREADY_EXISTS") {
         return res
           .status(409)
-          .json({ message: "L'email dell'agenzia esiste già" });
+          .json({ error: { message: "L'email dell'agenzia esiste già" } });
       }
     }
 
