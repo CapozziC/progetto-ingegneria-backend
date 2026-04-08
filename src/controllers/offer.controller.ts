@@ -67,7 +67,7 @@ export const createOfferByAccount = async (
 
     const { price } = req.body;
     if (!price || typeof price !== "number" || price <= 0) {
-      return res.status(400).json({ error: { message: "Invalid price" } });
+      return res.status(400).json({ error: { message: "Prezzo non valido" } });
     }
     const agentId = await findAdvertisementOwnerId(advertisementId);
     if (!agentId) {
@@ -177,11 +177,9 @@ export const agentAcceptOffer = async (req: RequestAgent, res: Response) => {
       }
     }
 
-    return res
-      .status(500)
-      .json({
-        error: { message: "Fallimento nell'accettazione dell'offerta" },
-      });
+    return res.status(500).json({
+      error: { message: "Fallimento nell'accettazione dell'offerta" },
+    });
   }
 };
 
@@ -212,9 +210,7 @@ export const agentRejectOffer = async (req: RequestAgent, res: Response) => {
     }
     offer.status = Status.REJECTED;
     await saveOffer(offer);
-    return res
-      .status(200)
-      .json({ error: { message: "Offerta rifiutata con successo" } });
+    return res.status(200).json({ message: "Offerta rifiutata con successo" });
   } catch (error) {
     console.error("Error rejecting offer:", error);
     return res
@@ -389,9 +385,9 @@ export const accountAcceptAgentOffer = async (
       }
     }
 
-    return res
-      .status(500)
-      .json({ error: { message: "Fallimento nell'accettazione dell'offerta" } });
+    return res.status(500).json({
+      error: { message: "Fallimento nell'accettazione dell'offerta" },
+    });
   }
 };
 
@@ -523,9 +519,9 @@ export const accountRejectAgentOfferAndCreateCounter = async (
       });
     }
 
-    return res
-      .status(500)
-      .json({ error: { message: "Fallimento nell'inserimento della controproposta" } });
+    return res.status(500).json({
+      error: { message: "Fallimento nell'inserimento della controproposta" },
+    });
   }
 };
 
@@ -612,8 +608,8 @@ export const markAdvertisementAsRented = async (
     });
   } catch (error) {
     console.error("Error marking advertisement as rented:", error);
-    return res
-      .status(500)
-      .json({ error: { message: "Fallimento nel segnare l'annuncio come noleggiato" } });
+    return res.status(500).json({
+      error: { message: "Fallimento nel segnare l'annuncio come noleggiato" },
+    });
   }
 };

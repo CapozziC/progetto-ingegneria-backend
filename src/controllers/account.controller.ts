@@ -21,7 +21,7 @@ import {
   normalizePagination,
 } from "../utils/parse.utils.js";
 import { buildAdvertisementResponse } from "../mappers/advertisement.response.js";
-import { resolveAdvertisementLocation} from "../services/advertisement.location.service.js";
+import { resolveAdvertisementLocation } from "../services/advertisement.location.service.js";
 import { LocationInfo, LocationMode } from "../types/advertisement.type.js";
 import bcrypt from "bcryptjs";
 
@@ -38,7 +38,7 @@ export const getAccountProfile = async (req: RequestAccount, res: Response) => {
 
     const fullAccount = await findAccountById(account.id);
     if (!fullAccount) {
-      return res.status(404).json({ error: "Account not found" });
+      return res.status(404).json({ error: { message: "Account not found" } });
     }
 
     return res.json({
@@ -51,7 +51,7 @@ export const getAccountProfile = async (req: RequestAccount, res: Response) => {
     console.error("getAccountProfile error:", err);
     return res
       .status(500)
-      .json({ error: "Failed to retrieve account profile" });
+      .json({ error: { message: "Failed to retrieve account profile" } });
   }
 };
 
@@ -69,11 +69,10 @@ export const getAllAdvertisements = async (
   try {
     const account = requireAccount(req, res);
     if (!account) {
-      return res.status(401).json({ error:{ message: "Unauthorized" } });
+      return res.status(401).json({ error: { message: "Unauthorized" } });
     }
 
     const filters = parseAdvertisementFilters(req);
-   
 
     const page = Math.max(Number(req.query.page) || 1, 1);
     const limit = Math.max(Number(req.query.limit) || 10, 1);
@@ -117,7 +116,6 @@ export const getAllAdvertisements = async (
           filters.qLat,
           filters.qLon,
         );
-
       } catch (error) {
         console.error("Location resolution error:", error);
 
@@ -125,7 +123,9 @@ export const getAllAdvertisements = async (
           error instanceof Error &&
           error.message === "Could not geocode city"
         ) {
-          return res.status(400).json({ error: { message: "Could not geocode city" } });
+          return res
+            .status(400)
+            .json({ error: { message: "Could not geocode city" } });
         }
 
         throw error;
@@ -142,7 +142,6 @@ export const getAllAdvertisements = async (
     if ((sortBy === "nearest" || sortBy === "farthest") && !hasCoordinates) {
       sortBy = "newest";
     }
-
 
     const result = await findAdvertisements({
       take,
@@ -204,7 +203,9 @@ export const getAllAdvertisements = async (
     });
   } catch (error) {
     console.error("GET ALL ADVERTISEMENTS ERROR:", error);
-    return res.status(500).json({ error: { message: "Internal server error" } });
+    return res
+      .status(500)
+      .json({ error: { message: "Internal server error" } });
   }
 };
 /**
@@ -223,7 +224,8 @@ export const getAccountNegotiations = async (
   res: Response,
 ) => {
   const account = requireAccount(req, res);
-  if (!account) return res.status(401).json({ error: { message: "Unauthorized" } });
+  if (!account)
+    return res.status(401).json({ error: { message: "Unauthorized" } });
 
   try {
     const result = await findAccountNegotiations({
@@ -254,11 +256,14 @@ export const getAccountNegotiationByAdvertisementAndAgent = async (
   res: Response,
 ) => {
   const account = requireAccount(req, res);
-  if (!account) return res.status(401).json({ error: { message: "Unauthorized" } });
+  if (!account)
+    return res.status(401).json({ error: { message: "Unauthorized" } });
 
   const advertisementId = parsePositiveInt(req.params.advertisementId);
   if (!advertisementId) {
-    return res.status(400).json({ error: { message: "Invalid advertisement id" } });
+    return res
+      .status(400)
+      .json({ error: { message: "Invalid advertisement id" } });
   }
 
   const agentId = parsePositiveInt(req.params.agentId);
@@ -274,7 +279,9 @@ export const getAccountNegotiationByAdvertisementAndAgent = async (
     });
 
     if (!negotiation) {
-      return res.status(404).json({ error: { message: "Negoziazione non trovata" } });
+      return res
+        .status(404)
+        .json({ error: { message: "Negoziazione non trovata" } });
     }
 
     return res.json(negotiation);
@@ -282,7 +289,12 @@ export const getAccountNegotiationByAdvertisementAndAgent = async (
     console.error("Error fetching account negotiation detail:", error);
     return res
       .status(500)
-      .json({ error: { message: "Fallimento nel caricamento delle dettagli della negoziazione" } });
+      .json({
+        error: {
+          message:
+            "Fallimento nel caricamento delle dettagli della negoziazione",
+        },
+      });
   }
 };
 
@@ -310,7 +322,9 @@ export const getAdvertisementById = async (
   try {
     const advertisement = await findAdvertisementById(advertisementId);
     if (!advertisement) {
-      return res.status(404).json({ error: { message: "Annuncio non trovato" } });
+      return res
+        .status(404)
+        .json({ error: { message: "Annuncio non trovato" } });
     }
     return res.json({
       ...advertisement,
@@ -322,7 +336,9 @@ export const getAdvertisementById = async (
     });
   } catch (err) {
     console.error("getAdvertisementById error:", err);
-    return res.status(500).json({ error: { message: "Errore interno del server" } });
+    return res
+      .status(500)
+      .json({ error: { message: "Errore interno del server" } });
   }
 };
 
@@ -346,7 +362,10 @@ export const updatePasswordAccount = async (
 
     if (account.id !== accountId) {
       return res.status(403).json({
-        error: { message: "Forbidden: only the account owner can update their password" },
+        error: {
+          message:
+            "Forbidden: only the account owner can update their password",
+        },
       });
     }
 
@@ -359,14 +378,19 @@ export const updatePasswordAccount = async (
 
     if (newPassword === currentPassword) {
       return res.status(400).json({
-        error: { message: "New password must be different from current password" },
+        error: {
+          message: "New password must be different from current password",
+        },
       });
     }
 
     const fullAccount = await findAccountById(account.id);
     if (!fullAccount?.password) {
       return res.status(404).json({
-        error: { message: "Password non settata per questo account, impossibile aggiornare la password" },
+        error: {
+          message:
+            "Password non settata per questo account, impossibile aggiornare la password",
+        },
       });
     }
 
@@ -439,7 +463,10 @@ export const deleteAccount = async (req: RequestAccount, res: Response) => {
     );
     if (account.id !== accountId) {
       return res.status(403).json({
-        error: { message: "Unauthorized: only the account owner can delete their account" },
+        error: {
+          message:
+            "Unauthorized: only the account owner can delete their account",
+        },
       });
     }
 

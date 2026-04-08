@@ -215,7 +215,7 @@ export const logoutAccount = async (req: RequestAccount, res: Response) => {
   try {
     const account = req.account;
     if (!account) {
-      return res.status(401).json({ error: "Unauthorized" });
+      return res.status(401).json({ error: { message: "Unauthorized" } });
     }
 
     await revokeRefreshToken(account.id, Type.ACCOUNT);
@@ -223,7 +223,7 @@ export const logoutAccount = async (req: RequestAccount, res: Response) => {
     return res.status(200).json({ message: "Logout avvenuto con successo" });
   } catch (error) {
     console.error("Logout error:", error);
-    return res.status(500).json({ error: "Internal server error" });
+    return res.status(500).json({ error: { message: "Internal server error" } });
   }
 };
 /** *  Handle forgot password request for an account by generating a reset token and sending a reset password email to the account's email address.
@@ -266,7 +266,7 @@ export const forgotAccountPassword = async (
     });
   } catch (error) {
     console.error("Forgot account password error:", error);
-    return res.status(500).json({ error: "Internal server error" });
+    return res.status(500).json({ error: { message: "Internal server error" } });
   }
 };
 

@@ -227,7 +227,7 @@ export const createAppointment = async (req: RequestAccount, res: Response) => {
     const appointmentAt = dtRome.toUTC().toJSDate();
     if (!isValidHourlySlotRome(appointmentAt)) {
       return res.status(400).json({
-        error: "L'orario dell'appuntamento deve essere in un'ora intera (es. 14:00) e non nel passato",
+        error: { message: "L'orario dell'appuntamento deve essere in un'ora intera (es. 14:00) e non nel passato" },
       });
     }
 
@@ -235,7 +235,7 @@ export const createAppointment = async (req: RequestAccount, res: Response) => {
     const apptUtc = DateTime.fromJSDate(appointmentAt, { zone: "utc" });
     if (apptUtc <= nowUtc) {
       return res.status(400).json({
-        error: "L'orario dell'appuntamento deve essere nel futuro",
+        error: { message: "L'orario dell'appuntamento deve essere nel futuro" },
       });
     }
 
@@ -251,7 +251,7 @@ export const createAppointment = async (req: RequestAccount, res: Response) => {
     );
     if (existingAppointment) {
       return res.status(409).json({
-        error: "Esiste già una richiesta di appuntamento per questo annuncio da parte di questo account",
+        error: { message: "Esiste già una richiesta di appuntamento per questo annuncio da parte di questo account" },
       });
     }
 
@@ -518,7 +518,7 @@ export const getAppointmentsForAccount = async (
     const parsedStatus = parseStatus(status);
     if (status !== undefined && parsedStatus === null) {
       return res.status(400).json({
-        error: "Invalid status value",
+        error: { message: "Invalid status value" },
       });
     }
 
