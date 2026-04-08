@@ -129,11 +129,15 @@ export const createNewAgencyWithFirstAgent = async (
 
     if (error instanceof Error) {
       if (error.message === "AGENCY_NAME_ALREADY_EXISTS") {
-        return res.status(409).json({ message: "Il nome dell'agenzia esiste già" });
+        return res
+          .status(409)
+          .json({ message: "Il nome dell'agenzia esiste già" });
       }
 
       if (error.message === "AGENCY_EMAIL_ALREADY_EXISTS") {
-        return res.status(409).json({ message: "L'email dell'agenzia esiste già" });
+        return res
+          .status(409)
+          .json({ message: "L'email dell'agenzia esiste già" });
       }
     }
 
@@ -147,8 +151,7 @@ export const createNewAgencyWithFirstAgent = async (
     }
 
     return res.status(500).json({
-      error: "Internal server error",
-      message: error instanceof Error ? error.message : "Unknown error",
+      error: { message: "Impossibile creare l'agenzia" },
       pgCode,
       pgDetail,
     });
