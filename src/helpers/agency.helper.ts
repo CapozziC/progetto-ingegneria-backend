@@ -77,7 +77,7 @@ export const createAgencyLogo = async ({
  */
 export const validateCreateAgencyRequest = (req: Request): string | null => {
   if (!req.body) {
-    return "Request body is required. Use multipart/form-data (Body -> form-data in Postman).";
+    return "Il corpo della richiesta è obbligatorio";
   }
 
   const {
@@ -89,13 +89,18 @@ export const validateCreateAgencyRequest = (req: Request): string | null => {
     agentPhoneNumber,
   } = req.body;
 
-  if (!name || !email || !agencyPhoneNumber) {
-    return "Name, email and agency phone number are required";
-  }
+  const isBlank = (value: unknown) =>
+    typeof value !== "string" || value.trim() === "";
 
-  if (!firstName || !lastName || !agentPhoneNumber) {
-    return "First name, last name and agent phone number are required";
-  }
+  if (isBlank(name)) return "Il nome dell'agenzia è obbligatorio";
+  if (isBlank(email)) return "L'email dell'agenzia è obbligatoria";
+  if (isBlank(agencyPhoneNumber))
+    return "Il telefono dell'agenzia è obbligatorio";
+
+  if (isBlank(firstName)) return "Il nome dell'amministratore è obbligatorio";
+  if (isBlank(lastName)) return "Il cognome dell'amministratore è obbligatorio";
+  if (isBlank(agentPhoneNumber))
+    return "Il telefono dell'amministratore è obbligatorio";
 
   return null;
 };
